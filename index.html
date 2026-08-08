@@ -70,15 +70,9 @@
 
   <!-- 桌面版：左側固定導航欄 -->
   <aside class="hidden md:flex flex-col w-64 bg-card border-r border-border/60 shadow-sm z-20 flex-shrink-0">
-    <div class="p-6 flex items-center justify-between border-b border-border/30">
-      <div class="flex items-center gap-3">
-        <div class="bg-accent text-white p-2 rounded-xl"><i data-lucide="plane" class="w-5 h-5"></i></div>
-        <h1 class="text-lg font-bold text-primary tracking-wide">Trip Planner</h1>
-      </div>
-      <!-- 桌面版：頂部垂直三點選單 -->
-      <button onclick="openModal('dataSyncModal')" class="p-1.5 -mr-1.5 text-primary/60 hover:text-primary hover:bg-bg rounded-lg transition" title="匯出及匯入">
-        <i data-lucide="more-vertical" class="w-5 h-5"></i>
-      </button>
+    <div class="p-6 flex items-center gap-3 border-b border-border/30">
+      <div class="bg-accent text-white p-2 rounded-xl"><i data-lucide="plane" class="w-5 h-5"></i></div>
+      <h1 class="text-lg font-bold text-primary tracking-wide">Trip Planner</h1>
     </div>
     <nav class="flex-1 p-4 space-y-2">
       <button onclick="navigate('dashboard')" id="nav-dashboard" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors font-medium text-primary hover:bg-accent/10">
@@ -104,35 +98,38 @@
 
   <!-- 主視窗佈局 (App Shell) -->
   <div class="flex-1 flex flex-col h-full min-w-0 relative">
-    
-    <!-- 手機版：頂部 Header -->
-    <header id="mobileHeader" class="md:hidden flex-shrink-0 w-full bg-card/90 backdrop-blur-md border-b border-border/50 flex justify-between items-center px-4 z-40 shadow-sm pt-[env(safe-area-inset-top)] h-[calc(3.5rem+env(safe-area-inset-top))]">
-      <div class="flex items-center gap-2.5 w-[calc(100%-30px)]">
-        <div class="bg-accent text-white p-1.5 rounded-lg flex-shrink-0"><i data-lucide="plane" class="w-4 h-4"></i></div>
-        <h1 class="text-[13px] font-bold text-primary truncate tracking-wide" id="mobileHeaderTripName">載入倒數中...</h1>
-      </div>
-      <!-- 手機版：頂部垂直三點選單 -->
-      <button onclick="openModal('dataSyncModal')" class="p-2 -mr-2 text-primary/60 hover:text-primary transition flex-shrink-0">
-        <i data-lucide="more-vertical" class="w-5 h-5"></i>
-      </button>
-    </header>
 
-    <!-- 獨立滑動的主內容區 -->
-    <main id="mainContent" class="flex-1 overflow-y-auto w-full relative bg-bg pb-[120px] md:pb-0 md:pt-0">
+    <!-- 獨立滑動的主內容區 (自動補足 iOS 安全區以防遮擋) -->
+    <main id="mainContent" class="flex-1 overflow-y-auto w-full relative bg-bg pt-[calc(1rem+env(safe-area-inset-top))] md:pt-0 pb-[120px] md:pb-0">
       
-      <!-- View: Dashboard -->
+      <!-- View: Dashboard (首頁) -->
       <div id="view-dashboard" class="p-6 md:p-10 pb-32 hidden">
-        <h2 class="text-2xl font-bold mb-1">我的旅程</h2>
-        <p class="text-sm text-primary/60 mb-8">開始規劃你的下一趟旅行</p>
+        <div class="flex justify-between items-start mb-8">
+          <div>
+            <h2 class="text-2xl font-bold mb-1">我的旅程</h2>
+            <p class="text-sm text-primary/60">開始規劃你的下一趟旅行</p>
+          </div>
+          <!-- 垂直三點選單 (與標題平排) -->
+          <button onclick="openModal('dataSyncModal')" class="p-2 -mr-2 -mt-1 text-primary/60 hover:text-primary transition" title="匯出及匯入">
+            <i data-lucide="more-vertical" class="w-6 h-6"></i>
+          </button>
+        </div>
         <div id="dashboardGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
       </div>
 
-      <!-- View: TripDetail -->
+      <!-- View: TripDetail (行程) -->
       <div id="view-tripDetail" class="p-0 md:p-8 hidden flex-col">
-        <div class="px-6 pt-6 pb-4 md:p-0 md:mb-6">
-          <h2 class="text-2xl font-bold mb-1" id="detailTripName">Lofoten・Norway</h2>
-          <p class="text-sm text-primary/60" id="detailTripCountdown">倒數載入中...</p>
+        <div class="px-6 pt-6 pb-4 md:p-0 md:mb-6 flex justify-between items-start">
+          <div>
+            <h2 class="text-2xl font-bold mb-1" id="detailTripName">Lofoten・Norway</h2>
+            <p class="text-sm text-primary/60" id="detailTripCountdown">倒數載入中...</p>
+          </div>
+          <!-- 垂直三點選單 (與標題平排) -->
+          <button onclick="openModal('dataSyncModal')" class="p-2 -mr-2 -mt-1 text-primary/60 hover:text-primary transition" title="匯出及匯入">
+            <i data-lucide="more-vertical" class="w-6 h-6"></i>
+          </button>
         </div>
+
         <div class="flex flex-col md:flex-row flex-1">
           <div class="md:w-64 flex-shrink-0 border-b md:border-b-0 md:border-r border-border/50 md:pr-6 bg-card md:bg-transparent z-10 sticky top-0">
             <div id="dateScroller" class="flex md:flex-col overflow-x-auto md:overflow-visible scrollbar-hide px-4 py-3 md:px-0 md:py-0 gap-3 md:gap-4"></div>
@@ -149,7 +146,13 @@
 
       <!-- View: Toolbox (行李) -->
       <div id="view-toolbox" class="p-6 md:p-10 pb-32 hidden">
-        <h2 class="text-2xl font-bold mb-6">行李</h2>
+        <div class="flex justify-between items-start mb-6">
+          <h2 class="text-2xl font-bold">行李</h2>
+          <!-- 垂直三點選單 (與標題平排) -->
+          <button onclick="openModal('dataSyncModal')" class="p-2 -mr-2 -mt-1 text-primary/60 hover:text-primary transition" title="匯出及匯入">
+            <i data-lucide="more-vertical" class="w-6 h-6"></i>
+          </button>
+        </div>
         <div class="bg-card rounded-3xl p-6 shadow-sm border border-border/50 max-w-2xl">
           <div class="flex justify-between items-end mb-4">
             <div>
@@ -166,11 +169,19 @@
         </div>
       </div>
 
-      <!-- View: Shopping List -->
+      <!-- View: Shopping List (購物清單) -->
       <div id="view-shopping" class="p-6 md:p-10 pb-32 hidden">
         <div class="max-w-4xl mx-auto flex flex-col">
-          <h2 class="text-2xl font-bold mb-2 flex items-center gap-2"><i data-lucide="shopping-basket" class="w-6 h-6 text-accent"></i> 購物清單</h2>
-          <p class="text-sm text-primary/60 mb-6">記錄這次旅行想買的戰利品</p>
+          <div class="flex justify-between items-start mb-6">
+            <div>
+              <h2 class="text-2xl font-bold mb-2 flex items-center gap-2"><i data-lucide="shopping-basket" class="w-6 h-6 text-accent"></i> 購物清單</h2>
+              <p class="text-sm text-primary/60">記錄這次旅行想買的戰利品</p>
+            </div>
+            <!-- 垂直三點選單 (與標題平排) -->
+            <button onclick="openModal('dataSyncModal')" class="p-2 -mr-2 -mt-1 text-primary/60 hover:text-primary transition" title="匯出及匯入">
+              <i data-lucide="more-vertical" class="w-6 h-6"></i>
+            </button>
+          </div>
           <div id="shoppingListContainer" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 pr-2 content-start"></div>
         </div>
         <button onclick="openModal('addShoppingModal')" class="fixed right-6 z-30 bg-accent text-white p-4 rounded-full shadow-lg hover:shadow-xl transition transform hover:-translate-y-1 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] md:bottom-10 md:right-10">
@@ -215,10 +226,12 @@
       <p class="text-xs text-primary/70 mb-6 leading-relaxed">您可以將目前的行程匯出為備份檔案，或匯入同行者分享的行程檔。</p>
       
       <div class="space-y-3">
+        <!-- 匯出按鈕 -->
         <button onclick="exportJSONData()" class="w-full flex items-center justify-center gap-2 bg-accent text-white py-3.5 rounded-xl text-sm font-bold shadow-sm hover:bg-accent/90 transition">
           <i data-lucide="download" class="w-4 h-4"></i> 匯出
         </button>
         
+        <!-- 匯入按鈕 -->
         <label for="importJsonFile" class="w-full flex items-center justify-center gap-2 bg-bg border border-border text-primary py-3.5 rounded-xl text-sm font-bold shadow-sm cursor-pointer hover:bg-border/30 transition">
           <i data-lucide="upload" class="w-4 h-4 text-accent"></i> 匯入
           <input type="file" id="importJsonFile" accept=".json" class="hidden" onchange="importJSONData(event)">
@@ -464,18 +477,16 @@
     let activeDay = 1, deleteTargetId = null, sortableInstance = null, currentUploadImageBase64 = '';
     const typeConfig = { flight: { icon: 'plane' }, sightseeing: { icon: 'camera' }, accommodation: { icon: 'hotel' }, food: { icon: 'utensils' }, shopping: { icon: 'shopping-bag' }, transport: { icon: 'train-front' }, other: { icon: 'map-pin' } };
 
-    // === 全域動態倒數計時引擎 ===
+    // === 全域動態倒數計時引擎 (只保留行程頁標題的更新) ===
     let globalCountdownTimer = null;
     function startGlobalCountdown() {
       if (globalCountdownTimer) clearInterval(globalCountdownTimer);
       
       function update() {
-        const headerEl = document.getElementById('mobileHeaderTripName');
         const detailNameEl = document.getElementById('detailTripName');
         const detailCountEl = document.getElementById('detailTripCountdown');
         
         if (tripsData.length === 0) {
-           if (headerEl) headerEl.innerText = '尚無即將到來的旅程';
            if (detailNameEl) detailNameEl.innerText = '尚無旅程';
            if (detailCountEl) detailCountEl.innerText = '';
            return;
@@ -502,7 +513,6 @@
            countText = `${d}天 ${hh}:${mm}:${ss}`;
         }
 
-        if (headerEl) headerEl.innerText = `距離"${nextTrip.name}" ${countText}`;
         if (detailNameEl) detailNameEl.innerText = nextTrip.name;
         if (detailCountEl) detailCountEl.innerText = `倒數 ${countText}`;
       }
@@ -590,18 +600,6 @@
       
       activeView.classList.add('view-enter');
       setTimeout(() => activeView.classList.remove('view-enter'), 300);
-
-      const mobileHeader = document.getElementById('mobileHeader');
-      const mainContent = document.getElementById('mainContent');
-      if (mobileHeader && mainContent) {
-        if (viewId === 'dashboard') {
-          mobileHeader.style.display = '';
-          mainContent.style.paddingTop = '0px';
-        } else {
-          mobileHeader.style.display = 'none';
-          mainContent.style.paddingTop = 'env(safe-area-inset-top)';
-        }
-      }
     }
 
     function renderDashboard() {
