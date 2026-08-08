@@ -36,20 +36,35 @@
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
   <style>
+    /* 核心佈局鎖定 */
     html, body { height: 100%; height: 100dvh; width: 100%; background-color: #F8F9FA; color: #696969; -webkit-tap-highlight-color: transparent; overflow: hidden; }
-    
     .scrollbar-hide::-webkit-scrollbar { display: none; }
     .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
     .sortable-ghost { opacity: 0.4; }
     .view-enter { animation: fadeIn 0.3s ease-in-out forwards; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     
-    /* 解決隱形空白橫條：將安全區放入滑動內容中，讓文字滑順穿越劉海 */
-    .safe-pt-dashboard { padding-top: calc(env(safe-area-inset-top) + 1.25rem); }
-    @media (min-width: 768px) { .safe-pt-dashboard { padding-top: 2.5rem !important; } }
-    
-    .safe-pt-trip { padding-top: calc(env(safe-area-inset-top) + 1.25rem); }
-    @media (min-width: 768px) { .safe-pt-trip { padding-top: 0 !important; } }
+    /* === 終極原生 Sticky Header 樣式 === */
+    .app-header {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      background-color: rgba(248, 249, 250, 0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      padding-top: max(1.25rem, env(safe-area-inset-top));
+      border-bottom: 1px solid rgba(224, 217, 206, 0.5);
+    }
+    @media (min-width: 768px) {
+      .app-header {
+        position: static;
+        background-color: transparent;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        padding-top: 0;
+        border-bottom: none;
+      }
+    }
 
     /* Flatpickr 客製化 */
     .flatpickr-calendar, .flatpickr-calendar * { font-family: 'Inter', 'Noto Sans JP', sans-serif !important; }
@@ -112,44 +127,49 @@
   <!-- 主視窗佈局 (App Shell) -->
   <div class="flex-1 flex flex-col h-full min-w-0 relative">
 
-    <!-- 獨立滑動的主內容區 (完全無外層 padding，保證滑動時穿越劉海) -->
-    <main id="mainContent" class="flex-1 overflow-y-auto w-full relative bg-bg pb-[120px] md:pb-0">
+    <!-- 獨立滑動的主內容區 (完全無 padding，由內部的 app-header 負責保護安全區) -->
+    <main id="mainContent" class="flex-1 overflow-y-auto w-full relative bg-bg">
       
       <!-- View: Dashboard (首頁) -->
-      <div id="view-dashboard" class="px-6 pb-32 md:px-10 md:pb-10 hidden safe-pt-dashboard">
-        <div class="flex justify-between items-start mb-6">
-          <div>
+      <div id="view-dashboard" class="hidden flex-col min-h-full">
+        <div class="app-header px-6 pb-3 md:px-10 md:pt-10 flex justify-between items-start">
+          <div class="mt-1 md:mt-0">
             <h2 class="text-2xl font-bold mb-1">我的旅程</h2>
             <p class="text-sm text-primary/60">開始規劃你的下一趟旅行</p>
           </div>
-          <!-- 垂直三點選單 (與標題平排) -->
-          <button onclick="openModal('dataSyncModal')" class="p-2 -mr-2 -mt-1 text-primary/60 hover:text-primary transition md:hidden" title="匯出及匯入">
+          <button onclick="openModal('dataSyncModal')" class="p-2 -mr-2 text-primary/60 hover:text-primary transition md:hidden" title="匯出及匯入">
             <i data-lucide="more-vertical" class="w-6 h-6"></i>
           </button>
         </div>
-        <div id="dashboardGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        <div class="px-6 md:px-10 pt-6 pb-32 flex-1">
+          <div id="dashboardGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        </div>
       </div>
 
       <!-- View: TripDetail (行程) -->
-      <div id="view-tripDetail" class="p-0 md:p-8 hidden flex-col">
-        <div class="px-6 pb-4 md:p-0 md:mb-6 flex justify-between items-start safe-pt-trip">
-          <div>
-            <h2 class="text-2xl font-bold mb-1" id="detailTripName">Lofoten・Norway</h2>
-            <p class="text-sm text-primary/60" id="detailTripCountdown">倒數載入中...</p>
+      <div id="view-tripDetail" class="hidden flex-col min-h-full">
+        <div class="app-header flex flex-col md:px-8 md:pt-10 md:mb-6">
+          <div class="px-6 pb-2 md:px-0 md:pb-0 flex justify-between items-start">
+            <div class="mt-1 md:mt-0">
+              <h2 class="text-2xl font-bold mb-1" id="detailTripName">Lofoten・Norway</h2>
+              <p class="text-sm text-primary/60" id="detailTripCountdown">倒數載入中...</p>
+            </div>
+            <button onclick="openModal('dataSyncModal')" class="p-2 -mr-2 text-primary/60 hover:text-primary transition md:hidden" title="匯出及匯入">
+              <i data-lucide="more-vertical" class="w-6 h-6"></i>
+            </button>
           </div>
-          <!-- 垂直三點選單 (與標題平排) -->
-          <button onclick="openModal('dataSyncModal')" class="p-2 -mr-2 -mt-1 text-primary/60 hover:text-primary transition md:hidden" title="匯出及匯入">
-            <i data-lucide="more-vertical" class="w-6 h-6"></i>
-          </button>
+          <!-- 手機版 Date Scroller (隨 Header 一起置頂) -->
+          <div id="dateScrollerMobile" class="md:hidden flex overflow-x-auto scrollbar-hide px-4 py-1.5 gap-3"></div>
         </div>
 
-        <div class="flex flex-col md:flex-row flex-1">
-          <div class="md:w-64 flex-shrink-0 border-b md:border-b-0 md:border-r border-border/50 md:pr-6 bg-card md:bg-transparent z-10 sticky top-0">
-            <div id="dateScroller" class="flex md:flex-col overflow-x-auto md:overflow-visible scrollbar-hide px-4 py-3 md:px-0 md:py-0 gap-3 md:gap-4"></div>
+        <div class="flex flex-col md:flex-row flex-1 px-0 md:px-8">
+          <!-- 桌面版 Date Scroller -->
+          <div class="hidden md:block w-64 flex-shrink-0 border-r border-border/50 pr-6 sticky top-0">
+            <div id="dateScrollerDesktop" class="flex flex-col gap-4"></div>
           </div>
-          <div class="flex-1 p-4 md:pl-8 md:py-0">
+          <div class="flex-1 px-4 md:pl-8 pt-4 md:pt-0 pb-32">
             <div id="weatherHeader" class="bg-card rounded-2xl p-4 mb-6 shadow-sm border border-border/50 flex justify-between items-center"></div>
-            <div id="itineraryList" class="space-y-0 pb-32"></div>
+            <div id="itineraryList" class="space-y-0"></div>
           </div>
         </div>
         <button onclick="openModal('activityModal')" class="fixed right-6 z-30 bg-accent text-white p-4 rounded-full shadow-lg hover:shadow-xl transition transform hover:-translate-y-1 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] md:bottom-8 md:right-8">
@@ -158,43 +178,45 @@
       </div>
 
       <!-- View: Toolbox (行李) -->
-      <div id="view-toolbox" class="px-6 pb-32 md:px-10 md:pb-10 hidden safe-pt-dashboard">
-        <div class="flex justify-between items-start mb-6">
-          <h2 class="text-2xl font-bold">行李</h2>
-          <!-- 垂直三點選單 (與標題平排) -->
-          <button onclick="openModal('dataSyncModal')" class="p-2 -mr-2 -mt-1 text-primary/60 hover:text-primary transition md:hidden" title="匯出及匯入">
+      <div id="view-toolbox" class="hidden flex-col min-h-full">
+        <div class="app-header px-6 pb-3 md:px-10 md:pt-10 flex justify-between items-start">
+          <div class="mt-1 md:mt-0">
+            <h2 class="text-2xl font-bold">行李</h2>
+          </div>
+          <button onclick="openModal('dataSyncModal')" class="p-2 -mr-2 text-primary/60 hover:text-primary transition md:hidden" title="匯出及匯入">
             <i data-lucide="more-vertical" class="w-6 h-6"></i>
           </button>
         </div>
-        <div class="bg-card rounded-3xl p-6 shadow-sm border border-border/50 max-w-2xl">
-          <div class="flex justify-between items-end mb-4">
-            <div>
-              <h3 class="text-lg font-bold flex items-center gap-2"><i data-lucide="check-square" class="w-5 h-5 text-accent"></i> 出發前檢查清單</h3>
-              <p class="text-xs text-primary/60 mt-1" id="checkProgressText">已完成 0 項</p>
+        <div class="px-6 md:px-10 pt-6 pb-32 flex-1">
+          <div class="bg-card rounded-3xl p-6 shadow-sm border border-border/50 max-w-2xl">
+            <div class="flex justify-between items-end mb-4">
+              <div>
+                <h3 class="text-lg font-bold flex items-center gap-2"><i data-lucide="check-square" class="w-5 h-5 text-accent"></i> 出發前檢查清單</h3>
+                <p class="text-xs text-primary/60 mt-1" id="checkProgressText">已完成 0 項</p>
+              </div>
             </div>
-          </div>
-          <div class="w-full bg-bg rounded-full h-2 mb-6"><div id="checkProgressBar" class="bg-accent h-2 rounded-full transition-all" style="width: 0%"></div></div>
-          <div id="checklistItems" class="space-y-3 mb-6"></div>
-          <div class="flex gap-2">
-            <input type="text" id="newCheckItem" class="flex-1 border border-border rounded-xl p-2.5 text-sm bg-bg outline-none focus:border-accent" placeholder="新增自訂項目...">
-            <button onclick="addCheckItem()" class="bg-accent/10 text-accent px-4 py-2.5 rounded-xl font-bold text-sm hover:bg-accent hover:text-white transition">新增</button>
+            <div class="w-full bg-bg rounded-full h-2 mb-6"><div id="checkProgressBar" class="bg-accent h-2 rounded-full transition-all" style="width: 0%"></div></div>
+            <div id="checklistItems" class="space-y-3 mb-6"></div>
+            <div class="flex gap-2">
+              <input type="text" id="newCheckItem" class="flex-1 border border-border rounded-xl p-2.5 text-sm bg-bg outline-none focus:border-accent" placeholder="新增自訂項目...">
+              <button onclick="addCheckItem()" class="bg-accent/10 text-accent px-4 py-2.5 rounded-xl font-bold text-sm hover:bg-accent hover:text-white transition">新增</button>
+            </div>
           </div>
         </div>
       </div>
 
       <!-- View: Shopping List (購物清單) -->
-      <div id="view-shopping" class="px-6 pb-32 md:px-10 md:pb-10 hidden safe-pt-dashboard">
-        <div class="max-w-4xl mx-auto flex flex-col">
-          <div class="flex justify-between items-start mb-6">
-            <div>
-              <h2 class="text-2xl font-bold mb-2 flex items-center gap-2"><i data-lucide="shopping-basket" class="w-6 h-6 text-accent"></i> 購物清單</h2>
-              <p class="text-sm text-primary/60">記錄這次旅行想買的戰利品</p>
-            </div>
-            <!-- 垂直三點選單 (與標題平排) -->
-            <button onclick="openModal('dataSyncModal')" class="p-2 -mr-2 -mt-1 text-primary/60 hover:text-primary transition md:hidden" title="匯出及匯入">
-              <i data-lucide="more-vertical" class="w-6 h-6"></i>
-            </button>
+      <div id="view-shopping" class="hidden flex-col min-h-full">
+        <div class="app-header px-6 pb-3 md:px-10 md:pt-10 flex justify-between items-start w-full">
+          <div class="mt-1 md:mt-0">
+            <h2 class="text-2xl font-bold mb-1 flex items-center gap-2"><i data-lucide="shopping-basket" class="w-6 h-6 text-accent"></i> 購物清單</h2>
+            <p class="text-sm text-primary/60">記錄這次旅行想買的戰利品</p>
           </div>
+          <button onclick="openModal('dataSyncModal')" class="p-2 -mr-2 text-primary/60 hover:text-primary transition md:hidden" title="匯出及匯入">
+            <i data-lucide="more-vertical" class="w-6 h-6"></i>
+          </button>
+        </div>
+        <div class="px-6 md:px-10 pt-6 pb-32 flex-1 w-full max-w-5xl mx-auto">
           <div id="shoppingListContainer" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 pr-2 content-start"></div>
         </div>
         <button onclick="openModal('addShoppingModal')" class="fixed right-6 z-30 bg-accent text-white p-4 rounded-full shadow-lg hover:shadow-xl transition transform hover:-translate-y-1 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] md:bottom-10 md:right-10">
@@ -697,8 +719,7 @@
     }
 
     function renderDateScroller() {
-      const scroller = document.getElementById('dateScroller');
-      scroller.innerHTML = daysData.map(day => {
+      const html = daysData.map(day => {
         const isActive = day.id === activeDay;
         const count = itineraryData.filter(i => i.dayId === day.id).length;
         const baseClass = "flex md:flex-row flex-col items-center md:items-start justify-center md:justify-between min-w-[95px] md:w-full py-2 md:p-3 rounded-2xl md:rounded-xl cursor-pointer transition-all border";
@@ -710,6 +731,11 @@
           </div>
         `;
       }).join('');
+      
+      const scrollerM = document.getElementById('dateScrollerMobile');
+      const scrollerD = document.getElementById('dateScrollerDesktop');
+      if (scrollerM) scrollerM.innerHTML = html;
+      if (scrollerD) scrollerD.innerHTML = html;
       lucide.createIcons();
     }
 
@@ -936,4 +962,3 @@
   </script>
 </body>
 </html>
-
