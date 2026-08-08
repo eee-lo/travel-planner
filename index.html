@@ -102,20 +102,18 @@
     </div>
   </aside>
 
-  <!-- 主視窗佈局 (還原純粹滑動設計，去除一切多餘空白) -->
+  <!-- 主視窗佈局 -->
   <div class="flex-1 flex flex-col h-full min-w-0 relative">
 
     <main id="mainContent" class="flex-1 overflow-y-auto w-full relative bg-bg pb-[100px] md:pb-0">
       
       <!-- View: Dashboard (首頁) -->
-      <!-- 頂部僅保留 12px 的呼吸空間與必要的 iOS 安全距離 -->
       <div id="view-dashboard" class="px-5 pt-[calc(env(safe-area-inset-top)+12px)] md:p-10 hidden flex-col">
         <div class="flex justify-between items-start mb-6">
           <div>
             <h2 class="text-2xl font-bold mb-1">我的旅程</h2>
             <p class="text-sm text-primary/60">開始規劃你的下一趟旅行</p>
           </div>
-          <!-- 垂直三點選單 (與標題完全平排) -->
           <button onclick="openModal('dataSyncModal')" class="p-1.5 -mr-1.5 text-primary/60 hover:text-primary transition md:hidden" title="匯出及匯入">
             <i data-lucide="more-vertical" class="w-6 h-6"></i>
           </button>
@@ -130,7 +128,6 @@
             <h2 class="text-2xl font-bold mb-1" id="detailTripName">Lofoten・Norway</h2>
             <p class="text-sm text-primary/60" id="detailTripCountdown">倒數載入中...</p>
           </div>
-          <!-- 垂直三點選單 (與標題完全平排) -->
           <button onclick="openModal('dataSyncModal')" class="p-1.5 -mr-1.5 text-primary/60 hover:text-primary transition md:hidden" title="匯出及匯入">
             <i data-lucide="more-vertical" class="w-6 h-6"></i>
           </button>
@@ -154,7 +151,6 @@
       <div id="view-toolbox" class="px-5 pt-[calc(env(safe-area-inset-top)+12px)] md:p-10 hidden flex-col">
         <div class="flex justify-between items-start mb-6">
           <h2 class="text-2xl font-bold">行李</h2>
-          <!-- 垂直三點選單 (與標題完全平排) -->
           <button onclick="openModal('dataSyncModal')" class="p-1.5 -mr-1.5 text-primary/60 hover:text-primary transition md:hidden" title="匯出及匯入">
             <i data-lucide="more-vertical" class="w-6 h-6"></i>
           </button>
@@ -178,18 +174,31 @@
       <!-- View: Shopping List (購物清單) -->
       <div id="view-shopping" class="px-5 pt-[calc(env(safe-area-inset-top)+12px)] md:p-10 hidden flex-col">
         <div class="max-w-4xl mx-auto flex flex-col w-full">
-          <div class="flex justify-between items-start mb-6">
+          <!-- 標題與選項 -->
+          <div class="flex justify-between items-start mb-2">
             <div>
               <h2 class="text-2xl font-bold mb-2 flex items-center gap-2"><i data-lucide="shopping-basket" class="w-6 h-6 text-accent"></i> 購物清單</h2>
               <p class="text-sm text-primary/60">記錄這次旅行想買的戰利品</p>
             </div>
-            <!-- 垂直三點選單 (與標題完全平排) -->
             <button onclick="openModal('dataSyncModal')" class="p-1.5 -mr-1.5 text-primary/60 hover:text-primary transition md:hidden" title="匯出及匯入">
               <i data-lucide="more-vertical" class="w-6 h-6"></i>
             </button>
           </div>
-          <div id="shoppingListContainer" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 pr-1 content-start"></div>
+          
+          <!-- 新增：待購買與已購買切換分頁 -->
+          <div class="flex items-center gap-6 border-b border-border/60 mb-6 mt-4">
+            <button onclick="switchShoppingTab('to-buy')" id="tab-to-buy" class="pb-3 border-b-2 border-accent text-accent font-bold transition flex items-center gap-2 text-sm">
+              <span id="count-to-buy" class="bg-accent text-white text-[10px] px-2 py-0.5 rounded-full font-bold">0</span> 待購買
+            </button>
+            <button onclick="switchShoppingTab('purchased')" id="tab-purchased" class="pb-3 border-b-2 border-transparent text-primary/50 font-medium transition flex items-center gap-2 text-sm">
+              <span id="count-purchased" class="bg-primary/20 text-primary text-[10px] px-2 py-0.5 rounded-full font-bold">0</span> 已購買
+            </button>
+          </div>
+
+          <!-- 購物清單長條形容器 -->
+          <div id="shoppingListContainer" class="flex flex-col gap-3 pr-1 pb-10"></div>
         </div>
+        
         <button onclick="openModal('addShoppingModal')" class="fixed right-6 z-30 bg-accent text-white p-4 rounded-full shadow-lg hover:shadow-xl transition transform hover:-translate-y-1 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] md:bottom-10 md:right-10">
           <i data-lucide="plus" class="w-6 h-6"></i>
         </button>
@@ -273,15 +282,16 @@
     </div>
   </div>
 
-  <!-- 2. 新增購物商品 -->
+  <!-- 2. 新增/編輯 購物商品 -->
   <div id="addShoppingModal" class="fixed inset-0 z-[60] hidden flex justify-center items-end md:items-center">
     <div class="absolute inset-0 bg-primary/40 backdrop-blur-sm" onclick="closeModal('addShoppingModal')"></div>
     <div class="relative bg-card w-full md:w-[400px] rounded-t-3xl md:rounded-3xl p-6 shadow-2xl z-10 transition-transform transform translate-y-full md:translate-y-0 pb-[calc(24px+env(safe-area-inset-bottom))] md:pb-6" id="addShoppingModalContent">
       <div class="flex justify-between items-center mb-6">
-        <h3 class="text-lg font-bold text-primary">新增購買商品</h3>
+        <h3 id="shoppingModalTitle" class="text-lg font-bold text-primary">新增購買商品</h3>
         <button onclick="closeModal('addShoppingModal')" class="text-primary/60 hover:text-primary"><i data-lucide="x" class="w-6 h-6"></i></button>
       </div>
       <form id="shoppingForm" class="space-y-4" onsubmit="saveShoppingItem(event)">
+        <input type="hidden" id="editShoppingId">
         <div>
           <label class="block text-xs font-medium mb-2 text-primary/70">商品照片 (可拍照或上傳)</label>
           <div class="flex flex-col items-center justify-center w-full">
@@ -297,7 +307,10 @@
           <label class="block text-xs font-medium mb-1 text-primary/70">商品名稱</label>
           <input type="text" id="sName" required class="w-full border border-border rounded-xl p-2.5 text-sm bg-bg outline-none focus:border-accent text-primary">
         </div>
-        <button type="submit" class="w-full bg-accent text-white py-3 rounded-xl text-sm font-bold shadow-sm mt-2">加入清單</button>
+        <div class="pt-4 flex gap-3">
+          <button type="button" id="deleteShoppingBtn" onclick="deleteShoppingItemFromModal()" class="hidden w-1/3 bg-red-50 text-red-500 py-3 rounded-xl text-sm font-bold border border-red-100">刪除</button>
+          <button type="submit" class="flex-1 bg-accent text-white py-3 rounded-xl text-sm font-bold shadow-sm">儲存</button>
+        </div>
       </form>
     </div>
   </div>
@@ -835,13 +848,96 @@
     function addCheckItem() { const input = document.getElementById('newCheckItem'); if(input.value.trim() === '') return; checklistData.push({ id: Date.now(), text: input.value, done: false }); input.value = ''; renderChecklist(); saveLocalData(); }
     function deleteCheckItem(id) { checklistData = checklistData.filter(i => i.id !== id); renderChecklist(); saveLocalData(); }
 
+    // === 購物清單：雙分頁與編輯功能 ===
+    let currentShoppingTab = 'to-buy';
+
+    function switchShoppingTab(tab) {
+        currentShoppingTab = tab;
+        
+        const btnToBuy = document.getElementById('tab-to-buy');
+        const btnPurchased = document.getElementById('tab-purchased');
+        const countToBuy = document.getElementById('count-to-buy');
+        const countPurchased = document.getElementById('count-purchased');
+
+        if (tab === 'to-buy') {
+            btnToBuy.classList.add('text-accent', 'border-accent', 'font-bold');
+            btnToBuy.classList.remove('text-primary/50', 'border-transparent', 'font-medium');
+            countToBuy.classList.add('bg-accent', 'text-white');
+            countToBuy.classList.remove('bg-primary/20', 'text-primary');
+            
+            btnPurchased.classList.add('text-primary/50', 'border-transparent', 'font-medium');
+            btnPurchased.classList.remove('text-accent', 'border-accent', 'font-bold');
+            countPurchased.classList.add('bg-primary/20', 'text-primary');
+            countPurchased.classList.remove('bg-accent', 'text-white');
+        } else {
+            btnPurchased.classList.add('text-accent', 'border-accent', 'font-bold');
+            btnPurchased.classList.remove('text-primary/50', 'border-transparent', 'font-medium');
+            countPurchased.classList.add('bg-accent', 'text-white');
+            countPurchased.classList.remove('bg-primary/20', 'text-primary');
+            
+            btnToBuy.classList.add('text-primary/50', 'border-transparent', 'font-medium');
+            btnToBuy.classList.remove('text-accent', 'border-accent', 'font-bold');
+            countToBuy.classList.add('bg-primary/20', 'text-primary');
+            countToBuy.classList.remove('bg-accent', 'text-white');
+        }
+        
+        renderShoppingList();
+    }
+
+    function toggleShoppingItem(id) {
+        const item = shoppingData.find(i => i.id === id);
+        if(item) {
+            item.purchased = !item.purchased;
+            saveLocalData();
+            renderShoppingList();
+        }
+    }
+
+    function deleteShoppingItemFromModal() {
+        const id = document.getElementById('editShoppingId').value;
+        if(id) {
+            shoppingData = shoppingData.filter(i => i.id !== Number(id));
+            saveLocalData();
+            renderShoppingList();
+            closeModal('addShoppingModal');
+        }
+    }
+
     function renderShoppingList() {
+      const toBuyItems = shoppingData.filter(i => !i.purchased);
+      const purchasedItems = shoppingData.filter(i => i.purchased);
+      
+      document.getElementById('count-to-buy').innerText = toBuyItems.length;
+      document.getElementById('count-purchased').innerText = purchasedItems.length;
+      
+      const displayItems = currentShoppingTab === 'to-buy' ? toBuyItems : purchasedItems;
       const container = document.getElementById('shoppingListContainer');
-      if (shoppingData.length === 0) return container.innerHTML = `<div class="col-span-full text-center py-10 text-primary/50 text-sm">目前沒有購物清單，點擊右下角 + 新增目標。</div>`;
-      container.innerHTML = shoppingData.map(item => {
-        const imgHtml = item.image ? `<img src="${item.image}" class="w-full h-32 object-cover" alt="${item.name}">` : `<div class="w-full h-32 bg-border/30 flex items-center justify-center"><i data-lucide="shopping-bag" class="w-8 h-8 text-primary/30"></i></div>`;
-        return `<div class="bg-card rounded-2xl overflow-hidden shadow-sm border border-border/50 relative group">${imgHtml}<div class="p-3"><h4 class="font-bold text-sm text-primary truncate" title="${item.name}">${item.name}</h4></div><button onclick="deleteShoppingItem(${item.id})" class="absolute top-2 right-2 bg-black/40 text-white p-1.5 rounded-full opacity-100 md:opacity-0 md:group-hover:opacity-100 transition backdrop-blur-sm"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button></div>`;
+      
+      if (displayItems.length === 0) {
+          container.innerHTML = `<div class="col-span-full text-center py-10 text-primary/50 text-sm">目前沒有商品，點擊右下角 + 新增目標。</div>`;
+          return;
+      }
+      
+      container.innerHTML = displayItems.map(item => {
+          const imgHtml = item.image 
+              ? `<img src="${item.image}" class="w-full h-full object-cover">` 
+              : `<i data-lucide="shopping-bag" class="w-6 h-6 text-primary/30"></i>`;
+              
+          return `
+          <div class="bg-card rounded-2xl p-3 flex items-center shadow-sm border border-border/50 gap-3">
+              <input type="checkbox" ${item.purchased ? 'checked' : ''} onchange="toggleShoppingItem(${item.id})" class="w-5 h-5 accent-accent flex-shrink-0 cursor-pointer rounded">
+              <div class="w-14 h-14 bg-bg rounded-xl border border-border/30 overflow-hidden flex-shrink-0 flex items-center justify-center">
+                  ${imgHtml}
+              </div>
+              <div class="flex-1 min-w-0">
+                  <h4 class="font-bold text-sm text-primary truncate ${item.purchased ? 'line-through opacity-50' : ''}" title="${item.name}">${item.name}</h4>
+              </div>
+              <button onclick="openModal('addShoppingModal', ${item.id})" class="p-2 -mr-2 text-primary/40 hover:text-primary transition flex-shrink-0">
+                  <i data-lucide="more-vertical" class="w-5 h-5"></i>
+              </button>
+          </div>`;
       }).join('');
+      
       lucide.createIcons();
     }
 
@@ -882,9 +978,35 @@
         });
       }
     }
+    
     function removePreviewImage() { currentUploadImageBase64 = ''; document.getElementById('dropzone-file').value = ''; document.getElementById('imagePreview').src = ''; document.getElementById('imagePreview').classList.add('hidden'); document.getElementById('uploadPlaceholder').classList.remove('hidden'); document.getElementById('removeImgBtn').classList.add('hidden'); }
-    function saveShoppingItem(e) { e.preventDefault(); shoppingData.push({ id: Date.now(), name: document.getElementById('sName').value, image: currentUploadImageBase64 }); saveLocalData(); closeModal('addShoppingModal'); renderShoppingList(); }
-    function deleteShoppingItem(id) { if(confirm('確定要移除此商品？')) { shoppingData = shoppingData.filter(i => i.id !== id); saveLocalData(); renderShoppingList(); } }
+    
+    function saveShoppingItem(e) { 
+      e.preventDefault(); 
+      const editId = document.getElementById('editShoppingId').value;
+      const name = document.getElementById('sName').value;
+      
+      if (editId) {
+          const idx = shoppingData.findIndex(i => i.id === Number(editId));
+          if(idx > -1) {
+              shoppingData[idx].name = name;
+              if (currentUploadImageBase64 !== '') {
+                  shoppingData[idx].image = currentUploadImageBase64;
+              }
+          }
+      } else {
+          shoppingData.push({ 
+              id: Date.now(), 
+              name: name, 
+              image: currentUploadImageBase64,
+              purchased: false
+          }); 
+      }
+      
+      saveLocalData(); 
+      closeModal('addShoppingModal'); 
+      renderShoppingList(); 
+    }
 
     function openModal(modalId, id = null) {
       document.getElementById(modalId).classList.remove('hidden');
@@ -910,7 +1032,31 @@
           document.getElementById('editTripId').value = '';
         }
       }
-      else if (modalId === 'addShoppingModal') { document.getElementById('shoppingForm').reset(); removePreviewImage(); }
+      else if (modalId === 'addShoppingModal') { 
+        const form = document.getElementById('shoppingForm');
+        if (id) {
+          document.getElementById('shoppingModalTitle').innerText = '編輯商品';
+          document.getElementById('deleteShoppingBtn').classList.remove('hidden');
+          const item = shoppingData.find(i => i.id === id);
+          document.getElementById('editShoppingId').value = item.id;
+          document.getElementById('sName').value = item.name;
+          currentUploadImageBase64 = item.image || '';
+          if (currentUploadImageBase64) {
+             document.getElementById('imagePreview').src = currentUploadImageBase64;
+             document.getElementById('imagePreview').classList.remove('hidden');
+             document.getElementById('uploadPlaceholder').classList.add('hidden');
+             document.getElementById('removeImgBtn').classList.remove('hidden');
+          } else {
+             removePreviewImage();
+          }
+        } else {
+          document.getElementById('shoppingModalTitle').innerText = '新增購買商品';
+          document.getElementById('deleteShoppingBtn').classList.add('hidden');
+          form.reset(); 
+          document.getElementById('editShoppingId').value = '';
+          removePreviewImage(); 
+        }
+      }
       else if (modalId === 'activityModal') {
         const form = document.getElementById('activityForm');
         if (id) {
