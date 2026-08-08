@@ -2,7 +2,6 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <!-- 支援 iOS 瀏海與底部安全區域 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Travel Planner App</title>
   
@@ -45,13 +44,12 @@
     .view-enter { animation: fadeIn 0.3s ease-in-out forwards; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     
-    /* === Flatpickr 極簡深度完美對齊客製化 === */
+    /* Flatpickr 客製化 */
     .flatpickr-calendar, .flatpickr-calendar * { font-family: 'Inter', 'Noto Sans JP', sans-serif !important; }
     .flatpickr-calendar { box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important; border: 1px solid #E0D9CE !important; border-radius: 1rem !important; padding-bottom: 8px !important; }
     .flatpickr-day.selected, .flatpickr-day.startRange, .flatpickr-day.endRange, .flatpickr-day.selected.inRange, .flatpickr-day.startRange.inRange, .flatpickr-day.endRange.inRange, .flatpickr-day.selected:focus, .flatpickr-day.startRange:focus, .flatpickr-day.endRange:focus, .flatpickr-day.selected:hover, .flatpickr-day.startRange:hover, .flatpickr-day.endRange:hover, .flatpickr-day.selected.prevMonthDay, .flatpickr-day.startRange.prevMonthDay, .flatpickr-day.endRange.prevMonthDay, .flatpickr-day.selected.nextMonthDay, .flatpickr-day.startRange.nextMonthDay, .flatpickr-day.endRange.nextMonthDay { background: #9EB1B8 !important; border-color: #9EB1B8 !important; }
     
     .flatpickr-months { display: flex !important; align-items: center !important; justify-content: space-between !important; padding: 12px 14px 0 14px !important; background: transparent !important; height: 50px !important; box-sizing: border-box !important; }
-    
     .flatpickr-months .flatpickr-prev-month, .flatpickr-months .flatpickr-next-month { position: static !important; display: flex !important; align-items: center !important; justify-content: center !important; width: 28px !important; height: 28px !important; padding: 0 !important; margin: 0 !important; border-radius: 0.375rem !important; background: #FFFFFF !important; border: 1px solid #E0D9CE !important; box-shadow: 0 1px 2px rgba(0,0,0,0.05) !important; }
     .flatpickr-months .flatpickr-prev-month svg, .flatpickr-months .flatpickr-next-month svg { width: 14px !important; height: 14px !important; fill: #696969 !important; }
     .flatpickr-months .flatpickr-prev-month:hover, .flatpickr-months .flatpickr-next-month:hover { background: #F8F9FA !important; }
@@ -72,9 +70,15 @@
 
   <!-- 桌面版：左側固定導航欄 -->
   <aside class="hidden md:flex flex-col w-64 bg-card border-r border-border/60 shadow-sm z-20 flex-shrink-0">
-    <div class="p-6 flex items-center gap-3 border-b border-border/30">
-      <div class="bg-accent text-white p-2 rounded-xl"><i data-lucide="plane" class="w-5 h-5"></i></div>
-      <h1 class="text-lg font-bold text-primary tracking-wide">Trip Planner</h1>
+    <div class="p-6 flex items-center justify-between border-b border-border/30">
+      <div class="flex items-center gap-3">
+        <div class="bg-accent text-white p-2 rounded-xl"><i data-lucide="plane" class="w-5 h-5"></i></div>
+        <h1 class="text-lg font-bold text-primary tracking-wide">Trip Planner</h1>
+      </div>
+      <!-- 桌面版：頂部垂直三點選單 -->
+      <button onclick="openModal('dataSyncModal')" class="p-1.5 -mr-1.5 text-primary/60 hover:text-primary hover:bg-bg rounded-lg transition" title="匯出及匯入">
+        <i data-lucide="more-vertical" class="w-5 h-5"></i>
+      </button>
     </div>
     <nav class="flex-1 p-4 space-y-2">
       <button onclick="navigate('dashboard')" id="nav-dashboard" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors font-medium text-primary hover:bg-accent/10">
@@ -101,18 +105,22 @@
   <!-- 主視窗佈局 (App Shell) -->
   <div class="flex-1 flex flex-col h-full min-w-0 relative">
     
-    <!-- 手機版：頂部 Header (動態倒數計時器，僅首頁顯示) -->
+    <!-- 手機版：頂部 Header -->
     <header id="mobileHeader" class="md:hidden flex-shrink-0 w-full bg-card/90 backdrop-blur-md border-b border-border/50 flex justify-between items-center px-4 z-40 shadow-sm pt-[env(safe-area-inset-top)] h-[calc(3.5rem+env(safe-area-inset-top))]">
-      <div class="flex items-center gap-2.5 w-full">
+      <div class="flex items-center gap-2.5 w-[calc(100%-30px)]">
         <div class="bg-accent text-white p-1.5 rounded-lg flex-shrink-0"><i data-lucide="plane" class="w-4 h-4"></i></div>
         <h1 class="text-[13px] font-bold text-primary truncate tracking-wide" id="mobileHeaderTripName">載入倒數中...</h1>
       </div>
+      <!-- 手機版：頂部垂直三點選單 -->
+      <button onclick="openModal('dataSyncModal')" class="p-2 -mr-2 text-primary/60 hover:text-primary transition flex-shrink-0">
+        <i data-lucide="more-vertical" class="w-5 h-5"></i>
+      </button>
     </header>
 
     <!-- 獨立滑動的主內容區 -->
-    <main id="mainContent" class="flex-1 overflow-y-auto w-full relative bg-bg pb-[120px] md:pb-0">
+    <main id="mainContent" class="flex-1 overflow-y-auto w-full relative bg-bg pb-[120px] md:pb-0 md:pt-0">
       
-      <!-- View: Dashboard (儀表板) -->
+      <!-- View: Dashboard -->
       <div id="view-dashboard" class="p-6 md:p-10 pb-32 hidden">
         <h2 class="text-2xl font-bold mb-1">我的旅程</h2>
         <p class="text-sm text-primary/60 mb-8">開始規劃你的下一趟旅行</p>
@@ -121,13 +129,10 @@
 
       <!-- View: TripDetail -->
       <div id="view-tripDetail" class="p-0 md:p-8 hidden flex-col">
-        
-        <!-- 行程頁專屬頂部標題區 -->
         <div class="px-6 pt-6 pb-4 md:p-0 md:mb-6">
           <h2 class="text-2xl font-bold mb-1" id="detailTripName">Lofoten・Norway</h2>
           <p class="text-sm text-primary/60" id="detailTripCountdown">倒數載入中...</p>
         </div>
-
         <div class="flex flex-col md:flex-row flex-1">
           <div class="md:w-64 flex-shrink-0 border-b md:border-b-0 md:border-r border-border/50 md:pr-6 bg-card md:bg-transparent z-10 sticky top-0">
             <div id="dateScroller" class="flex md:flex-col overflow-x-auto md:overflow-visible scrollbar-hide px-4 py-3 md:px-0 md:py-0 gap-3 md:gap-4"></div>
@@ -137,7 +142,6 @@
             <div id="itineraryList" class="space-y-0 pb-32"></div>
           </div>
         </div>
-        
         <button onclick="openModal('activityModal')" class="fixed right-6 z-30 bg-accent text-white p-4 rounded-full shadow-lg hover:shadow-xl transition transform hover:-translate-y-1 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] md:bottom-8 md:right-8">
           <i data-lucide="plus" class="w-6 h-6"></i>
         </button>
@@ -176,7 +180,7 @@
 
     </main>
 
-    <!-- 手機版：底部固定導航欄 (自動閃避 Home 橫條) -->
+    <!-- 手機版：底部固定導航欄 -->
     <nav class="md:hidden flex-shrink-0 w-full bg-card/95 backdrop-blur-md border-t border-border/50 flex justify-around items-start px-2 z-50 shadow-[0_-5px_15px_-5px_rgba(0,0,0,0.05)] pt-1 pb-[env(safe-area-inset-bottom)] h-[calc(4rem+env(safe-area-inset-bottom))]">
       <button onclick="navigate('dashboard')" id="mob-nav-dashboard" class="flex flex-col items-center justify-center flex-1 py-2 text-primary/60 transition">
         <i data-lucide="home" class="w-5 h-5 mb-1"></i>
@@ -199,6 +203,29 @@
   </div>
 
   <!-- ========== Modals (彈窗區) ========== -->
+
+  <!-- 0. JSON 匯出及匯入 Modal -->
+  <div id="dataSyncModal" class="fixed inset-0 z-[70] hidden flex justify-center items-end md:items-center">
+    <div class="absolute inset-0 bg-primary/40 backdrop-blur-sm" onclick="closeModal('dataSyncModal')"></div>
+    <div class="relative bg-card w-full md:w-[360px] rounded-t-3xl md:rounded-3xl p-6 shadow-2xl z-10 transition-transform transform translate-y-full md:translate-y-0 pb-[calc(24px+env(safe-area-inset-bottom))] md:pb-6" id="dataSyncModalContent">
+      <div class="flex justify-between items-center mb-6">
+        <h3 class="text-lg font-bold text-primary flex items-center gap-2"><i data-lucide="folder-sync" class="w-5 h-5 text-accent"></i> 匯出及匯入</h3>
+        <button onclick="closeModal('dataSyncModal')" class="text-primary/60 hover:text-primary"><i data-lucide="x" class="w-6 h-6"></i></button>
+      </div>
+      <p class="text-xs text-primary/70 mb-6 leading-relaxed">您可以將目前的行程匯出為備份檔案，或匯入同行者分享的行程檔。</p>
+      
+      <div class="space-y-3">
+        <button onclick="exportJSONData()" class="w-full flex items-center justify-center gap-2 bg-accent text-white py-3.5 rounded-xl text-sm font-bold shadow-sm hover:bg-accent/90 transition">
+          <i data-lucide="download" class="w-4 h-4"></i> 匯出
+        </button>
+        
+        <label for="importJsonFile" class="w-full flex items-center justify-center gap-2 bg-bg border border-border text-primary py-3.5 rounded-xl text-sm font-bold shadow-sm cursor-pointer hover:bg-border/30 transition">
+          <i data-lucide="upload" class="w-4 h-4 text-accent"></i> 匯入
+          <input type="file" id="importJsonFile" accept=".json" class="hidden" onchange="importJSONData(event)">
+        </label>
+      </div>
+    </div>
+  </div>
   
   <!-- 1. 新增/編輯 旅程 -->
   <div id="tripModal" class="fixed inset-0 z-[60] hidden flex justify-center items-end md:items-center">
@@ -310,6 +337,105 @@
 
   <!-- ========== 腳本邏輯 ========== -->
   <script>
+    // --- 核心資料狀態 ---
+    let tripsData = [];
+    let daysData = [];
+    let itineraryData = [];
+    let checklistData = [];
+    let shoppingData = [];
+
+    // --- 本機儲存 (LocalStorage) 與初始化載入 ---
+    function saveLocalData() {
+      const data = { tripsData, daysData, itineraryData, checklistData, shoppingData };
+      localStorage.setItem('tripPlannerBackup', JSON.stringify(data));
+    }
+
+    function loadLocalData() {
+      const stored = localStorage.getItem('tripPlannerBackup');
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          tripsData = parsed.tripsData || [];
+          daysData = parsed.daysData || [];
+          itineraryData = parsed.itineraryData || [];
+          checklistData = parsed.checklistData || [];
+          shoppingData = parsed.shoppingData || [];
+          return true;
+        } catch(e) { console.error('Data Load Error', e); }
+      }
+      return false;
+    }
+
+    function loadMockData() {
+      let defaultFutureDate = new Date();
+      defaultFutureDate.setDate(defaultFutureDate.getDate() + 15);
+      let defaultFutureEnd = new Date(defaultFutureDate);
+      defaultFutureEnd.setDate(defaultFutureEnd.getDate() + 3);
+      const mockDateStr = `${defaultFutureDate.getFullYear()}-${String(defaultFutureDate.getMonth()+1).padStart(2,'0')}-${String(defaultFutureDate.getDate()).padStart(2,'0')} to ${defaultFutureEnd.getFullYear()}-${String(defaultFutureEnd.getMonth()+1).padStart(2,'0')}-${String(defaultFutureEnd.getDate()).padStart(2,'0')}`;
+
+      tripsData = [{ id: 1, name: 'Lofoten・Norway', dateStr: mockDateStr, progress: 40, cover: 'https://res.cloudinary.com/fjordtours/image/upload/w_auto/dpr_auto/c_fill/f_auto/q_auto/c_limit,w_1920/v1/norway/places-to-visit/northern-norway/lofoten/reine-lofoten-summer?_a=BAVMn6DY0' }];
+      daysData = [
+        { id: 1, dateStr: '08 AUG 26', dow: 'FRI', weather: 'sun', wText: '晴天', temp: '32° / 26°', prevHotel: '機場附近' },
+        { id: 2, dateStr: '09 AUG 26', dow: 'SAT', weather: 'cloud', wText: '多雲', temp: '29° / 24°', prevHotel: 'Lofoten Basecamp' },
+        { id: 3, dateStr: '10 AUG 26', dow: 'SUN', weather: 'cloud-rain', wText: '陣雨', temp: '26° / 22°', prevHotel: 'Lofoten Basecamp' }
+      ];
+      itineraryData = [
+        { id: '1', dayId: 1, order: 1, type: 'flight', name: '星宇航空 JX800', hours: '08:30 - 12:45', cost: 'T1 航廈', note: '飛往奧斯陸' },
+        { id: '2', dayId: 1, order: 2, type: 'transport', name: '取車', hours: '16:30', cost: '', note: '租車自駕' },
+      ];
+      checklistData = [
+        { id: 1, text: '✈️ 護照、ID、車牌', done: true }, { id: 2, text: '💳 信用卡、現金', done: true },
+        { id: 3, text: '📱 手機、充電器', done: false }, { id: 4, text: '🧳 行李打包', done: false },
+        { id: 5, text: '💊 常用藥品', done: false }, { id: 6, text: '📸 相機、SD卡', done: false },
+        { id: 7, text: '🌂 雨傘', done: false }, { id: 8, text: '🔌 轉接頭', done: false }
+      ];
+      shoppingData = [];
+      saveLocalData();
+    }
+
+    // --- JSON 匯出與匯入功能 ---
+    function exportJSONData() {
+      const data = { tripsData, daysData, itineraryData, checklistData, shoppingData };
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data));
+      const downloadNode = document.createElement('a');
+      downloadNode.setAttribute("href", dataStr);
+      downloadNode.setAttribute("download", "TripPlanner_Backup.json");
+      document.body.appendChild(downloadNode);
+      downloadNode.click();
+      downloadNode.remove();
+      closeModal('dataSyncModal');
+    }
+
+    function importJSONData(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const parsed = JSON.parse(e.target.result);
+          if(parsed.tripsData) tripsData = parsed.tripsData;
+          if(parsed.daysData) daysData = parsed.daysData;
+          if(parsed.itineraryData) itineraryData = parsed.itineraryData;
+          if(parsed.checklistData) checklistData = parsed.checklistData;
+          if(parsed.shoppingData) shoppingData = parsed.shoppingData;
+          
+          saveLocalData();
+          updateSidebarHeader();
+          renderDashboard();
+          if(document.getElementById('view-tripDetail').classList.contains('hidden') === false) { renderDateScroller(); renderItinerary(); }
+          renderChecklist();
+          renderShoppingList();
+          
+          closeModal('dataSyncModal');
+          alert('行程已成功匯入！');
+        } catch (err) {
+          alert('檔案格式錯誤，無法匯入！');
+        }
+        document.getElementById('importJsonFile').value = '';
+      };
+      reader.readAsText(file);
+    }
+
     function calculateDaysLeft(dateRangeStr) {
       if (!dateRangeStr) return 0;
       const startDateStr = dateRangeStr.split(' to ')[0];
@@ -335,45 +461,6 @@
       return formatPart(parts[0]);
     }
 
-    let defaultFutureDate = new Date();
-    defaultFutureDate.setDate(defaultFutureDate.getDate() + 15);
-    let defaultFutureEnd = new Date(defaultFutureDate);
-    defaultFutureEnd.setDate(defaultFutureEnd.getDate() + 3);
-    const mockDateStr = `${defaultFutureDate.getFullYear()}-${String(defaultFutureDate.getMonth()+1).padStart(2,'0')}-${String(defaultFutureDate.getDate()).padStart(2,'0')} to ${defaultFutureEnd.getFullYear()}-${String(defaultFutureEnd.getMonth()+1).padStart(2,'0')}-${String(defaultFutureEnd.getDate()).padStart(2,'0')}`;
-
-    let tripsData = [
-      { 
-        id: 1, 
-        name: 'Lofoten・Norway', 
-        dateStr: mockDateStr, 
-        progress: 40, 
-        cover: 'https://res.cloudinary.com/fjordtours/image/upload/w_auto/dpr_auto/c_fill/f_auto/q_auto/c_limit,w_1920/v1/norway/places-to-visit/northern-norway/lofoten/reine-lofoten-summer?_a=BAVMn6DY0'
-      }
-    ];
-
-    const daysData = [
-      { id: 1, dateStr: '08 AUG 26', dow: 'FRI', weather: 'sun', wText: '晴天', temp: '32° / 26°', prevHotel: '機場附近' },
-      { id: 2, dateStr: '09 AUG 26', dow: 'SAT', weather: 'cloud', wText: '多雲', temp: '29° / 24°', prevHotel: 'Lofoten Basecamp' },
-      { id: 3, dateStr: '10 AUG 26', dow: 'SUN', weather: 'cloud-rain', wText: '陣雨', temp: '26° / 22°', prevHotel: 'Lofoten Basecamp' }
-    ];
-
-    let itineraryData = [
-      { id: '1', dayId: 1, order: 1, type: 'flight', name: '星宇航空 JX800', hours: '08:30 - 12:45', cost: 'T1 航廈', note: '飛往奧斯陸' },
-      { id: '2', dayId: 1, order: 2, type: 'transport', name: '取車', hours: '16:30', cost: '', note: '租車自駕' },
-    ];
-
-    let checklistData = [
-      { id: 1, text: '✈️ 護照、ID、車牌', done: true },
-      { id: 2, text: '💳 信用卡、現金', done: true },
-      { id: 3, text: '📱 手機、充電器', done: false },
-      { id: 4, text: '🧳 行李打包', done: false },
-      { id: 5, text: '💊 常用藥品', done: false },
-      { id: 6, text: '📸 相機、SD卡', done: false },
-      { id: 7, text: '🌂 雨傘', done: false },
-      { id: 8, text: '🔌 轉接頭', done: false }
-    ];
-
-    let shoppingData = [];
     let activeDay = 1, deleteTargetId = null, sortableInstance = null, currentUploadImageBase64 = '';
     const typeConfig = { flight: { icon: 'plane' }, sightseeing: { icon: 'camera' }, accommodation: { icon: 'hotel' }, food: { icon: 'utensils' }, shopping: { icon: 'shopping-bag' }, transport: { icon: 'train-front' }, other: { icon: 'map-pin' } };
 
@@ -412,7 +499,6 @@
            const hh = String(h).padStart(2, '0');
            const mm = String(m).padStart(2, '0');
            const ss = String(s).padStart(2, '0');
-           
            countText = `${d}天 ${hh}:${mm}:${ss}`;
         }
 
@@ -428,6 +514,8 @@
     document.addEventListener('DOMContentLoaded', () => {
       lucide.createIcons();
       
+      if(!loadLocalData()) { loadMockData(); }
+
       flatpickr.l10ns.default.months.longhand = ['AUG', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
       flatpickr.l10ns.default.months.shorthand = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
       flatpickr.l10ns.default.weekdays.shorthand = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
@@ -503,7 +591,6 @@
       activeView.classList.add('view-enter');
       setTimeout(() => activeView.classList.remove('view-enter'), 300);
 
-      // 手機版：切換視圖時控制頂部 Header 顯示，並動態補齊安全距離
       const mobileHeader = document.getElementById('mobileHeader');
       const mainContent = document.getElementById('mainContent');
       if (mobileHeader && mainContent) {
@@ -582,15 +669,10 @@
           tripsData[idx].cover = coverUrl;
         }
       } else {
-        tripsData.push({
-          id: Date.now(),
-          name: name,
-          dateStr: dateStr,
-          progress: 0,
-          cover: coverUrl
-        });
+        tripsData.push({ id: Date.now(), name: name, dateStr: dateStr, progress: 0, cover: coverUrl });
       }
       
+      saveLocalData();
       closeModal('tripModal');
       updateSidebarHeader();
       renderDashboard();
@@ -598,7 +680,8 @@
 
     function updateSidebarHeader() {
       const mainTripName = tripsData.length > 0 ? tripsData[0].name : '尚未建立旅程';
-      document.getElementById('sidebarTripName').innerText = mainTripName;
+      const el = document.getElementById('sidebarTripName');
+      if(el) el.innerText = mainTripName;
       startGlobalCountdown();
     }
 
@@ -718,13 +801,15 @@
       const formData = { type: document.getElementById('aCategory').value, name: document.getElementById('aName').value, hours: document.getElementById('aHours').value, cost: document.getElementById('aCost').value, note: document.getElementById('aNote').value };
       if (editId) { const idx = itineraryData.findIndex(i => i.id === editId); itineraryData[idx] = { ...itineraryData[idx], ...formData }; } 
       else { const items = itineraryData.filter(i => i.dayId === activeDay); itineraryData.push({ id: Date.now().toString(), dayId: activeDay, order: items.length > 0 ? Math.max(...items.map(i => i.order)) + 1 : 1, ...formData }); }
+      
+      saveLocalData();
       closeModal('activityModal'); renderItinerary();
     });
     
-    function reorderData() { document.querySelectorAll('#itineraryList [data-id]').forEach((el, index) => { const idx = itineraryData.findIndex(i => i.id === el.getAttribute('data-id')); if(idx > -1) itineraryData[idx].order = index + 1; }); }
+    function reorderData() { document.querySelectorAll('#itineraryList [data-id]').forEach((el, index) => { const idx = itineraryData.findIndex(i => i.id === el.getAttribute('data-id')); if(idx > -1) itineraryData[idx].order = index + 1; }); saveLocalData(); }
     function confirmDelete() { deleteTargetId = document.getElementById('editId').value; document.getElementById('deleteConfirmModal').classList.remove('hidden'); }
     function cancelDelete() { deleteTargetId = null; document.getElementById('deleteConfirmModal').classList.add('hidden'); }
-    function executeDelete() { if (deleteTargetId) { itineraryData = itineraryData.filter(i => i.id !== deleteTargetId); cancelDelete(); closeModal('activityModal'); renderItinerary(); } }
+    function executeDelete() { if (deleteTargetId) { itineraryData = itineraryData.filter(i => i.id !== deleteTargetId); cancelDelete(); closeModal('activityModal'); renderItinerary(); saveLocalData(); } }
 
     function renderChecklist() {
       const completedCount = checklistData.filter(i => i.done).length;
@@ -742,9 +827,9 @@
       document.getElementById('checkProgressBar').style.width = `${totalCount > 0 ? (completedCount / totalCount) * 100 : 0}%`;
       lucide.createIcons();
     }
-    function toggleCheck(id) { const item = checklistData.find(i => i.id === id); if(item) item.done = !item.done; renderChecklist(); }
-    function addCheckItem() { const input = document.getElementById('newCheckItem'); if(input.value.trim() === '') return; checklistData.push({ id: Date.now(), text: input.value, done: false }); input.value = ''; renderChecklist(); }
-    function deleteCheckItem(id) { checklistData = checklistData.filter(i => i.id !== id); renderChecklist(); }
+    function toggleCheck(id) { const item = checklistData.find(i => i.id === id); if(item) item.done = !item.done; renderChecklist(); saveLocalData(); }
+    function addCheckItem() { const input = document.getElementById('newCheckItem'); if(input.value.trim() === '') return; checklistData.push({ id: Date.now(), text: input.value, done: false }); input.value = ''; renderChecklist(); saveLocalData(); }
+    function deleteCheckItem(id) { checklistData = checklistData.filter(i => i.id !== id); renderChecklist(); saveLocalData(); }
 
     function renderShoppingList() {
       const container = document.getElementById('shoppingListContainer');
@@ -755,23 +840,47 @@
       }).join('');
       lucide.createIcons();
     }
+
+    function compressImage(file, callback) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          const maxDim = 800;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > maxDim) { height *= maxDim / width; width = maxDim; }
+          } else {
+            if (height > maxDim) { width *= maxDim / height; height = maxDim; }
+          }
+          canvas.width = width; canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          callback(canvas.toDataURL('image/jpeg', 0.6)); 
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
     function previewImage(event) {
       const file = event.target.files[0];
       if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          currentUploadImageBase64 = e.target.result;
-          document.getElementById('imagePreview').src = currentUploadImageBase64;
+        compressImage(file, function(compressedBase64) {
+          currentUploadImageBase64 = compressedBase64;
+          document.getElementById('imagePreview').src = compressedBase64;
           document.getElementById('imagePreview').classList.remove('hidden');
           document.getElementById('uploadPlaceholder').classList.add('hidden');
           document.getElementById('removeImgBtn').classList.remove('hidden');
-        }
-        reader.readAsDataURL(file);
+        });
       }
     }
-    function removePreviewImage() { currentUploadImageBase64 = ''; document.getElementById('dropzone-file').value = ''; document.getElementById('imagePreview').src = ''; document.getElementById('imagePreview').classList.add('hidden'); document.getElementById('uploadPlaceholder').classList.add('hidden'); document.getElementById('removeImgBtn').classList.add('hidden'); }
-    function saveShoppingItem(e) { e.preventDefault(); shoppingData.push({ id: Date.now(), name: document.getElementById('sName').value, image: currentUploadImageBase64 }); closeModal('addShoppingModal'); renderShoppingList(); }
-    function deleteShoppingItem(id) { if(confirm('確定要移除此商品？')) { shoppingData = shoppingData.filter(i => i.id !== id); renderShoppingList(); } }
+    function removePreviewImage() { currentUploadImageBase64 = ''; document.getElementById('dropzone-file').value = ''; document.getElementById('imagePreview').src = ''; document.getElementById('imagePreview').classList.add('hidden'); document.getElementById('uploadPlaceholder').classList.remove('hidden'); document.getElementById('removeImgBtn').classList.add('hidden'); }
+    function saveShoppingItem(e) { e.preventDefault(); shoppingData.push({ id: Date.now(), name: document.getElementById('sName').value, image: currentUploadImageBase64 }); saveLocalData(); closeModal('addShoppingModal'); renderShoppingList(); }
+    function deleteShoppingItem(id) { if(confirm('確定要移除此商品？')) { shoppingData = shoppingData.filter(i => i.id !== id); saveLocalData(); renderShoppingList(); } }
 
     function openModal(modalId, id = null) {
       document.getElementById(modalId).classList.remove('hidden');
