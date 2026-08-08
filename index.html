@@ -70,9 +70,15 @@
 
   <!-- 桌面版：左側固定導航欄 -->
   <aside class="hidden md:flex flex-col w-64 bg-card border-r border-border/60 shadow-sm z-20 flex-shrink-0">
-    <div class="p-6 flex items-center gap-3 border-b border-border/30">
-      <div class="bg-accent text-white p-2 rounded-xl"><i data-lucide="plane" class="w-5 h-5"></i></div>
-      <h1 class="text-lg font-bold text-primary tracking-wide">Trip Planner</h1>
+    <div class="p-6 flex items-center justify-between border-b border-border/30">
+      <div class="flex items-center gap-3">
+        <div class="bg-accent text-white p-2 rounded-xl"><i data-lucide="plane" class="w-5 h-5"></i></div>
+        <h1 class="text-lg font-bold text-primary tracking-wide">Trip Planner</h1>
+      </div>
+      <!-- 桌面版：頂部垂直三點選單 -->
+      <button onclick="openModal('dataSyncModal')" class="p-1.5 -mr-1.5 text-primary/60 hover:text-primary hover:bg-bg rounded-lg transition" title="匯出及匯入">
+        <i data-lucide="more-vertical" class="w-5 h-5"></i>
+      </button>
     </div>
     <nav class="flex-1 p-4 space-y-2">
       <button onclick="navigate('dashboard')" id="nav-dashboard" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors font-medium text-primary hover:bg-accent/10">
@@ -99,8 +105,8 @@
   <!-- 主視窗佈局 (App Shell) -->
   <div class="flex-1 flex flex-col h-full min-w-0 relative">
 
-    <!-- 獨立滑動的主內容區 (自動補足 iOS 安全區以防遮擋) -->
-    <main id="mainContent" class="flex-1 overflow-y-auto w-full relative bg-bg pt-[calc(1rem+env(safe-area-inset-top))] md:pt-0 pb-[120px] md:pb-0">
+    <!-- 獨立滑動的主內容區 (徹底移除置頂 Header，僅保留 iOS 頂部安全區防護) -->
+    <main id="mainContent" class="flex-1 overflow-y-auto w-full relative bg-bg pt-[env(safe-area-inset-top)] pb-[120px] md:pb-0 md:pt-0">
       
       <!-- View: Dashboard (首頁) -->
       <div id="view-dashboard" class="p-6 md:p-10 pb-32 hidden">
@@ -110,7 +116,7 @@
             <p class="text-sm text-primary/60">開始規劃你的下一趟旅行</p>
           </div>
           <!-- 垂直三點選單 (與標題平排) -->
-          <button onclick="openModal('dataSyncModal')" class="p-2 -mr-2 -mt-1 text-primary/60 hover:text-primary transition" title="匯出及匯入">
+          <button onclick="openModal('dataSyncModal')" class="p-2 -mr-2 -mt-1 text-primary/60 hover:text-primary transition md:hidden" title="匯出及匯入">
             <i data-lucide="more-vertical" class="w-6 h-6"></i>
           </button>
         </div>
@@ -125,7 +131,7 @@
             <p class="text-sm text-primary/60" id="detailTripCountdown">倒數載入中...</p>
           </div>
           <!-- 垂直三點選單 (與標題平排) -->
-          <button onclick="openModal('dataSyncModal')" class="p-2 -mr-2 -mt-1 text-primary/60 hover:text-primary transition" title="匯出及匯入">
+          <button onclick="openModal('dataSyncModal')" class="p-2 -mr-2 -mt-1 text-primary/60 hover:text-primary transition md:hidden" title="匯出及匯入">
             <i data-lucide="more-vertical" class="w-6 h-6"></i>
           </button>
         </div>
@@ -149,7 +155,7 @@
         <div class="flex justify-between items-start mb-6">
           <h2 class="text-2xl font-bold">行李</h2>
           <!-- 垂直三點選單 (與標題平排) -->
-          <button onclick="openModal('dataSyncModal')" class="p-2 -mr-2 -mt-1 text-primary/60 hover:text-primary transition" title="匯出及匯入">
+          <button onclick="openModal('dataSyncModal')" class="p-2 -mr-2 -mt-1 text-primary/60 hover:text-primary transition md:hidden" title="匯出及匯入">
             <i data-lucide="more-vertical" class="w-6 h-6"></i>
           </button>
         </div>
@@ -178,7 +184,7 @@
               <p class="text-sm text-primary/60">記錄這次旅行想買的戰利品</p>
             </div>
             <!-- 垂直三點選單 (與標題平排) -->
-            <button onclick="openModal('dataSyncModal')" class="p-2 -mr-2 -mt-1 text-primary/60 hover:text-primary transition" title="匯出及匯入">
+            <button onclick="openModal('dataSyncModal')" class="p-2 -mr-2 -mt-1 text-primary/60 hover:text-primary transition md:hidden" title="匯出及匯入">
               <i data-lucide="more-vertical" class="w-6 h-6"></i>
             </button>
           </div>
@@ -477,7 +483,7 @@
     let activeDay = 1, deleteTargetId = null, sortableInstance = null, currentUploadImageBase64 = '';
     const typeConfig = { flight: { icon: 'plane' }, sightseeing: { icon: 'camera' }, accommodation: { icon: 'hotel' }, food: { icon: 'utensils' }, shopping: { icon: 'shopping-bag' }, transport: { icon: 'train-front' }, other: { icon: 'map-pin' } };
 
-    // === 全域動態倒數計時引擎 (只保留行程頁標題的更新) ===
+    // === 全域動態倒數計時引擎 ===
     let globalCountdownTimer = null;
     function startGlobalCountdown() {
       if (globalCountdownTimer) clearInterval(globalCountdownTimer);
