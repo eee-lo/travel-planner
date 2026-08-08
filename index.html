@@ -2,7 +2,8 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <!-- 加入 viewport-fit=cover 確保支援 iOS 劉海與底部安全區 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Travel Planner App</title>
   
   <!-- 字型 -->
@@ -48,23 +49,8 @@
     .flatpickr-calendar { box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important; border: 1px solid #E0D9CE !important; border-radius: 1rem !important; padding-bottom: 8px !important; }
     .flatpickr-day.selected, .flatpickr-day.startRange, .flatpickr-day.endRange, .flatpickr-day.selected.inRange, .flatpickr-day.startRange.inRange, .flatpickr-day.endRange.inRange, .flatpickr-day.selected:focus, .flatpickr-day.startRange:focus, .flatpickr-day.endRange:focus, .flatpickr-day.selected:hover, .flatpickr-day.startRange:hover, .flatpickr-day.endRange:hover, .flatpickr-day.selected.prevMonthDay, .flatpickr-day.startRange.prevMonthDay, .flatpickr-day.endRange.prevMonthDay, .flatpickr-day.selected.nextMonthDay, .flatpickr-day.startRange.nextMonthDay, .flatpickr-day.endRange.nextMonthDay { background: #9EB1B8 !important; border-color: #9EB1B8 !important; }
     
-    /* 頂部導航列：強力鎖定高度與垂直置中 */
     .flatpickr-months { display: flex !important; align-items: center !important; justify-content: space-between !important; padding: 12px 14px 0 14px !important; background: transparent !important; height: 50px !important; box-sizing: border-box !important; }
-    
-    .flatpickr-months .flatpickr-prev-month, .flatpickr-months .flatpickr-next-month { 
-      position: static !important; 
-      display: flex !important; 
-      align-items: center !important; 
-      justify-content: center !important; 
-      width: 28px !important; 
-      height: 28px !important; 
-      padding: 0 !important; 
-      margin: 0 !important; 
-      border-radius: 0.375rem !important; 
-      background: #FFFFFF !important; 
-      border: 1px solid #E0D9CE !important; 
-      box-shadow: 0 1px 2px rgba(0,0,0,0.05) !important; 
-    }
+    .flatpickr-months .flatpickr-prev-month, .flatpickr-months .flatpickr-next-month { position: static !important; display: flex !important; align-items: center !important; justify-content: center !important; width: 28px !important; height: 28px !important; padding: 0 !important; margin: 0 !important; border-radius: 0.375rem !important; background: #FFFFFF !important; border: 1px solid #E0D9CE !important; box-shadow: 0 1px 2px rgba(0,0,0,0.05) !important; }
     .flatpickr-months .flatpickr-prev-month svg, .flatpickr-months .flatpickr-next-month svg { width: 14px !important; height: 14px !important; fill: #696969 !important; }
     .flatpickr-months .flatpickr-prev-month:hover, .flatpickr-months .flatpickr-next-month:hover { background: #F8F9FA !important; }
 
@@ -73,25 +59,7 @@
     
     .flatpickr-current-month .flatpickr-monthDropdown-months, 
     .flatpickr-current-month select.cur-year-select { 
-      font-size: 13px !important; 
-      font-weight: 600 !important; 
-      color: #696969 !important; 
-      background-color: #FFFFFF !important; 
-      border: 1px solid #E0D9CE !important; 
-      border-radius: 0.375rem !important; 
-      padding: 0 16px 0 6px !important; 
-      margin: 0 !important; 
-      height: 28px !important; 
-      box-shadow: 0 1px 2px rgba(0,0,0,0.05) !important;
-      pointer-events: auto !important;
-      appearance: none !important;
-      -webkit-appearance: none !important;
-      -moz-appearance: none !important;
-      cursor: pointer !important;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23696969' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
-      background-repeat: no-repeat !important;
-      background-position: right 4px center !important;
-      line-height: normal !important;
+      font-size: 13px !important; font-weight: 600 !important; color: #696969 !important; background-color: #FFFFFF !important; border: 1px solid #E0D9CE !important; border-radius: 0.375rem !important; padding: 0 16px 0 6px !important; margin: 0 !important; height: 28px !important; box-shadow: 0 1px 2px rgba(0,0,0,0.05) !important; pointer-events: auto !important; appearance: none !important; -webkit-appearance: none !important; -moz-appearance: none !important; cursor: pointer !important; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23696969' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important; background-repeat: no-repeat !important; background-position: right 4px center !important; line-height: normal !important;
     }
 
     .flatpickr-current-month .flatpickr-monthDropdown-months { width: 72px !important; }
@@ -100,7 +68,9 @@
     span.flatpickr-weekday { font-size: 0.75rem !important; font-weight: 700 !important; color: #9EB1B8 !important; letter-spacing: 1px; }
   </style>
 </head>
-<body class="font-sans antialiased h-screen flex flex-col md:flex-row overflow-hidden">
+
+<!-- 使用 h-[100dvh] 動態視角高度取代 h-screen，完美適配 iPhone Safari 底欄 -->
+<body class="font-sans antialiased h-[100dvh] flex flex-col md:flex-row overflow-hidden bg-bg">
 
   <!-- 桌面版：左側固定導航欄 -->
   <aside class="hidden md:flex flex-col w-64 bg-card border-r border-border/60 shadow-sm z-20 flex-shrink-0">
@@ -138,8 +108,8 @@
     </div>
   </header>
 
-  <!-- 主內容區 -->
-  <main class="flex-1 h-full overflow-y-auto relative bg-bg pb-28 md:pb-0">
+  <!-- 主內容區：加入 pb-[120px] 確保手機版最底部的內容能完整滑動呈現 -->
+  <main class="flex-1 h-full overflow-y-auto relative bg-bg pb-[120px] md:pb-0">
     
     <!-- View: Dashboard (儀表板) -->
     <div id="view-dashboard" class="p-6 md:p-10 hidden">
@@ -157,10 +127,11 @@
         </div>
         <div class="flex-1 p-4 md:pl-8 md:py-0 overflow-y-auto">
           <div id="weatherHeader" class="bg-card rounded-2xl p-4 mb-6 shadow-sm border border-border/50 flex justify-between items-center"></div>
-          <div id="itineraryList" class="space-y-0 pb-16"></div>
+          <div id="itineraryList" class="space-y-0 pb-10"></div>
         </div>
       </div>
-      <button onclick="openModal('activityModal')" class="fixed bottom-20 right-6 md:absolute md:bottom-8 md:right-8 z-30 bg-accent text-white p-4 rounded-full shadow-lg hover:shadow-xl transition transform hover:-translate-y-1">
+      <!-- + 懸浮按鈕：加入 env(safe-area-inset-bottom) 完美適配 iPhone 底部橫條 -->
+      <button onclick="openModal('activityModal')" class="fixed right-6 z-30 bg-accent text-white p-4 rounded-full shadow-lg hover:shadow-xl transition transform hover:-translate-y-1 bottom-[calc(5rem+env(safe-area-inset-bottom))] md:absolute md:bottom-8 md:right-8">
         <i data-lucide="plus" class="w-6 h-6"></i>
       </button>
     </div>
@@ -189,31 +160,32 @@
       <div class="max-w-4xl mx-auto h-full flex flex-col">
         <h2 class="text-2xl font-bold mb-2 flex items-center gap-2"><i data-lucide="shopping-basket" class="w-6 h-6 text-accent"></i> 購物清單</h2>
         <p class="text-sm text-primary/60 mb-6">記錄這次旅行想買的戰利品</p>
-        <div id="shoppingListContainer" class="flex-1 overflow-y-auto pb-32 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 pr-2 scrollbar-hide content-start"></div>
+        <div id="shoppingListContainer" class="flex-1 overflow-y-auto pb-10 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 pr-2 scrollbar-hide content-start"></div>
       </div>
-      <button onclick="openModal('addShoppingModal')" class="fixed bottom-20 right-6 md:absolute md:bottom-10 md:right-10 z-30 bg-accent text-white p-4 rounded-full shadow-lg hover:shadow-xl transition transform hover:-translate-y-1">
+      <!-- + 懸浮按鈕：完美避開手機底部導航 -->
+      <button onclick="openModal('addShoppingModal')" class="fixed right-6 z-30 bg-accent text-white p-4 rounded-full shadow-lg hover:shadow-xl transition transform hover:-translate-y-1 bottom-[calc(5rem+env(safe-area-inset-bottom))] md:absolute md:bottom-10 md:right-10">
         <i data-lucide="plus" class="w-6 h-6"></i>
       </button>
     </div>
 
   </main>
 
-  <!-- 手機版：底部常駐固定導航欄 -->
-  <nav class="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-card/95 backdrop-blur-md border-t border-border/50 flex justify-around items-center px-2 z-50 shadow-lg">
-    <button onclick="navigate('dashboard')" id="mob-nav-dashboard" class="flex flex-col items-center justify-center flex-1 py-1 text-primary">
-      <i data-lucide="home" class="w-5 h-5 mb-0.5"></i>
+  <!-- 手機版：底部常駐固定導航欄 (自動適配 iPhone 安全區域) -->
+  <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-md border-t border-border/50 flex justify-around items-start px-2 z-50 shadow-lg h-[calc(4rem+env(safe-area-inset-bottom))] pt-1 pb-[env(safe-area-inset-bottom)]">
+    <button onclick="navigate('dashboard')" id="mob-nav-dashboard" class="flex flex-col items-center justify-center flex-1 py-2 text-primary">
+      <i data-lucide="home" class="w-5 h-5 mb-1"></i>
       <span class="text-[10px] font-medium">首頁</span>
     </button>
-    <button onclick="navigate('tripDetail')" id="mob-nav-tripDetail" class="flex flex-col items-center justify-center flex-1 py-1 text-primary">
-      <i data-lucide="calendar" class="w-5 h-5 mb-0.5"></i>
+    <button onclick="navigate('tripDetail')" id="mob-nav-tripDetail" class="flex flex-col items-center justify-center flex-1 py-2 text-primary">
+      <i data-lucide="calendar" class="w-5 h-5 mb-1"></i>
       <span class="text-[10px] font-medium">行程</span>
     </button>
-    <button onclick="navigate('toolbox')" id="mob-nav-toolbox" class="flex flex-col items-center justify-center flex-1 py-1 text-primary">
-      <i data-lucide="wrench" class="w-5 h-5 mb-0.5"></i>
+    <button onclick="navigate('toolbox')" id="mob-nav-toolbox" class="flex flex-col items-center justify-center flex-1 py-2 text-primary">
+      <i data-lucide="wrench" class="w-5 h-5 mb-1"></i>
       <span class="text-[10px] font-medium">行李</span>
     </button>
-    <button onclick="navigate('shopping')" id="mob-nav-shopping" class="flex flex-col items-center justify-center flex-1 py-1 text-primary">
-      <i data-lucide="shopping-basket" class="w-5 h-5 mb-0.5"></i>
+    <button onclick="navigate('shopping')" id="mob-nav-shopping" class="flex flex-col items-center justify-center flex-1 py-2 text-primary">
+      <i data-lucide="shopping-basket" class="w-5 h-5 mb-1"></i>
       <span class="text-[10px] font-medium">購物</span>
     </button>
   </nav>
@@ -250,7 +222,7 @@
   <!-- 2. 新增購物商品 -->
   <div id="addShoppingModal" class="fixed inset-0 z-50 hidden flex justify-center items-end md:items-center">
     <div class="absolute inset-0 bg-primary/40 backdrop-blur-sm" onclick="closeModal('addShoppingModal')"></div>
-    <div class="relative bg-card w-full md:w-[400px] rounded-t-3xl md:rounded-3xl p-6 shadow-2xl z-10 transition-transform transform translate-y-full md:translate-y-0" id="addShoppingModalContent">
+    <div class="relative bg-card w-full md:w-[400px] rounded-t-3xl md:rounded-3xl p-6 shadow-2xl z-10 transition-transform transform translate-y-full md:translate-y-0 pb-[calc(24px+env(safe-area-inset-bottom))]" id="addShoppingModalContent">
       <div class="flex justify-between items-center mb-6">
         <h3 class="text-lg font-bold text-primary">新增購買商品</h3>
         <button onclick="closeModal('addShoppingModal')" class="text-primary/60 hover:text-primary"><i data-lucide="x" class="w-6 h-6"></i></button>
@@ -279,12 +251,12 @@
   <!-- 3. 新增/編輯 每日行程 -->
   <div id="activityModal" class="fixed inset-0 z-50 hidden flex justify-center items-end md:items-center">
     <div class="absolute inset-0 bg-primary/40 backdrop-blur-sm" onclick="closeModal('activityModal')"></div>
-    <div class="relative bg-card w-full md:w-[480px] rounded-t-3xl md:rounded-3xl p-6 shadow-2xl z-10 transition-transform transform translate-y-full md:translate-y-0" id="activityModalContent">
+    <div class="relative bg-card w-full md:w-[480px] rounded-t-3xl md:rounded-3xl p-6 shadow-2xl z-10 transition-transform transform translate-y-full md:translate-y-0 pb-[calc(24px+env(safe-area-inset-bottom))]" id="activityModalContent">
       <div class="flex justify-between items-center mb-6">
         <h3 id="modalTitle" class="text-lg font-bold text-primary">新增行程</h3>
         <button onclick="closeModal('activityModal')" class="text-primary/60 hover:text-primary"><i data-lucide="x" class="w-6 h-6"></i></button>
       </div>
-      <form id="activityForm" class="space-y-4 max-h-[70vh] overflow-y-auto pr-2 scrollbar-hide">
+      <form id="activityForm" class="space-y-4 max-h-[60vh] overflow-y-auto pr-2 scrollbar-hide">
         <input type="hidden" id="editId">
         <div>
           <label class="block text-xs font-medium mb-1 text-primary/70">分類</label>
@@ -415,7 +387,7 @@
         mode: "range",
         dateFormat: "Y-m-d",
         altInput: true,
-        altFormat: "d M y",
+        altFormat: "d M y", 
         altInputClass: "w-full border border-border rounded-xl p-2.5 text-sm bg-bg outline-none focus:border-accent text-primary cursor-pointer",
         onReady: function(selectedDates, dateStr, instance) {
           const yearSelect = document.createElement('select');
@@ -467,6 +439,8 @@
 
       if(viewId === 'tripDetail') { renderDateScroller(); renderItinerary(); }
     }
+
+    function toggleMobileMenu() { document.getElementById('mobileMenu').classList.toggle('hidden'); }
 
     function renderDashboard() {
       const container = document.getElementById('dashboardGrid');
