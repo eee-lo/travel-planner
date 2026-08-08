@@ -105,12 +105,12 @@
   <!-- 主視窗佈局 (App Shell) -->
   <div class="flex-1 flex flex-col h-full min-w-0 relative">
 
-    <!-- 獨立滑動的主內容區 (徹底移除置頂 Header，僅保留 iOS 頂部安全區防護) -->
-    <main id="mainContent" class="flex-1 overflow-y-auto w-full relative bg-bg pt-[env(safe-area-inset-top)] pb-[120px] md:pb-0 md:pt-0">
+    <!-- 獨立滑動的主內容區 (已移除隱形橫條，完全頂天立地) -->
+    <main id="mainContent" class="flex-1 overflow-y-auto w-full relative bg-bg pb-[120px] md:pb-0">
       
       <!-- View: Dashboard (首頁) -->
-      <div id="view-dashboard" class="p-6 md:p-10 pb-32 hidden">
-        <div class="flex justify-between items-start mb-8">
+      <div id="view-dashboard" class="px-6 pt-[env(safe-area-inset-top)] pb-32 md:p-10 hidden">
+        <div class="mt-6 flex justify-between items-start mb-8">
           <div>
             <h2 class="text-2xl font-bold mb-1">我的旅程</h2>
             <p class="text-sm text-primary/60">開始規劃你的下一趟旅行</p>
@@ -125,15 +125,17 @@
 
       <!-- View: TripDetail (行程) -->
       <div id="view-tripDetail" class="p-0 md:p-8 hidden flex-col">
-        <div class="px-6 pt-6 pb-4 md:p-0 md:mb-6 flex justify-between items-start">
-          <div>
-            <h2 class="text-2xl font-bold mb-1" id="detailTripName">Lofoten・Norway</h2>
-            <p class="text-sm text-primary/60" id="detailTripCountdown">倒數載入中...</p>
+        <div class="px-6 pt-[env(safe-area-inset-top)] pb-4 md:pt-0 md:p-0 md:mb-6">
+          <div class="mt-6 md:mt-0 flex justify-between items-start">
+            <div>
+              <h2 class="text-2xl font-bold mb-1" id="detailTripName">Lofoten・Norway</h2>
+              <p class="text-sm text-primary/60" id="detailTripCountdown">倒數載入中...</p>
+            </div>
+            <!-- 垂直三點選單 (與標題平排) -->
+            <button onclick="openModal('dataSyncModal')" class="p-2 -mr-2 -mt-1 text-primary/60 hover:text-primary transition md:hidden" title="匯出及匯入">
+              <i data-lucide="more-vertical" class="w-6 h-6"></i>
+            </button>
           </div>
-          <!-- 垂直三點選單 (與標題平排) -->
-          <button onclick="openModal('dataSyncModal')" class="p-2 -mr-2 -mt-1 text-primary/60 hover:text-primary transition md:hidden" title="匯出及匯入">
-            <i data-lucide="more-vertical" class="w-6 h-6"></i>
-          </button>
         </div>
 
         <div class="flex flex-col md:flex-row flex-1">
@@ -151,8 +153,8 @@
       </div>
 
       <!-- View: Toolbox (行李) -->
-      <div id="view-toolbox" class="p-6 md:p-10 pb-32 hidden">
-        <div class="flex justify-between items-start mb-6">
+      <div id="view-toolbox" class="px-6 pt-[env(safe-area-inset-top)] pb-32 md:p-10 hidden">
+        <div class="mt-6 flex justify-between items-start mb-6">
           <h2 class="text-2xl font-bold">行李</h2>
           <!-- 垂直三點選單 (與標題平排) -->
           <button onclick="openModal('dataSyncModal')" class="p-2 -mr-2 -mt-1 text-primary/60 hover:text-primary transition md:hidden" title="匯出及匯入">
@@ -176,9 +178,9 @@
       </div>
 
       <!-- View: Shopping List (購物清單) -->
-      <div id="view-shopping" class="p-6 md:p-10 pb-32 hidden">
+      <div id="view-shopping" class="px-6 pt-[env(safe-area-inset-top)] pb-32 md:p-10 hidden">
         <div class="max-w-4xl mx-auto flex flex-col">
-          <div class="flex justify-between items-start mb-6">
+          <div class="mt-6 flex justify-between items-start mb-6">
             <div>
               <h2 class="text-2xl font-bold mb-2 flex items-center gap-2"><i data-lucide="shopping-basket" class="w-6 h-6 text-accent"></i> 購物清單</h2>
               <p class="text-sm text-primary/60">記錄這次旅行想買的戰利品</p>
