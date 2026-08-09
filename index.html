@@ -367,8 +367,8 @@
     let checklistData = [];
     let shoppingData = [];
 
-    // 行李清單 手風琴狀態與中英對照
-    let checklistAccordionState = { personal: true, daily: true, clothing: true, electronic: true, carryon: true };
+    // 行李清單 手風琴狀態與中英對照 (預設全部收起 = false)
+    let checklistAccordionState = { personal: false, daily: false, clothing: false, electronic: false, carryon: false };
     const checklistCategoryMap = { personal: '個人物品', daily: '日用品', clothing: '服飾配件', electronic: '電子用品', carryon: '隨身行李' };
 
     function saveLocalData() {
@@ -409,7 +409,7 @@
         { id: '1', dayId: 1, order: 1, type: 'flight', name: '星宇航空 JX800', hours: '08:30 - 12:45', cost: 'T1 航廈', note: '飛往奧斯陸' },
         { id: '2', dayId: 1, order: 2, type: 'transport', name: '取車', hours: '16:30', cost: '', note: '租車自駕' },
       ];
-      // 升級預設行李分類與項目，並依要求將全部預設為 false
+      
       checklistData = [
         { id: 1, category: 'personal', text: '👓 眼鏡', done: false },
         { id: 2, category: 'personal', text: '🕶️ 太陽眼鏡', done: false },
@@ -860,7 +860,7 @@
     function cancelDelete() { deleteTargetId = null; document.getElementById('deleteConfirmModal').classList.add('hidden'); }
     function executeDelete() { if (deleteTargetId) { itineraryData = itineraryData.filter(i => i.id !== deleteTargetId); cancelDelete(); closeModal('activityModal'); renderItinerary(); saveLocalData(); } }
 
-    // === 行李清單：手風琴 Accordion 與深色輸入框邏輯 ===
+    // === 行李清單：手風琴 Accordion 與淺色輸入框邏輯 ===
     function toggleAccordion(cat) {
         checklistAccordionState[cat] = !checklistAccordionState[cat];
         renderChecklist();
@@ -911,16 +911,18 @@
                             <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleCheck(${item.id})" class="w-4 h-4 accent-accent cursor-pointer rounded">
                             <span class="text-sm ${item.done ? 'line-through text-primary/40' : 'text-primary'}">${item.text}</span>
                           </div>
+                          <!-- 改為莫蘭迪粉紅 Hover -->
                           <button onclick="deleteCheckItem(${item.id})" class="text-primary/30 hover:text-danger transition"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                         </div>
                         `;
                     });
                 }
                 
+                // 改回明亮底色(莫蘭迪淺灰)的輸入框
                 itemsHtml += `
                 <div class="mt-3 flex gap-2">
-                    <input type="text" id="newCheckItem-${cat}" class="flex-1 rounded-xl p-2.5 text-sm bg-primary text-white placeholder-white/50 outline-none focus:ring-2 focus:ring-accent border border-transparent transition" placeholder="新增 ${checklistCategoryMap[cat]}..." onkeydown="if(event.key === 'Enter') addCheckItem('${cat}')">
-                    <button onclick="addCheckItem('${cat}')" class="bg-accent text-white px-4 py-2.5 rounded-xl font-bold text-sm hover:bg-accent/90 transition shadow-sm">新增</button>
+                    <input type="text" id="newCheckItem-${cat}" class="flex-1 border border-border/80 rounded-xl p-2.5 text-sm bg-bg outline-none focus:border-accent text-primary transition" placeholder="新增 ${checklistCategoryMap[cat]}..." onkeydown="if(event.key === 'Enter') addCheckItem('${cat}')">
+                    <button onclick="addCheckItem('${cat}')" class="bg-accent/10 text-accent px-4 py-2.5 rounded-xl font-bold text-sm hover:bg-accent hover:text-white transition">新增</button>
                 </div>
                 `;
 
