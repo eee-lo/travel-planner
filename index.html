@@ -76,6 +76,7 @@
         <div class="bg-accent text-white p-2 rounded-xl"><i data-lucide="plane" class="w-5 h-5"></i></div>
         <h1 class="text-lg font-bold text-primary tracking-wide">Trip Planner</h1>
       </div>
+      <!-- 桌面版：頂部垂直三點選單 -->
       <button onclick="openModal('dataSyncModal')" class="p-1.5 -mr-1.5 text-primary/60 hover:text-primary hover:bg-bg rounded-lg transition" title="匯出及匯入">
         <i data-lucide="more-vertical" class="w-5 h-5"></i>
       </button>
@@ -134,7 +135,7 @@
         </div>
 
         <div class="flex flex-col md:flex-row flex-1">
-          <!-- 頂部日期選擇列 -->
+          <!-- 頂部日期選擇列 (大寫星期 + 縮小 DD/MM) -->
           <div class="md:w-64 flex-shrink-0 border-b md:border-b-0 md:border-r border-border/50 md:pr-6 bg-card md:bg-transparent z-10 sticky top-0">
             <div id="dateScroller" class="flex md:flex-col overflow-x-auto scrollbar-hide px-5 py-3 md:px-0 md:py-0 gap-3"></div>
           </div>
@@ -261,11 +262,11 @@
         </div>
         <div>
           <label class="block text-xs font-medium mb-1 text-primary/70">日期</label>
-          <input type="text" id="tDate" required class="hidden">
+          <input type="text" id="tDate" required class="hidden" placeholder="選擇開始與結束日期">
         </div>
         <div>
           <label class="block text-xs font-medium mb-1 text-primary/70">封面圖 URL (選填)</label>
-          <input type="url" id="tCover" class="w-full border border-border rounded-xl p-2.5 text-sm bg-bg outline-none focus:border-accent text-primary">
+          <input type="url" id="tCover" class="w-full border border-border rounded-xl p-2.5 text-sm bg-bg outline-none focus:border-accent text-primary" placeholder="https://...">
         </div>
         <button type="submit" id="tripSubmitBtn" class="w-full bg-accent text-white py-3 rounded-xl text-sm font-bold shadow-sm mt-2">建立旅程</button>
       </form>
@@ -357,7 +358,7 @@
     </div>
   </div>
 
-  <!-- 4. 編輯 每日當天概括 (還原淺色系) -->
+  <!-- 4. 編輯 每日當天概括 (淺色系表單，無 placeholder 留白) -->
   <div id="dayEditModal" class="fixed inset-0 z-[60] hidden flex justify-center items-end md:items-center">
     <div class="absolute inset-0 bg-primary/40 backdrop-blur-sm" onclick="closeModal('dayEditModal')"></div>
     <div class="relative bg-card w-full md:w-[400px] rounded-t-3xl md:rounded-3xl p-6 shadow-2xl z-10 transition-transform transform translate-y-full md:translate-y-0 pb-[calc(24px+env(safe-area-inset-bottom))] md:pb-6" id="dayEditModalContent">
@@ -392,6 +393,7 @@
     let checklistData = [];
     let shoppingData = [];
 
+    // 行李清單 手風琴狀態與中英對照 (預設全部收起 = false)
     let checklistAccordionState = { personal: false, daily: false, clothing: false, electronic: false, carryon: false };
     const checklistCategoryMap = { personal: '個人物品', daily: '日用品', clothing: '服飾配件', electronic: '電子用品', carryon: '隨身行李' };
 
@@ -858,44 +860,66 @@
           let t = day.temp.replace(/°C/g, '').replace(/°/g, ''); 
           let parts = t.split('/').map(p => p.trim());
           if(parts.length === 2) {
-              tempHtml = `<div class="flex items-center gap-1.5 text-xs text-primary/80 font-medium"><span class="flex items-center"><i data-lucide="arrow-down" class="w-3 h-3 mr-0.5 opacity-60"></i>${parts[1]}°C</span><span class="flex items-center"><i data-lucide="arrow-up" class="w-3 h-3 mr-0.5 opacity-60"></i>${parts[0]}°C</span></div>`;
+              tempHtml = `
+                <div class="flex items-center text-xs text-primary/80 font-medium h-5">
+                    <i data-lucide="arrow-down" class="w-3.5 h-3.5 mr-1 text-primary/60"></i><span class="mt-0.5">${parts[1]}°C</span>
+                </div>
+                <div class="flex items-center text-xs text-primary/80 font-medium h-5">
+                    <i data-lucide="arrow-up" class="w-3.5 h-3.5 mr-1 text-primary/60"></i><span class="mt-0.5">${parts[0]}°C</span>
+                </div>
+              `;
           } else {
-              tempHtml = `<div class="text-xs text-primary/80 font-medium">${parts[0]}°C</div>`;
+              tempHtml = `
+                <div class="flex items-center text-xs text-primary/80 font-medium h-5 mt-0.5">${parts[0]}°C</div>
+                <div class="h-5"></div>
+              `;
           }
       }
       
       document.getElementById('weatherHeader').innerHTML = `
-        <div class="flex justify-between items-start w-full">
-            <div class="flex-1 min-w-0 pr-4">
-              <!-- 編輯圖示定位於左欄右上角 -->
-              <div class="flex justify-between items-start mb-2">
-                <h2 class="text-lg font-bold text-primary leading-tight truncate">Day ${id} ${day.overview ? `<span class="ml-1 font-semibold">${day.overview}</span>` : ''}</h2>
-                <button onclick="openModal('dayEditModal', ${id})" class="p-1 text-primary/40 hover:text-accent transition rounded-md hover:bg-accent/10 flex-shrink-0 -mt-1 -mr-1" title="編輯當日資訊">
+        <div class="flex justify-between items-stretch w-full">
+            
+            <!-- 左欄：三行資料 -->
+            <div class="flex-1 min-w-0 pr-3 flex flex-col gap-1.5">
+              
+              <!-- 1. 標題與編輯 -->
+              <div class="flex justify-between items-center h-6">
+                <h2 class="text-base font-bold text-primary leading-none truncate flex-1 pt-0.5">
+                  Day ${id} ${day.overview ? `<span class="ml-1 font-semibold">${day.overview}</span>` : ''}
+                </h2>
+                <button onclick="openModal('dayEditModal', ${id})" class="p-1 text-primary/40 hover:text-accent transition rounded-md hover:bg-accent/10 flex-shrink-0" title="編輯當日資訊">
                   <i data-lucide="edit-2" class="w-4 h-4"></i>
                 </button>
               </div>
               
-              <!-- 永遠保留地點與住宿 Icon -->
-              <div class="flex flex-col gap-1.5 text-xs text-primary/70">
-                <div class="flex items-center gap-2 min-h-[1.25rem]">
-                    <i data-lucide="map-pin" class="w-3.5 h-3.5 text-accent flex-shrink-0"></i> 
-                    <span class="truncate">${day.location || ''}</span>
-                </div>
-                <div class="flex items-center gap-2 min-h-[1.25rem]">
-                    <i data-lucide="bed" class="w-3.5 h-3.5 text-accent flex-shrink-0"></i> 
-                    <span class="truncate">${day.accommodation || ''}</span>
-                </div>
+              <!-- 2. 地點 -->
+              <div class="flex items-center gap-1.5 text-xs text-primary/70 h-5">
+                  <i data-lucide="map-pin" class="w-3.5 h-3.5 text-accent flex-shrink-0"></i> 
+                  <span class="truncate mt-0.5">${day.location || ''}</span>
               </div>
+              
+              <!-- 3. 住宿 -->
+              <div class="flex items-center gap-1.5 text-xs text-primary/70 h-5">
+                  <i data-lucide="bed" class="w-3.5 h-3.5 text-accent flex-shrink-0"></i> 
+                  <span class="truncate mt-0.5">${day.accommodation || ''}</span>
+              </div>
+              
             </div>
             
-            <!-- 天氣區塊精準佔比與 Icon 置前 -->
-            <div class="w-1/4 max-w-[120px] flex-shrink-0 border-l border-border/50 pl-3 flex flex-col items-center justify-center gap-1.5 text-primary py-1">
-              <div class="flex items-center gap-1.5">
-                  <i data-lucide="${day.weather}" class="w-6 h-6 text-accent flex-shrink-0"></i>
-                  <p class="text-xs font-bold leading-none">${day.wText}</p>
+            <!-- 右欄：天氣與溫度 (同為三行, 佔比 28%) -->
+            <div class="w-[28%] max-w-[100px] flex-shrink-0 border-l border-border/50 pl-3 flex flex-col gap-1.5">
+              
+              <!-- 1. 天氣圖示與文字 -->
+              <div class="flex items-center gap-1.5 h-6">
+                  <i data-lucide="${day.weather}" class="w-5 h-5 text-accent flex-shrink-0"></i>
+                  <p class="text-xs font-bold text-primary pt-0.5 leading-none">${day.wText}</p>
               </div>
+              
+              <!-- 2 & 3 溫度行 -->
               ${tempHtml}
+              
             </div>
+            
           </div>
       `;
       lucide.createIcons();
