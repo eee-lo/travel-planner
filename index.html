@@ -88,7 +88,7 @@
         <i data-lucide="calendar" class="w-5 h-5"></i> 行程 Plan
       </button>
       <button onclick="navigate('toolbox')" id="nav-toolbox" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors font-medium text-primary hover:bg-accent/10">
-        <i data-lucide="check-square" class="w-5 h-5"></i> 行行李 Checklist
+        <i data-lucide="check-square" class="w-5 h-5"></i> 行李 Checklist
       </button>
       <button onclick="navigate('shopping')" id="nav-shopping" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors font-medium text-primary hover:bg-accent/10">
         <i data-lucide="shopping-basket" class="w-5 h-5"></i> 購物 Shopping
@@ -139,8 +139,8 @@
             <div id="dateScroller" class="flex md:flex-col overflow-x-auto scrollbar-hide px-5 py-3 md:px-0 md:py-0 gap-3"></div>
           </div>
           <div class="flex-1 p-5 pt-4 md:pl-8 md:p-0">
-            <!-- 每日行程表頭 (深色系、天氣靠左、完美置中對齊) -->
-            <div id="weatherHeader" class="bg-gradient-to-br from-accent to-accent/80 text-white rounded-2xl p-4 md:p-5 mb-6 shadow-md border-none"></div>
+            <!-- 每日行程表頭 -->
+            <div id="weatherHeader" class="relative bg-gradient-to-br from-accent to-accent/80 text-white rounded-2xl p-4 md:p-5 mb-6 shadow-md border-none flex justify-between items-center w-full"></div>
             <!-- 行程清單 -->
             <div id="itineraryList" class="space-y-0"></div>
           </div>
@@ -162,7 +162,6 @@
               <i data-lucide="more-vertical" class="w-6 h-6"></i>
             </button>
           </div>
-          
           <div id="checklistAccordionContainer" class="flex flex-col gap-4 pb-10"></div>
         </div>
       </div>
@@ -308,16 +307,33 @@
         <h3 id="modalTitle" class="text-lg font-bold text-primary">新增行程</h3>
         <button onclick="closeModal('activityModal')" class="text-primary/60 hover:text-primary"><i data-lucide="x" class="w-6 h-6"></i></button>
       </div>
-      <form id="activityForm" class="space-y-4 max-h-[60vh] overflow-y-auto pr-2 scrollbar-hide">
+      <form id="activityForm" class="space-y-4 max-h-[60vh] overflow-y-auto pr-2 scrollbar-hide" onsubmit="submitActivityForm(event)">
         <input type="hidden" id="editId">
+        
+        <!-- 交通方式選擇：無"無"的選項，支援重覆點擊取消 -->
         <div>
-          <label class="block text-xs font-medium mb-1 text-primary/70">分類</label>
+          <label class="block text-xs font-medium mb-1 text-primary/70">前往此地點的交通方式 (點擊可取消)</label>
+          <div class="flex gap-2">
+            <label class="flex-1 text-center border border-border rounded-xl p-2 text-xs cursor-pointer hover:bg-bg flex items-center justify-center gap-1 transition">
+              <input type="radio" name="aTMode" value="walk" class="hidden" onclick="toggleTMode(this)"> 🚶 步行
+            </label>
+            <label class="flex-1 text-center border border-border rounded-xl p-2 text-xs cursor-pointer hover:bg-bg flex items-center justify-center gap-1 transition">
+              <input type="radio" name="aTMode" value="transit" class="hidden" onclick="toggleTMode(this)"> 🚌 公共交通
+            </label>
+            <label class="flex-1 text-center border border-border rounded-xl p-2 text-xs cursor-pointer hover:bg-bg flex items-center justify-center gap-1 transition">
+              <input type="radio" name="aTMode" value="drive" class="hidden" onclick="toggleTMode(this)"> 🚗 開車
+            </label>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium mb-1 text-primary/70">活動分類</label>
           <select id="aCategory" class="w-full border border-border rounded-xl p-2.5 text-sm bg-bg outline-none focus:border-accent text-primary">
             <option value="sightseeing">📷 景點</option>
             <option value="accommodation">🏨 住宿</option>
             <option value="food">🍽️ 餐廳</option>
             <option value="shopping">🛍️ 購物</option>
-            <option value="transport">🚆 交通</option>
+            <option value="transport">🚆 交通站</option>
             <option value="flight">✈️ 航班</option>
             <option value="other">📍 其他</option>
           </select>
@@ -326,14 +342,18 @@
           <label class="block text-xs font-medium mb-1 text-primary/70">地點名稱</label>
           <input type="text" id="aName" required class="w-full border border-border rounded-xl p-2.5 text-sm bg-bg outline-none focus:border-accent text-primary">
         </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div><label class="block text-xs font-medium mb-1 text-primary/70">時間/營業時間</label><input type="text" id="aHours" class="w-full border border-border rounded-xl p-2.5 text-sm bg-bg"></div>
-          <div><label class="block text-xs font-medium mb-1 text-primary/70">預計花費/門票</label><input type="text" id="aCost" class="w-full border border-border rounded-xl p-2.5 text-sm bg-bg"></div>
+        <div>
+          <label class="block text-xs font-medium mb-1 text-primary/70">詳細地址 (選填，助於精準導航)</label>
+          <input type="text" id="aAddress" class="w-full border border-border rounded-xl p-2.5 text-sm bg-bg outline-none focus:border-accent text-primary" placeholder="例如：輸入完整地址或 Google Map Plus Code">
         </div>
-        <div><label class="block text-xs font-medium mb-1 text-primary/70">簡短備註 (若含「自駕」將顯示停車提示)</label><textarea id="aNote" rows="2" class="w-full border border-border rounded-xl p-2.5 text-sm bg-bg"></textarea></div>
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="block text-xs font-medium mb-1 text-primary/70">時間/營業時間</label><input type="text" id="aHours" class="w-full border border-border rounded-xl p-2.5 text-sm bg-bg outline-none focus:border-accent"></div>
+          <div><label class="block text-xs font-medium mb-1 text-primary/70">預計花費/門票</label><input type="text" id="aCost" class="w-full border border-border rounded-xl p-2.5 text-sm bg-bg outline-none focus:border-accent"></div>
+        </div>
+        <div><label class="block text-xs font-medium mb-1 text-primary/70">簡短備註</label><textarea id="aNote" rows="2" class="w-full border border-border rounded-xl p-2.5 text-sm bg-bg outline-none focus:border-accent"></textarea></div>
         <div class="pt-4 flex gap-3">
           <button type="button" id="deleteBtn" onclick="confirmDelete()" class="hidden w-1/3 bg-danger/10 text-danger py-3 rounded-xl text-sm font-bold border border-danger/20 hover:bg-danger hover:text-white transition">刪除</button>
-          <button type="submit" class="flex-1 bg-accent text-white py-3 rounded-xl text-sm font-bold shadow-sm">儲存行程</button>
+          <button type="submit" class="flex-1 bg-accent text-white py-3 rounded-xl text-sm font-bold shadow-sm hover:opacity-90 transition">儲存行程</button>
         </div>
       </form>
     </div>
@@ -421,8 +441,8 @@
       tripsData = [{ id: 1, name: 'Lofoten・Norway', dateStr: mockDateStr, progress: 40, cover: 'https://res.cloudinary.com/fjordtours/image/upload/w_auto/dpr_auto/c_fill/f_auto/q_auto/c_limit,w_1920/v1/norway/places-to-visit/northern-norway/lofoten/reine-lofoten-summer?_a=BAVMn6DY0' }];
       
       itineraryData = [
-        { id: '1', dayId: 1, order: 1, type: 'flight', name: '星宇航空 JX800', hours: '08:30 - 12:45', cost: 'T1 航廈', note: '飛往奧斯陸' },
-        { id: '2', dayId: 1, order: 2, type: 'transport', name: '取車', hours: '16:30', cost: '', note: '租車自駕' },
+        { id: '1', dayId: 1, order: 1, type: 'flight', name: '星宇航空 JX800', hours: '08:30 - 12:45', cost: 'T1 航廈', note: '飛往奧斯陸', tMode: '' },
+        { id: '2', dayId: 1, order: 2, type: 'transport', name: '取車', hours: '16:30', cost: '', note: '預約 Avis', tMode: 'transit' },
       ];
       
       checklistData = [
@@ -890,7 +910,6 @@
       const day = daysData.find(d => d.id === id);
       if(!day) return;
 
-      // 解析溫度字串加上箭頭與 °C
       let tempHtml = '';
       if (day.temp) {
           let t = day.temp.replace(/°C/g, '').replace(/°/g, ''); 
@@ -907,36 +926,23 @@
           }
       }
       
-      // 左側無直線，放大天氣圖示，右側行高完美對齊
       document.getElementById('weatherHeader').innerHTML = `
         <div class="relative flex justify-between items-center w-full gap-2">
             
-            <!-- 左欄：天氣圖示與溫度 (最左側，無右側隔線) -->
-            <div class="flex flex-col flex-shrink-0 w-auto pr-3">
-              
-              <!-- 1. 太陽/天氣圖示 與 晴天文字 同一行 -->
-              <div class="flex items-center gap-2 relative group pl-2">
-                <!-- 左上角 微小 Refresh Overlay -->
-                <button onclick="refreshDayWeather(${id})" class="absolute -top-1.5 -left-3 p-1 text-white/50 hover:text-white transition rounded-full z-10" title="更新天氣">
+            <div class="flex flex-col flex-shrink-0 w-[105px] pr-2">
+              <div class="flex items-center justify-between w-full relative group px-0.5">
+                <button onclick="refreshDayWeather(${id})" class="absolute -top-1.5 -left-1 p-1 text-white/50 hover:text-white transition rounded-full z-10 bg-black/5 backdrop-blur-sm" title="更新天氣">
                   <i data-lucide="rotate-cw" class="w-3.5 h-3.5"></i>
                 </button>
-                <i data-lucide="${day.weather}" class="w-10 h-10 text-white flex-shrink-0 drop-shadow-sm ml-0.5"></i>
-                <span class="text-[14px] font-bold text-white whitespace-nowrap leading-none">${day.wText}</span>
+                <i data-lucide="${day.weather}" class="w-10 h-10 text-white flex-shrink-0 drop-shadow-sm ml-1"></i>
+                <span class="text-[14px] font-bold text-white whitespace-nowrap leading-none pt-0.5">${day.wText}</span>
               </div>
-              
-              <!-- 2. 溫度在下方 -->
-              <div class="pl-2">
-                ${tempHtml}
-              </div>
-              
+              ${tempHtml}
             </div>
 
-            <!-- 右欄：Day 標題概括、地點、住宿 (與左邊完美對齊，右上角 Edit) -->
-            <div class="flex-1 min-w-0 flex flex-col gap-1 justify-center pl-2 md:pl-4">
-              
+            <div class="flex-1 min-w-0 flex flex-col gap-1.5 justify-center pl-4 md:pl-5">
               <div class="flex justify-between items-start h-6">
-                <!-- 放寬 leading-snug 避免 y 字被切 -->
-                <h2 class="text-[15px] md:text-base font-bold text-white leading-snug truncate flex-1 pr-2 pt-0.5">
+                <h2 class="text-[15px] md:text-base font-bold text-white leading-snug truncate flex-1 pr-2 pb-0.5">
                   Day ${id} ${day.overview ? `<span class="ml-1 font-semibold">${day.overview}</span>` : ''}
                 </h2>
                 <button onclick="openModal('dayEditModal', ${id})" class="p-1.5 text-white/50 hover:text-white transition rounded-md hover:bg-white/20 flex-shrink-0 -mt-1 -mr-1" title="編輯當日資訊">
@@ -946,21 +952,44 @@
               
               <div class="flex items-center gap-1.5 text-xs text-white/80 h-5 mt-0.5">
                   <i data-lucide="map-pin" class="w-3.5 h-3.5 text-white/80 flex-shrink-0"></i> 
-                  <span class="truncate leading-none">${day.location || ''}</span>
+                  <span class="truncate leading-normal">${day.location || ''}</span>
               </div>
               
-              <div class="flex items-center gap-1.5 text-xs text-white/80 h-5">
+              <div class="flex items-center gap-1.5 text-xs text-white/80 h-5 mt-0.5">
                   <i data-lucide="bed" class="w-3.5 h-3.5 text-white/80 flex-shrink-0"></i> 
-                  <span class="truncate leading-none">${day.accommodation || ''}</span>
+                  <span class="truncate leading-normal">${day.accommodation || ''}</span>
               </div>
-              
             </div>
             
           </div>
       `;
       lucide.createIcons();
     }
+
+    function toggleTMode(el) {
+        if(el.dataset.checked === 'true') {
+            el.checked = false;
+            el.dataset.checked = 'false';
+            updateTModeUI('');
+        } else {
+            document.querySelectorAll('input[name="aTMode"]').forEach(r => r.dataset.checked = 'false');
+            el.checked = true;
+            el.dataset.checked = 'true';
+            updateTModeUI(el.value);
+        }
+    }
     
+    function updateTModeUI(val) {
+        document.querySelectorAll('input[name="aTMode"]').forEach(el => {
+            const parent = el.parentElement;
+            if (el.value === val && val !== '') {
+                parent.classList.add('bg-accent/10', 'border-accent', 'text-accent', 'font-bold');
+            } else {
+                parent.classList.remove('bg-accent/10', 'border-accent', 'text-accent', 'font-bold');
+            }
+        });
+    }
+
     function saveDayInfo(e) {
         e.preventDefault();
         const id = document.getElementById('editDayId').value;
@@ -980,11 +1009,6 @@
         }
     }
 
-    function getRandomTransport() {
-      const trans = [{ icon: 'train-front', text: '大眾運輸 25 分鐘' }, { icon: 'car', text: '開車 15 分鐘' }, { icon: 'footprints', text: '步行 10 分鐘' }];
-      return trans[Math.floor(Math.random() * trans.length)];
-    }
-
     function renderItinerary() {
       const list = document.getElementById('itineraryList');
       const currentItems = itineraryData.filter(item => item.dayId === activeDay).sort((a, b) => a.order - b.order);
@@ -999,95 +1023,154 @@
       currentItems.forEach((item, index) => {
         const isFlight = (item.type === 'flight');
         let transportHtml = '';
-        if (index === 0 && !isFlight && currentDayData && currentDayData.accommodation) {
-          const trans = getRandomTransport();
-          transportHtml = `<div class="flex items-center gap-2 text-xs text-primary/50 py-3 pl-6 border-l-2 border-dashed border-accent/40 ml-[1.125rem]"><i data-lucide="hotel" class="w-3.5 h-3.5"></i> 從 ${currentDayData.accommodation} 出發 <i data-lucide="arrow-right" class="w-3 h-3 mx-1"></i> <i data-lucide="${trans.icon}" class="w-3.5 h-3.5"></i> ${trans.text}</div>`;
-        } else if (index > 0) {
-          const trans = getRandomTransport();
-          transportHtml = `<div class="flex items-center gap-2 text-xs text-primary/50 py-3 pl-6 border-l-2 border-dashed border-accent/40 ml-[1.125rem]"><i data-lucide="${trans.icon}" class="w-3.5 h-3.5 text-accent"></i> <span>距離下一站：${trans.text}</span></div>`;
+        
+        let prevLocName = '';
+        if (index === 0) {
+            prevLocName = currentDayData && currentDayData.accommodation ? currentDayData.accommodation : '';
+        } else {
+            prevLocName = currentItems[index - 1].address || currentItems[index - 1].name;
         }
+
+        // 交通方式顯示邏輯：智慧抓取 A 到 B 並生成連結
+        if (item.tMode) {
+           const modeMap = { walk: {icon:'footprints', label:'步行'}, transit: {icon:'train-front', label:'公共交通'}, drive: {icon:'car', label:'開車'} };
+           const m = modeMap[item.tMode];
+           
+           let travelmodeAB = '';
+           if(item.tMode === 'walk') travelmodeAB = 'walking';
+           if(item.tMode === 'transit') travelmodeAB = 'transit';
+           if(item.tMode === 'drive') travelmodeAB = 'driving';
+           
+           const destination = item.address || item.name;
+           const mapUrlAB = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(prevLocName)}&destination=${encodeURIComponent(destination)}&travelmode=${travelmodeAB}`;
+
+           transportHtml = `<a href="${mapUrlAB}" target="_blank" class="flex items-center gap-2 text-xs text-primary/50 py-3 pl-4 border-l-2 border-dashed border-accent/40 ml-[51px] hover:text-accent transition group cursor-pointer"><i data-lucide="${m.icon}" class="w-3.5 h-3.5 text-accent group-hover:scale-110 transition"></i> <span class="border-b border-dashed border-primary/30 group-hover:border-accent transition pb-0.5">${m.label}前往 (點擊使用 Google Map 規劃)</span></a>`;
+           
+        } else if (index > 0 || (index === 0 && prevLocName)) {
+           transportHtml = `<div class="flex items-center gap-2 text-xs text-primary/50 py-3 pl-4 border-l-2 border-dashed border-accent/40 ml-[51px]"></div>`;
+        }
+        
         html += transportHtml;
 
-        const mapUrl = `https://maps.google.com/?q=${encodeURIComponent(item.name)}`;
+        // 導航鍵單點跳轉
+        let travelmode = '';
+        if(item.tMode === 'walk') travelmode = '&travelmode=walking';
+        if(item.tMode === 'transit') travelmode = '&travelmode=transit';
+        if(item.tMode === 'drive') travelmode = '&travelmode=driving';
+        
+        const destination = item.address || item.name;
+        const mapUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}${travelmode}`;
+        
         const iconInfo = typeConfig[item.type] || typeConfig['other'];
-        const showCarTip = item.type === 'transport' || (item.note && item.note.includes('自駕'));
 
-        html += `<div class="relative group" data-id="${item.id}">${isFlight ? renderFlightCard(item, iconInfo, mapUrl) : renderNormalCard(item, iconInfo, mapUrl, showCarTip)}</div>`;
+        html += `<div class="relative group" data-id="${item.id}">${isFlight ? renderFlightCard(item, iconInfo, mapUrl) : renderNormalCard(item, iconInfo, mapUrl)}</div>`;
       });
 
       list.innerHTML = html;
       lucide.createIcons();
 
       if(sortableInstance) sortableInstance.destroy();
-      sortableInstance = new Sortable(list, { animation: 150, handle: '.drag-handle', ghostClass: 'sortable-ghost', onEnd: () => { reorderData(); renderItinerary(); } });
+      sortableInstance = new Sortable(list, { 
+          animation: 150, 
+          handle: '.drag-grip', 
+          ghostClass: 'sortable-ghost', 
+          onEnd: () => { reorderData(); renderItinerary(); } 
+      });
     }
 
     function renderFlightCard(item, iconInfo, mapUrl) {
       return `
-        <!-- 航班卡片改用清爽日曆卡配色，並對齊整體 padding 與時間軸結構 -->
-        <div class="flex items-stretch drag-handle cursor-grab active:cursor-grabbing mb-2">
-          <div class="flex flex-col items-center mr-4 w-10">
-            <div class="w-10 h-10 rounded-full bg-accent/20 border border-accent/40 flex items-center justify-center shadow-sm z-10"><i data-lucide="${iconInfo.icon}" class="w-4 h-4 text-accent"></i></div>
-            <div class="flex-1 w-[2px] bg-border/60 my-1"></div>
-          </div>
-          <div class="flex-1 bg-accent/10 rounded-2xl p-4 shadow-sm border border-accent/30 relative hover:border-accent/50 transition">
-            <button onclick="openModal('activityModal', '${item.id}')" class="absolute top-4 right-3 text-accent/60 hover:text-accent p-1 z-10"><i data-lucide="more-horizontal" class="w-5 h-5"></i></button>
-            <a href="${mapUrl}" target="_blank" class="block pr-8 cursor-pointer group-hover:opacity-95">
-              <div class="text-[10px] font-bold tracking-widest text-accent opacity-90 uppercase mb-1">Flight Info</div>
-              <h3 class="font-bold text-primary text-[15px] mb-2">${item.name}</h3>
-              <div class="flex flex-wrap gap-x-4 gap-y-1 mb-2">
-                ${item.hours ? `<p class="text-xs text-primary/70 flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3 text-accent/70"></i>${item.hours}</p>` : ''}
-                ${item.cost ? `<p class="text-xs text-primary/70 flex items-center gap-1"><i data-lucide="credit-card" class="w-3 h-3 text-accent/70"></i>${item.cost}</p>` : ''}
+        <div class="flex items-center mb-2">
+            <div class="drag-grip cursor-grab active:cursor-grabbing w-6 flex justify-center text-primary/30 hover:text-primary transition mr-2 flex-shrink-0">
+                <i data-lucide="grip-vertical" class="w-5 h-5"></i>
+            </div>
+            <div class="bg-gradient-to-br from-accent to-accent/80 text-white rounded-2xl p-4 shadow-sm flex items-center flex-1 min-w-0 relative">
+              <button onclick="openModal('activityModal', '${item.id}')" class="absolute top-4 right-3 p-1.5 bg-white/10 hover:bg-white/20 hover:text-white rounded-full transition z-10"><i data-lucide="edit-2" class="w-4 h-4 text-white"></i></button>
+              <div class="p-2.5 bg-white/20 rounded-xl mr-4 flex-shrink-0"><i data-lucide="${iconInfo.icon}" class="w-6 h-6 text-white"></i></div>
+              <div class="flex-1 pr-8 text-white min-w-0">
+                <div class="text-[10px] font-bold tracking-widest opacity-80 uppercase mb-1">Flight Info</div>
+                <h3 class="font-bold text-[15px] leading-tight ${item.address ? 'mb-1' : 'mb-2'} truncate">${item.name}</h3>
+                ${item.address ? `<p class="text-xs text-white/70 flex items-center gap-1 mb-2 truncate"><i data-lucide="map-pin" class="w-3 h-3 text-white/70 flex-shrink-0"></i><span class="truncate">${item.address}</span></p>` : ''}
+                <p class="text-xs opacity-90">${item.hours} | ${item.cost}</p>
+                ${item.note ? `<p class="text-[11px] mt-2 bg-black/10 px-2 py-1 rounded-md inline-block max-w-full truncate">${item.note}</p>` : ''}
               </div>
-              ${item.note ? `<div class="bg-white/60 p-2.5 rounded-xl border border-accent/20 mb-2"><p class="text-xs text-primary/80">${item.note}</p></div>` : ''}
-            </a>
-          </div>
+            </div>
         </div>
       `;
     }
 
-    function renderNormalCard(item, iconInfo, mapUrl, showCarTip) {
+    function renderNormalCard(item, iconInfo, mapUrl) {
       return `
-        <div class="flex items-stretch drag-handle cursor-grab active:cursor-grabbing mb-2">
-          <div class="flex flex-col items-center mr-4 w-10">
+        <div class="flex items-stretch mb-2">
+          <div class="drag-grip cursor-grab active:cursor-grabbing flex flex-col justify-center w-6 mr-2 flex-shrink-0 text-primary/30 hover:text-primary transition">
+              <i data-lucide="grip-vertical" class="w-5 h-5 mx-auto"></i>
+          </div>
+          <div class="flex flex-col items-center mr-4 w-10 flex-shrink-0">
             <div class="w-10 h-10 rounded-full bg-card border border-border/80 flex items-center justify-center shadow-sm z-10"><i data-lucide="${iconInfo.icon}" class="w-4 h-4 text-accent"></i></div>
             <div class="flex-1 w-[2px] bg-border/60 my-1"></div>
           </div>
-          <div class="flex-1 bg-card rounded-2xl p-4 shadow-sm border border-border/60 relative hover:border-accent/30 transition">
+          <div class="flex-1 bg-card rounded-2xl p-4 shadow-sm border border-border/60 relative hover:border-accent/30 transition min-w-0">
             <button onclick="openModal('activityModal', '${item.id}')" class="absolute top-4 right-3 text-primary/30 hover:text-accent p-1 z-10"><i data-lucide="more-horizontal" class="w-5 h-5"></i></button>
-            <a href="${mapUrl}" target="_blank" class="block pr-8 cursor-pointer group-hover:opacity-95">
-              <h3 class="font-bold text-primary text-[15px] mb-2">${item.name}</h3>
+            <div class="pr-8">
+              <h3 class="font-bold text-primary text-[15px] ${item.address ? 'mb-1' : 'mb-2'} truncate">${item.name}</h3>
+              ${item.address ? `<p class="text-xs text-primary/50 flex items-center gap-1 mb-2 truncate"><i data-lucide="map-pin" class="w-3 h-3 text-accent/70 flex-shrink-0"></i><span class="truncate">${item.address}</span></p>` : ''}
               <div class="flex flex-wrap gap-x-4 gap-y-1 mb-2">
                 ${item.hours ? `<p class="text-xs text-primary/70 flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3 text-accent/70"></i>${item.hours}</p>` : ''}
                 ${item.cost ? `<p class="text-xs text-primary/70 flex items-center gap-1"><i data-lucide="credit-card" class="w-3 h-3 text-accent/70"></i>${item.cost}</p>` : ''}
               </div>
-              ${item.note ? `<div class="bg-bg p-2.5 rounded-xl border border-border/40 mb-2"><p class="text-xs text-primary/80">${item.note}</p></div>` : ''}
+              ${item.note ? `<div class="bg-bg p-2.5 rounded-xl border border-border/40 mb-2"><p class="text-xs text-primary/80 break-words">${item.note}</p></div>` : ''}
               <div class="flex items-center gap-2 mt-3">
-                <span class="inline-flex items-center gap-1 text-[11px] font-bold text-white bg-accent/90 px-2.5 py-1.5 rounded-lg"><i data-lucide="map-pin" class="w-3 h-3"></i> 導航</span>
-                ${showCarTip ? `<span class="inline-flex items-center gap-1 text-[10px] font-medium text-primary/70 bg-bg border border-border px-2 py-1 rounded-lg">🅿️ 停車 / ⛽ 加油</span>` : ''}
+                <a href="${mapUrl}" target="_blank" class="inline-flex items-center gap-1 text-[11px] font-bold text-white bg-accent/90 px-2.5 py-1.5 rounded-lg hover:bg-accent transition z-10 cursor-pointer shadow-sm">
+                   <i data-lucide="map-pin" class="w-3 h-3"></i> 導航
+                </a>
               </div>
-            </a>
+            </div>
           </div>
         </div>
       `;
     }
 
-    document.getElementById('activityForm').addEventListener('submit', (e) => {
-      e.preventDefault(); const editId = document.getElementById('editId').value;
-      const formData = { type: document.getElementById('aCategory').value, name: document.getElementById('aName').value, hours: document.getElementById('aHours').value, cost: document.getElementById('aCost').value, note: document.getElementById('aNote').value };
-      if (editId) { const idx = itineraryData.findIndex(i => i.id === editId); itineraryData[idx] = { ...itineraryData[idx], ...formData }; } 
-      else { const items = itineraryData.filter(i => i.dayId === activeDay); itineraryData.push({ id: Date.now().toString(), dayId: activeDay, order: items.length > 0 ? Math.max(...items.map(i => i.order)) + 1 : 1, ...formData }); }
+    document.getElementById('activityForm').addEventListener('submit', submitActivityForm);
+
+    function submitActivityForm(e) {
+      e.preventDefault(); 
+      const editId = document.getElementById('editId').value;
+      const tModeEl = document.querySelector('input[name="aTMode"]:checked');
+      const tMode = tModeEl ? tModeEl.value : '';
+      
+      const formData = { 
+          type: document.getElementById('aCategory').value, 
+          name: document.getElementById('aName').value, 
+          address: document.getElementById('aAddress').value,
+          hours: document.getElementById('aHours').value, 
+          cost: document.getElementById('aCost').value, 
+          note: document.getElementById('aNote').value,
+          tMode: tMode
+      };
+      
+      if (editId) { 
+          const idx = itineraryData.findIndex(i => i.id === editId); 
+          itineraryData[idx] = { ...itineraryData[idx], ...formData }; 
+      } else { 
+          const items = itineraryData.filter(i => i.dayId === activeDay); 
+          itineraryData.push({ 
+              id: Date.now().toString(), 
+              dayId: activeDay, 
+              order: items.length > 0 ? Math.max(...items.map(i => i.order)) + 1 : 1, 
+              ...formData 
+          }); 
+      }
       
       saveLocalData();
-      closeModal('activityModal'); renderItinerary();
-    });
+      closeModal('activityModal'); 
+      renderItinerary();
+    }
     
     function reorderData() { document.querySelectorAll('#itineraryList [data-id]').forEach((el, index) => { const idx = itineraryData.findIndex(i => i.id === el.getAttribute('data-id')); if(idx > -1) itineraryData[idx].order = index + 1; }); saveLocalData(); }
     function confirmDelete() { deleteTargetId = document.getElementById('editId').value; document.getElementById('deleteConfirmModal').classList.remove('hidden'); }
     function cancelDelete() { deleteTargetId = null; document.getElementById('deleteConfirmModal').classList.add('hidden'); }
     function executeDelete() { if (deleteTargetId) { itineraryData = itineraryData.filter(i => i.id !== deleteTargetId); cancelDelete(); closeModal('activityModal'); renderItinerary(); saveLocalData(); } }
 
-    // === 行李清單：手風琴 Accordion 與淺色輸入框邏輯 ===
     function toggleAccordion(cat) {
         checklistAccordionState[cat] = !checklistAccordionState[cat];
         renderChecklist();
@@ -1174,7 +1257,6 @@
         lucide.createIcons();
     }
 
-    // === 購物清單：雙分頁與編輯功能 ===
     let currentShoppingTab = 'to-buy';
 
     function switchShoppingTab(tab) {
@@ -1388,8 +1470,37 @@
         if (id) {
           document.getElementById('modalTitle').innerText = '編輯行程'; document.getElementById('deleteBtn').classList.remove('hidden');
           const item = itineraryData.find(i => i.id === id);
-          document.getElementById('editId').value = item.id; document.getElementById('aCategory').value = item.type; document.getElementById('aName').value = item.name; document.getElementById('aHours').value = item.hours; document.getElementById('aCost').value = item.cost; document.getElementById('aNote').value = item.note;
-        } else { document.getElementById('modalTitle').innerText = '新增行程'; document.getElementById('deleteBtn').classList.add('hidden'); form.reset(); document.getElementById('editId').value = ''; }
+          document.getElementById('editId').value = item.id; 
+          document.getElementById('aCategory').value = item.type; 
+          document.getElementById('aName').value = item.name; 
+          document.getElementById('aAddress').value = item.address || '';
+          document.getElementById('aHours').value = item.hours; 
+          document.getElementById('aCost').value = item.cost; 
+          document.getElementById('aNote').value = item.note;
+          
+          const mode = item.tMode || '';
+          document.querySelectorAll('input[name="aTMode"]').forEach(r => {
+              if (r.value === mode && mode !== '') {
+                  r.checked = true;
+                  r.dataset.checked = 'true';
+              } else {
+                  r.checked = false;
+                  r.dataset.checked = 'false';
+              }
+          });
+          updateTModeUI(mode);
+        } else { 
+          document.getElementById('modalTitle').innerText = '新增行程'; 
+          document.getElementById('deleteBtn').classList.add('hidden'); 
+          form.reset(); 
+          document.getElementById('editId').value = ''; 
+          document.getElementById('aAddress').value = '';
+          document.querySelectorAll('input[name="aTMode"]').forEach(r => {
+              r.checked = false;
+              r.dataset.checked = 'false';
+          });
+          updateTModeUI('');
+        }
       }
       else if (modalId === 'dayEditModal') {
         const day = daysData.find(d => d.id === id);
