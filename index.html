@@ -76,7 +76,6 @@
         <div class="bg-accent text-white p-2 rounded-xl"><i data-lucide="plane" class="w-5 h-5"></i></div>
         <h1 class="text-lg font-bold text-primary tracking-wide">Trip Planner</h1>
       </div>
-      <!-- 桌面版：頂部垂直三點選單 -->
       <button onclick="openModal('dataSyncModal')" class="p-1.5 -mr-1.5 text-primary/60 hover:text-primary hover:bg-bg rounded-lg transition" title="匯出及匯入">
         <i data-lucide="more-vertical" class="w-5 h-5"></i>
       </button>
@@ -89,7 +88,7 @@
         <i data-lucide="calendar" class="w-5 h-5"></i> 行程 Plan
       </button>
       <button onclick="navigate('toolbox')" id="nav-toolbox" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors font-medium text-primary hover:bg-accent/10">
-        <i data-lucide="check-square" class="w-5 h-5"></i> 行李 Checklist
+        <i data-lucide="check-square" class="w-5 h-5"></i> 行行李 Checklist
       </button>
       <button onclick="navigate('shopping')" id="nav-shopping" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors font-medium text-primary hover:bg-accent/10">
         <i data-lucide="shopping-basket" class="w-5 h-5"></i> 購物 Shopping
@@ -140,8 +139,8 @@
             <div id="dateScroller" class="flex md:flex-col overflow-x-auto scrollbar-hide px-5 py-3 md:px-0 md:py-0 gap-3"></div>
           </div>
           <div class="flex-1 p-5 pt-4 md:pl-8 md:p-0">
-            <!-- 每日行程表頭：採用深配色，無直線、天氣在左、太陽變大，完美上下置中 -->
-            <div id="weatherHeader" class="relative bg-gradient-to-br from-accent to-accent/80 text-white rounded-2xl p-4 md:p-5 mb-6 shadow-md flex justify-between items-center w-full border-none"></div>
+            <!-- 每日行程表頭 (深色系、天氣靠左、完美置中對齊) -->
+            <div id="weatherHeader" class="bg-gradient-to-br from-accent to-accent/80 text-white rounded-2xl p-4 md:p-5 mb-6 shadow-md border-none"></div>
             <!-- 行程清單 -->
             <div id="itineraryList" class="space-y-0"></div>
           </div>
@@ -897,63 +896,62 @@
           let t = day.temp.replace(/°C/g, '').replace(/°/g, ''); 
           let parts = t.split('/').map(p => p.trim());
           if(parts.length === 2) {
-              // 強制不換行 whitespace-nowrap, 並與右邊行高完美對齊
               tempHtml = `
-                <div class="flex items-center gap-1.5 text-xs text-white/90 font-medium whitespace-nowrap h-5">
-                  <span class="flex items-center"><i data-lucide="arrow-down" class="w-3 h-3 mr-0.5 text-white/70"></i>${parts[1]}°C</span>
-                  <span class="flex items-center"><i data-lucide="arrow-up" class="w-3 h-3 mr-0.5 text-white/70"></i>${parts[0]}°C</span>
+                <div class="flex items-center gap-2 text-[11px] text-white/90 font-medium whitespace-nowrap mt-1 w-full justify-start">
+                  <span class="flex items-center"><i data-lucide="arrow-down" class="w-3 h-3 mr-0.5 opacity-80"></i>${parts[1]}°C</span>
+                  <span class="flex items-center"><i data-lucide="arrow-up" class="w-3 h-3 mr-0.5 opacity-80"></i>${parts[0]}°C</span>
                 </div>
               `;
           } else {
-              tempHtml = `<div class="text-xs text-white/90 font-medium whitespace-nowrap h-5 flex items-center">${parts[0]}°C</div>`;
+              tempHtml = `<div class="text-[11px] text-white/90 font-medium whitespace-nowrap mt-1">${parts[0]}°C</div>`;
           }
       }
       
-      // 完美上下置中與左右對齊的結構
+      // 左側無直線，放大天氣圖示，右側行高完美對齊
       document.getElementById('weatherHeader').innerHTML = `
         <div class="relative flex justify-between items-center w-full gap-2">
             
-            <!-- 左欄：天氣圖示與文字 (最左側，無右側隔線) -->
-            <div class="flex items-center gap-3 flex-shrink-0 w-[28%] max-w-[130px]">
-              <div class="relative flex-shrink-0 group">
-                <!-- 放大太陽圖示 -->
-                <i data-lucide="${day.weather}" class="w-10 h-10 text-white flex-shrink-0 drop-shadow-sm"></i>
-                <!-- 微妙的 Refresh Overlay -->
-                <button onclick="refreshDayWeather(${id})" class="absolute -top-1 -right-2 p-1 opacity-30 group-hover:opacity-100 transition rounded-full hover:bg-white/20 z-10" title="更新天氣">
-                  <i data-lucide="rotate-cw" class="w-3 h-3 text-white"></i>
+            <!-- 左欄：天氣圖示與溫度 (最左側，無右側隔線) -->
+            <div class="flex flex-col flex-shrink-0 w-auto pr-3">
+              
+              <!-- 1. 太陽/天氣圖示 與 晴天文字 同一行 -->
+              <div class="flex items-center gap-2 relative group pl-2">
+                <!-- 左上角 微小 Refresh Overlay -->
+                <button onclick="refreshDayWeather(${id})" class="absolute -top-1.5 -left-3 p-1 text-white/50 hover:text-white transition rounded-full z-10" title="更新天氣">
+                  <i data-lucide="rotate-cw" class="w-3.5 h-3.5"></i>
                 </button>
+                <i data-lucide="${day.weather}" class="w-10 h-10 text-white flex-shrink-0 drop-shadow-sm ml-0.5"></i>
+                <span class="text-[14px] font-bold text-white whitespace-nowrap leading-none">${day.wText}</span>
               </div>
-              <div class="flex flex-col justify-center gap-1.5">
-                  <p class="text-xs font-bold text-white leading-none tracking-wide h-6 flex items-center">${day.wText}</p>
-                  ${tempHtml}
+              
+              <!-- 2. 溫度在下方 -->
+              <div class="pl-2">
+                ${tempHtml}
               </div>
+              
             </div>
 
-            <!-- 右欄：Day 標題、地點、住宿 (行高與左邊完美同步) -->
-            <div class="flex-1 min-w-0 pl-2 md:pl-5 flex flex-col gap-1.5 justify-center">
+            <!-- 右欄：Day 標題概括、地點、住宿 (與左邊完美對齊，右上角 Edit) -->
+            <div class="flex-1 min-w-0 flex flex-col gap-1 justify-center pl-2 md:pl-4">
               
-              <!-- 1. 標題與右上角 Edit 圖示 -->
-              <div class="flex justify-between items-center h-6">
-                <!-- 解決 y 字被削邊：改用 leading-snug -->
-                <h2 class="text-base font-bold text-white leading-snug truncate flex-1 pr-2">
+              <div class="flex justify-between items-start h-6">
+                <!-- 放寬 leading-snug 避免 y 字被切 -->
+                <h2 class="text-[15px] md:text-base font-bold text-white leading-snug truncate flex-1 pr-2 pt-0.5">
                   Day ${id} ${day.overview ? `<span class="ml-1 font-semibold">${day.overview}</span>` : ''}
                 </h2>
-                <!-- 編輯按鈕置於右上角 -->
-                <button onclick="openModal('dayEditModal', ${id})" class="p-1.5 text-white/50 hover:text-white transition rounded-md hover:bg-white/20 flex-shrink-0 -mr-2" title="編輯當日資訊">
+                <button onclick="openModal('dayEditModal', ${id})" class="p-1.5 text-white/50 hover:text-white transition rounded-md hover:bg-white/20 flex-shrink-0 -mt-1 -mr-1" title="編輯當日資訊">
                   <i data-lucide="edit-2" class="w-4 h-4"></i>
                 </button>
               </div>
               
-              <!-- 2. 地點 (縮小間距，圖標保留) -->
-              <div class="flex items-center gap-1.5 text-xs text-white/80 h-5">
+              <div class="flex items-center gap-1.5 text-xs text-white/80 h-5 mt-0.5">
                   <i data-lucide="map-pin" class="w-3.5 h-3.5 text-white/80 flex-shrink-0"></i> 
-                  <span class="truncate leading-normal">${day.location || ''}</span>
+                  <span class="truncate leading-none">${day.location || ''}</span>
               </div>
               
-              <!-- 3. 住宿 (縮小間距，圖標保留) -->
               <div class="flex items-center gap-1.5 text-xs text-white/80 h-5">
                   <i data-lucide="bed" class="w-3.5 h-3.5 text-white/80 flex-shrink-0"></i> 
-                  <span class="truncate leading-normal">${day.accommodation || ''}</span>
+                  <span class="truncate leading-none">${day.accommodation || ''}</span>
               </div>
               
             </div>
@@ -1026,16 +1024,24 @@
 
     function renderFlightCard(item, iconInfo, mapUrl) {
       return `
-        <!-- 航班卡片改用清爽的日曆卡淺色配色 -->
-        <div class="bg-accent/10 border border-accent/30 rounded-3xl p-5 shadow-sm flex items-center drag-handle cursor-grab active:cursor-grabbing mb-2 relative transition hover:bg-accent/20">
-          <button onclick="openModal('activityModal', '${item.id}')" class="absolute top-4 right-4 p-2 text-accent/60 hover:bg-white/50 hover:text-accent rounded-full transition z-10"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
-          <div class="p-3 bg-white rounded-2xl mr-4 shadow-sm border border-accent/20"><i data-lucide="${iconInfo.icon}" class="w-6 h-6 text-accent"></i></div>
-          <a href="${mapUrl}" target="_blank" class="flex-1 cursor-pointer pr-10 hover:opacity-90 transition text-primary">
-            <div class="text-[10px] font-bold tracking-widest text-accent opacity-90 uppercase mb-1">Flight Info</div>
-            <h3 class="font-bold text-lg text-primary leading-tight mb-1">${item.name}</h3>
-            <p class="text-xs text-primary/70">${item.hours} | ${item.cost}</p>
-            ${item.note ? `<p class="text-[11px] mt-2 bg-white/60 border border-accent/20 px-2 py-1 text-primary/80 rounded-md inline-block">${item.note}</p>` : ''}
-          </a>
+        <!-- 航班卡片改用清爽日曆卡配色，並對齊整體 padding 與時間軸結構 -->
+        <div class="flex items-stretch drag-handle cursor-grab active:cursor-grabbing mb-2">
+          <div class="flex flex-col items-center mr-4 w-10">
+            <div class="w-10 h-10 rounded-full bg-accent/20 border border-accent/40 flex items-center justify-center shadow-sm z-10"><i data-lucide="${iconInfo.icon}" class="w-4 h-4 text-accent"></i></div>
+            <div class="flex-1 w-[2px] bg-border/60 my-1"></div>
+          </div>
+          <div class="flex-1 bg-accent/10 rounded-2xl p-4 shadow-sm border border-accent/30 relative hover:border-accent/50 transition">
+            <button onclick="openModal('activityModal', '${item.id}')" class="absolute top-4 right-3 text-accent/60 hover:text-accent p-1 z-10"><i data-lucide="more-horizontal" class="w-5 h-5"></i></button>
+            <a href="${mapUrl}" target="_blank" class="block pr-8 cursor-pointer group-hover:opacity-95">
+              <div class="text-[10px] font-bold tracking-widest text-accent opacity-90 uppercase mb-1">Flight Info</div>
+              <h3 class="font-bold text-primary text-[15px] mb-2">${item.name}</h3>
+              <div class="flex flex-wrap gap-x-4 gap-y-1 mb-2">
+                ${item.hours ? `<p class="text-xs text-primary/70 flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3 text-accent/70"></i>${item.hours}</p>` : ''}
+                ${item.cost ? `<p class="text-xs text-primary/70 flex items-center gap-1"><i data-lucide="credit-card" class="w-3 h-3 text-accent/70"></i>${item.cost}</p>` : ''}
+              </div>
+              ${item.note ? `<div class="bg-white/60 p-2.5 rounded-xl border border-accent/20 mb-2"><p class="text-xs text-primary/80">${item.note}</p></div>` : ''}
+            </a>
+          </div>
         </div>
       `;
     }
