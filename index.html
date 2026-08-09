@@ -88,7 +88,7 @@
         <i data-lucide="calendar" class="w-5 h-5"></i> 行程 Plan
       </button>
       <button onclick="navigate('toolbox')" id="nav-toolbox" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors font-medium text-primary hover:bg-accent/10">
-        <i data-lucide="check-square" class="w-5 h-5"></i> 行李 Checklist
+        <i data-lucide="check-square" class="w-5 h-5"></i> 準備 Checklist
       </button>
       <button onclick="navigate('shopping')" id="nav-shopping" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors font-medium text-primary hover:bg-accent/10">
         <i data-lucide="shopping-basket" class="w-5 h-5"></i> 購物 Shopping
@@ -134,7 +134,6 @@
         </div>
 
         <div class="flex flex-col md:flex-row flex-1">
-          <!-- 頂部日期選擇列 -->
           <div class="md:w-64 flex-shrink-0 border-b md:border-b-0 md:border-r border-border/50 md:pr-6 bg-card md:bg-transparent z-10 sticky top-0">
             <div id="dateScroller" class="flex md:flex-col overflow-x-auto scrollbar-hide px-5 py-3 md:px-0 md:py-0 gap-3"></div>
           </div>
@@ -150,19 +149,30 @@
         </button>
       </div>
 
-      <!-- View: Toolbox (行李清單) -->
+      <!-- View: Toolbox (準備清單) -->
       <div id="view-toolbox" class="px-5 pt-[calc(env(safe-area-inset-top)+12px)] md:p-10 hidden flex-col">
         <div class="max-w-4xl mx-auto flex flex-col w-full">
-          <div class="flex justify-between items-start mb-6">
+          <div class="flex justify-between items-start mb-2">
             <div>
-              <h2 class="text-2xl font-bold mb-1">行李清單</h2>
-              <p class="text-sm text-primary/60">出發前檢查清單</p>
+              <h2 class="text-2xl font-bold mb-1">準備清單</h2>
+              <p class="text-sm text-primary/60">行前待辦與行李打包</p>
             </div>
             <button onclick="openModal('dataSyncModal')" class="p-1.5 -mr-1.5 text-primary/60 hover:text-primary transition md:hidden" title="匯出及匯入">
               <i data-lucide="more-vertical" class="w-6 h-6"></i>
             </button>
           </div>
-          <div id="checklistAccordionContainer" class="flex flex-col gap-4 pb-10"></div>
+          
+          <div class="flex items-center gap-6 border-b border-border/60 mb-6 mt-4">
+            <button onclick="switchPrepTab('todo')" id="tab-prep-todo" class="pb-3 border-b-2 border-accent text-accent font-bold transition flex items-center gap-2 text-sm">
+              <i data-lucide="check-circle-2" class="w-4 h-4"></i> 待辦清單
+            </button>
+            <button onclick="switchPrepTab('packing')" id="tab-prep-packing" class="pb-3 border-b-2 border-transparent text-primary/50 font-medium transition flex items-center gap-2 text-sm">
+              <i data-lucide="luggage" class="w-4 h-4"></i> 行李清單
+            </button>
+          </div>
+
+          <!-- 動態渲染區塊 -->
+          <div id="checklistMainContainer" class="flex flex-col pb-10"></div>
         </div>
       </div>
 
@@ -210,7 +220,7 @@
       </button>
       <button onclick="navigate('toolbox')" id="mob-nav-toolbox" class="flex flex-col items-center justify-center flex-1 py-2 text-primary/60 transition">
         <i data-lucide="check-square" class="w-5 h-5 mb-1"></i>
-        <span class="text-[10px] font-medium">行李</span>
+        <span class="text-[10px] font-medium">準備</span>
       </button>
       <button onclick="navigate('shopping')" id="mob-nav-shopping" class="flex flex-col items-center justify-center flex-1 py-2 text-primary/60 transition">
         <i data-lucide="shopping-basket" class="w-5 h-5 mb-1"></i>
@@ -307,11 +317,11 @@
         <h3 id="modalTitle" class="text-lg font-bold text-primary">新增行程</h3>
         <button onclick="closeModal('activityModal')" class="text-primary/60 hover:text-primary"><i data-lucide="x" class="w-6 h-6"></i></button>
       </div>
-      <form id="activityForm" class="space-y-4 max-h-[60vh] overflow-y-auto pr-2 scrollbar-hide" onsubmit="submitActivityForm(event)">
+      <form id="activityForm" class="space-y-4 max-h-[65vh] overflow-y-auto pr-2 scrollbar-hide" onsubmit="submitActivityForm(event)">
         <input type="hidden" id="editId">
         
         <div>
-          <label class="block text-xs font-medium mb-1 text-primary/70">交通方式</label>
+          <label class="block text-xs font-medium mb-1 text-primary/70">交通方式 (點擊可取消)</label>
           <div class="flex gap-2">
             <label class="flex-1 text-center border border-border rounded-xl p-2 text-xs cursor-pointer hover:bg-bg flex items-center justify-center gap-1.5 transition">
               <input type="radio" name="aTMode" value="walk" class="hidden" onclick="toggleTMode(this)">
@@ -327,7 +337,7 @@
             </label>
           </div>
         </div>
-        
+
         <div>
           <label class="block text-xs font-medium mb-1 text-primary/70">活動分類</label>
           <select id="aCategory" class="w-full border border-border rounded-xl p-2.5 text-sm bg-bg outline-none focus:border-accent text-primary">
@@ -344,13 +354,27 @@
           <label class="block text-xs font-medium mb-1 text-primary/70">地點名稱</label>
           <input type="text" id="aName" required class="w-full border border-border rounded-xl p-2.5 text-sm bg-bg outline-none focus:border-accent text-primary">
         </div>
+        
+        <!-- 新增照片上傳區塊 -->
         <div>
-          <label class="block text-xs font-medium mb-1 text-primary/70">詳細地址</label>
-          <input type="text" id="aAddress" class="w-full border border-border rounded-xl p-2.5 text-sm bg-bg outline-none focus:border-accent text-primary">
+          <label class="block text-xs font-medium mb-2 text-primary/70">地點照片 (上傳後將顯示於卡片右側)</label>
+          <div class="flex flex-col items-center justify-center w-full">
+            <label for="act-dropzone-file" class="flex flex-col items-center justify-center w-full h-24 border-2 border-border border-dashed rounded-2xl cursor-pointer bg-bg hover:bg-border/30 transition overflow-hidden relative">
+              <div class="flex flex-col items-center justify-center pt-5 pb-6 z-10" id="actUploadPlaceholder"><i data-lucide="image-plus" class="w-6 h-6 text-accent/70 mb-1"></i><p class="text-xs text-primary/50 text-center">點擊拍照或上傳</p></div>
+              <img id="actImagePreview" src="" class="absolute inset-0 w-full h-full object-cover hidden z-20" alt="Preview">
+              <input id="act-dropzone-file" type="file" accept="image/*" class="hidden" onchange="previewActivityImage(event)" />
+            </label>
+            <button type="button" id="actRemoveImgBtn" onclick="removeActivityPreviewImage()" class="hidden text-[10px] text-danger mt-1.5 hover:underline">移除圖片</button>
+          </div>
         </div>
+
         <div class="grid grid-cols-2 gap-3">
           <div><label class="block text-xs font-medium mb-1 text-primary/70">時間</label><input type="text" id="aHours" class="w-full border border-border rounded-xl p-2.5 text-sm bg-bg outline-none focus:border-accent"></div>
-          <div><label class="block text-xs font-medium mb-1 text-primary/70">預計花費/門票</label><input type="text" id="aCost" class="w-full border border-border rounded-xl p-2.5 text-sm bg-bg outline-none focus:border-accent"></div>
+          <div><label class="block text-xs font-medium mb-1 text-primary/70">營業時間</label><input type="text" id="aOpHours" class="w-full border border-border rounded-xl p-2.5 text-sm bg-bg outline-none focus:border-accent"></div>
+        </div>
+        <div>
+          <label class="block text-xs font-medium mb-1 text-primary/70">預計花費/門票</label>
+          <input type="text" id="aCost" class="w-full border border-border rounded-xl p-2.5 text-sm bg-bg outline-none focus:border-accent">
         </div>
         <div><label class="block text-xs font-medium mb-1 text-primary/70">備註</label><textarea id="aNote" rows="2" class="w-full border border-border rounded-xl p-2.5 text-sm bg-bg outline-none focus:border-accent"></textarea></div>
         
@@ -401,6 +425,7 @@
     </div>
   </div>
 
+  <!-- ========== 腳本邏輯 ========== -->
   <script>
     let tripsData = [];
     let daysData = [];
@@ -410,6 +435,9 @@
 
     let checklistAccordionState = { personal: false, daily: false, clothing: false, electronic: false, carryon: false };
     const checklistCategoryMap = { personal: '個人物品', daily: '日用品', clothing: '服飾配件', electronic: '電子用品', carryon: '隨身行李' };
+
+    let currentPrepTab = 'todo';
+    let currentActivityUploadImageBase64 = ''; // 新增：用於儲存行程地點照片的 Base64
 
     function saveLocalData() {
       const data = { tripsData, daysData, itineraryData, checklistData, shoppingData };
@@ -442,11 +470,18 @@
       tripsData = [{ id: 1, name: 'Lofoten・Norway', dateStr: mockDateStr, progress: 40, cover: 'https://res.cloudinary.com/fjordtours/image/upload/w_auto/dpr_auto/c_fill/f_auto/q_auto/c_limit,w_1920/v1/norway/places-to-visit/northern-norway/lofoten/reine-lofoten-summer?_a=BAVMn6DY0' }];
       
       itineraryData = [
-        { id: '1', dayId: 1, order: 1, type: 'flight', name: '星宇航空 JX800', hours: '08:30 - 12:45', cost: 'T1 航廈', note: '飛往奧斯陸', tMode: '' },
-        { id: '2', dayId: 1, order: 2, type: 'transport', name: '取車', hours: '16:30', cost: '', note: '預約 Avis', tMode: 'transit' },
+        { id: '1', dayId: 1, order: 1, type: 'flight', name: '星宇航空 JX800', hours: '08:30 - 12:45', opHours: '', cost: 'T1 航廈', note: '飛往奧斯陸', tMode: '', image: '' },
+        { id: '2', dayId: 1, order: 2, type: 'transport', name: '取車', hours: '16:30', opHours: '09:00 - 18:00', cost: '', note: '預約 Avis', tMode: 'transit', image: '' },
       ];
       
       checklistData = [
+        { id: 101, category: 'todo', text: '✈️ 購買機票', done: true },
+        { id: 102, category: 'todo', text: '🏨 預訂住宿', done: false },
+        { id: 103, category: 'todo', text: '📄 辦理簽證', done: false },
+        { id: 104, category: 'todo', text: '🛡️ 購買旅遊保險', done: false },
+        { id: 105, category: 'todo', text: '📶 購買網卡 / 開通漫遊', done: false },
+        { id: 106, category: 'todo', text: '💵 兌換外幣', done: false },
+
         { id: 1, category: 'personal', text: '👓 眼鏡', done: false },
         { id: 2, category: 'personal', text: '🕶️ 太陽眼鏡', done: false },
         { id: 3, category: 'personal', text: '💊 藥物', done: false },
@@ -667,7 +702,7 @@
         return `${d}/${mMap[mStr]||'01'}`;
     }
 
-    let activeDay = 1, deleteTargetId = null, sortableInstance = null, currentUploadImageBase64 = '';
+    let activeDay = 1, deleteTargetId = null, sortableInstance = null;
     const typeConfig = { flight: { icon: 'plane' }, sightseeing: { icon: 'camera' }, accommodation: { icon: 'hotel' }, food: { icon: 'utensils' }, shopping: { icon: 'shopping-bag' }, transport: { icon: 'train-front' }, other: { icon: 'map-pin' } };
 
     function startGlobalCountdown() {
@@ -916,13 +951,13 @@
           let parts = t.split('/').map(p => p.trim());
           if(parts.length === 2) {
               tempHtml = `
-                <div class="flex items-center gap-2 text-[11px] text-white/90 font-medium whitespace-nowrap mt-1 w-full justify-start">
-                  <span class="flex items-center"><i data-lucide="arrow-down" class="w-3 h-3 mr-0.5 opacity-80"></i>${parts[1]}°C</span>
-                  <span class="flex items-center"><i data-lucide="arrow-up" class="w-3 h-3 mr-0.5 opacity-80"></i>${parts[0]}°C</span>
+                <div class="flex items-center justify-between mt-1 text-[11px] text-white/90 font-medium whitespace-nowrap w-full">
+                  <span class="flex items-center"><i data-lucide="arrow-down" class="w-3.5 h-3.5 mr-0.5 opacity-80"></i>${parts[1]}°C</span>
+                  <span class="flex items-center"><i data-lucide="arrow-up" class="w-3.5 h-3.5 mr-0.5 opacity-80"></i>${parts[0]}°C</span>
                 </div>
               `;
           } else {
-              tempHtml = `<div class="text-[11px] text-white/90 font-medium whitespace-nowrap mt-1">${parts[0]}°C</div>`;
+              tempHtml = `<div class="text-[11px] text-white/90 font-medium whitespace-nowrap mt-1 w-full text-center">${parts[0]}°C</div>`;
           }
       }
       
@@ -952,12 +987,12 @@
               
               <div class="flex items-center gap-1.5 text-xs text-white/80 h-5 mt-0.5">
                   <i data-lucide="map-pin" class="w-3.5 h-3.5 text-white/80 flex-shrink-0"></i> 
-                  <span class="truncate leading-normal">${day.location || ''}</span>
+                  <span class="truncate mt-0.5 leading-normal">${day.location || ''}</span>
               </div>
               
               <div class="flex items-center gap-1.5 text-xs text-white/80 h-5 mt-0.5">
                   <i data-lucide="bed" class="w-3.5 h-3.5 text-white/80 flex-shrink-0"></i> 
-                  <span class="truncate leading-normal">${day.accommodation || ''}</span>
+                  <span class="truncate mt-0.5 leading-normal">${day.accommodation || ''}</span>
               </div>
             </div>
             
@@ -1028,7 +1063,7 @@
         if (index === 0) {
             prevLocName = currentDayData && currentDayData.accommodation ? currentDayData.accommodation : '';
         } else {
-            prevLocName = currentItems[index - 1].address || currentItems[index - 1].name;
+            prevLocName = currentItems[index - 1].name;
         }
 
         if (item.tMode) {
@@ -1040,10 +1075,9 @@
            if(item.tMode === 'transit') travelmodeAB = 'transit';
            if(item.tMode === 'drive') travelmodeAB = 'driving';
            
-           const destination = item.address || item.name;
-           const mapUrlAB = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(prevLocName)}&destination=${encodeURIComponent(destination)}&travelmode=${travelmodeAB}`;
+           const mapUrlAB = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(prevLocName)}&destination=${encodeURIComponent(item.name)}&travelmode=${travelmodeAB}`;
 
-           transportHtml = `<a href="${mapUrlAB}" target="_blank" class="flex items-center gap-2 text-xs text-primary/50 py-3 pl-4 border-l-2 border-dashed border-accent/40 ml-[23px] hover:text-accent transition group cursor-pointer"><i data-lucide="${m.icon}" class="w-3.5 h-3.5 text-accent group-hover:scale-110 transition"></i> <span class="border-b border-dashed border-primary/30 group-hover:border-accent transition pb-0.5">${m.label}前往 (點擊使用 Google Map 規劃)</span></a>`;
+           transportHtml = `<a href="${mapUrlAB}" target="_blank" class="flex items-center gap-2 text-xs text-primary/50 py-3 pl-4 border-l-2 border-dashed border-accent/40 ml-[23px] hover:text-accent transition group cursor-pointer"><i data-lucide="${m.icon}" class="w-3.5 h-3.5 text-accent group-hover:scale-110 transition"></i> <span class="border-b border-dashed border-primary/30 group-hover:border-accent transition pb-0.5">${m.label}前往 (點擊查看地圖)</span></a>`;
            
         } else if (index > 0 || (index === 0 && prevLocName)) {
            transportHtml = `<div class="flex items-center gap-2 text-xs text-primary/50 py-3 pl-4 border-l-2 border-dashed border-accent/40 ml-[23px]"></div>`;
@@ -1076,19 +1110,25 @@
 
     function renderFlightCard(item, iconInfo, mapUrl) {
       return `
-        <!-- 航班全寬卡片，與 Day 1 表頭對齊，移除時間軸縮排 -->
         <div class="flex items-stretch mb-2 relative group/card w-full" data-id="${item.id}">
-            <div class="flex-1 bg-gradient-to-br from-accent to-accent/80 text-white rounded-2xl py-4 pr-4 pl-8 shadow-sm flex items-center min-w-0 relative">
-              <div class="drag-grip absolute left-1.5 top-1/2 -translate-y-1/2 cursor-grab active:cursor-grabbing p-1.5 text-white/30 hover:text-white/70 transition z-10">
+            <div class="flex-1 bg-accent/10 border border-accent/30 rounded-2xl py-4 pr-4 pl-8 shadow-sm flex items-center min-w-0 relative hover:bg-accent/20 transition">
+              <div class="drag-grip absolute left-1.5 top-1/2 -translate-y-1/2 cursor-grab active:cursor-grabbing p-1.5 text-accent/40 hover:text-accent transition z-10">
                   <i data-lucide="grip-vertical" class="w-4 h-4"></i>
               </div>
-              <button onclick="openModal('activityModal', '${item.id}')" class="absolute top-4 right-3 p-1.5 bg-white/10 hover:bg-white/20 hover:text-white rounded-full transition z-10"><i data-lucide="edit-2" class="w-4 h-4 text-white"></i></button>
-              <div class="p-2.5 bg-white/20 rounded-xl mr-4 flex-shrink-0"><i data-lucide="${iconInfo.icon}" class="w-6 h-6 text-white"></i></div>
-              <div class="flex-1 pr-8 text-white min-w-0">
-                <div class="text-[10px] font-bold tracking-widest opacity-80 uppercase mb-1">Flight Info</div>
-                <h3 class="font-bold text-[15px] leading-tight mb-2 truncate">${item.name}</h3>
-                <p class="text-xs opacity-90">${item.hours} | ${item.cost}</p>
-                ${item.note ? `<p class="text-[11px] mt-2 bg-black/10 px-2 py-1 rounded-md inline-block max-w-full truncate">${item.note}</p>` : ''}
+              <button onclick="openModal('activityModal', '${item.id}')" class="absolute top-4 right-3 p-1.5 text-accent/60 hover:bg-white/50 hover:text-accent rounded-md transition z-10"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
+              <div class="p-2.5 bg-white rounded-xl mr-4 flex-shrink-0 shadow-sm border border-accent/20"><i data-lucide="${iconInfo.icon}" class="w-6 h-6 text-accent"></i></div>
+              <div class="flex-1 pr-6 flex justify-between gap-3 text-primary min-w-0">
+                <div class="flex-1 min-w-0">
+                    <div class="text-[10px] font-bold tracking-widest text-accent opacity-90 uppercase mb-1">Flight Info</div>
+                    <h3 class="font-bold text-[15px] leading-tight mb-2 truncate">${item.name}</h3>
+                    <div class="flex flex-wrap gap-x-4 gap-y-1 mb-2">
+                        ${item.hours ? `<p class="text-xs text-primary/70 flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3 text-accent/70"></i>${item.hours}</p>` : ''}
+                        ${item.opHours ? `<p class="text-xs text-primary/70 flex items-center gap-1"><i data-lucide="store" class="w-3 h-3 text-accent/70"></i>${item.opHours}</p>` : ''}
+                        ${item.cost ? `<p class="text-xs text-primary/70 flex items-center gap-1"><i data-lucide="credit-card" class="w-3 h-3 text-accent/70"></i>${item.cost}</p>` : ''}
+                    </div>
+                    ${item.note ? `<p class="text-[11px] mt-2 bg-white/60 border border-accent/20 px-2 py-1 text-primary/80 rounded-md inline-block max-w-full truncate">${item.note}</p>` : ''}
+                </div>
+                ${item.image ? `<div class="mt-4 flex-shrink-0"><img src="${item.image}" class="w-16 h-16 md:w-20 md:h-20 object-cover rounded-xl shadow-sm border border-accent/20"></div>` : ''}
               </div>
             </div>
         </div>
@@ -1107,22 +1147,48 @@
                 <i data-lucide="grip-vertical" class="w-4 h-4"></i>
             </div>
             <button onclick="openModal('activityModal', '${item.id}')" class="absolute top-4 right-3 text-primary/30 hover:text-accent p-1.5 z-10 rounded-md hover:bg-bg"><i data-lucide="more-horizontal" class="w-5 h-5"></i></button>
-            <div class="pr-6">
-              <h3 class="font-bold text-primary text-[15px] mb-2 truncate">${item.name}</h3>
-              <div class="flex flex-wrap gap-x-4 gap-y-1 mb-2">
-                ${item.hours ? `<p class="text-xs text-primary/70 flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3 text-accent/70"></i>${item.hours}</p>` : ''}
-                ${item.cost ? `<p class="text-xs text-primary/70 flex items-center gap-1"><i data-lucide="credit-card" class="w-3 h-3 text-accent/70"></i>${item.cost}</p>` : ''}
+            <div class="pr-6 flex justify-between gap-3 items-start">
+              <div class="flex-1 min-w-0">
+                <h3 class="font-bold text-primary text-[15px] mb-2 truncate">${item.name}</h3>
+                <div class="flex flex-wrap gap-x-4 gap-y-1 mb-2">
+                  ${item.hours ? `<p class="text-xs text-primary/70 flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3 text-accent/70"></i>${item.hours}</p>` : ''}
+                  ${item.opHours ? `<p class="text-xs text-primary/70 flex items-center gap-1"><i data-lucide="store" class="w-3 h-3 text-accent/70"></i>${item.opHours}</p>` : ''}
+                  ${item.cost ? `<p class="text-xs text-primary/70 flex items-center gap-1"><i data-lucide="credit-card" class="w-3 h-3 text-accent/70"></i>${item.cost}</p>` : ''}
+                </div>
+                ${item.note ? `<div class="bg-bg p-2.5 rounded-xl border border-border/40 mb-2"><p class="text-xs text-primary/80 break-words">${item.note}</p></div>` : ''}
+                <div class="flex items-center gap-2 mt-3">
+                  <a href="${mapUrl}" target="_blank" class="inline-flex items-center gap-1 text-[11px] font-bold text-white bg-accent/90 px-2.5 py-1.5 rounded-lg hover:bg-accent transition z-10 cursor-pointer shadow-sm">
+                     <i data-lucide="map-pin" class="w-3 h-3"></i> 導航
+                  </a>
+                </div>
               </div>
-              ${item.note ? `<div class="bg-bg p-2.5 rounded-xl border border-border/40 mb-2"><p class="text-xs text-primary/80 break-words">${item.note}</p></div>` : ''}
-              <div class="flex items-center gap-2 mt-3">
-                <a href="${mapUrl}" target="_blank" class="inline-flex items-center gap-1 text-[11px] font-bold text-white bg-accent/90 px-2.5 py-1.5 rounded-lg hover:bg-accent transition z-10 cursor-pointer shadow-sm">
-                   <i data-lucide="map-pin" class="w-3 h-3"></i> 導航
-                </a>
-              </div>
+              ${item.image ? `<div class="mt-6 flex-shrink-0"><img src="${item.image}" class="w-16 h-16 md:w-20 md:h-20 object-cover rounded-xl shadow-sm border border-border/50"></div>` : ''}
             </div>
           </div>
         </div>
       `;
+    }
+
+    function previewActivityImage(event) {
+      const file = event.target.files[0];
+      if (file) {
+        compressImage(file, function(compressedBase64) {
+          currentActivityUploadImageBase64 = compressedBase64;
+          document.getElementById('actImagePreview').src = compressedBase64;
+          document.getElementById('actImagePreview').classList.remove('hidden');
+          document.getElementById('actUploadPlaceholder').classList.add('hidden');
+          document.getElementById('actRemoveImgBtn').classList.remove('hidden');
+        });
+      }
+    }
+    
+    function removeActivityPreviewImage() { 
+      currentActivityUploadImageBase64 = ''; 
+      document.getElementById('act-dropzone-file').value = ''; 
+      document.getElementById('actImagePreview').src = ''; 
+      document.getElementById('actImagePreview').classList.add('hidden'); 
+      document.getElementById('actUploadPlaceholder').classList.remove('hidden'); 
+      document.getElementById('actRemoveImgBtn').classList.add('hidden'); 
     }
 
     document.getElementById('activityForm').addEventListener('submit', submitActivityForm);
@@ -1137,9 +1203,11 @@
           type: document.getElementById('aCategory').value, 
           name: document.getElementById('aName').value, 
           hours: document.getElementById('aHours').value, 
+          opHours: document.getElementById('aOpHours').value, 
           cost: document.getElementById('aCost').value, 
           note: document.getElementById('aNote').value,
-          tMode: tMode
+          tMode: tMode,
+          image: currentActivityUploadImageBase64
       };
       
       if (editId) { 
@@ -1164,6 +1232,25 @@
     function confirmDelete() { deleteTargetId = document.getElementById('editId').value; document.getElementById('deleteConfirmModal').classList.remove('hidden'); }
     function cancelDelete() { deleteTargetId = null; document.getElementById('deleteConfirmModal').classList.add('hidden'); }
     function executeDelete() { if (deleteTargetId) { itineraryData = itineraryData.filter(i => i.id !== deleteTargetId); cancelDelete(); closeModal('activityModal'); renderItinerary(); saveLocalData(); } }
+
+    function switchPrepTab(tab) {
+        currentPrepTab = tab;
+        const btnTodo = document.getElementById('tab-prep-todo');
+        const btnPacking = document.getElementById('tab-prep-packing');
+
+        if (tab === 'todo') {
+            btnTodo.classList.add('text-accent', 'border-accent', 'font-bold');
+            btnTodo.classList.remove('text-primary/50', 'border-transparent', 'font-medium');
+            btnPacking.classList.add('text-primary/50', 'border-transparent', 'font-medium');
+            btnPacking.classList.remove('text-accent', 'border-accent', 'font-bold');
+        } else {
+            btnPacking.classList.add('text-accent', 'border-accent', 'font-bold');
+            btnPacking.classList.remove('text-primary/50', 'border-transparent', 'font-medium');
+            btnTodo.classList.add('text-primary/50', 'border-transparent', 'font-medium');
+            btnTodo.classList.remove('text-accent', 'border-accent', 'font-bold');
+        }
+        renderChecklist();
+    }
 
     function toggleAccordion(cat) {
         checklistAccordionState[cat] = !checklistAccordionState[cat];
@@ -1193,59 +1280,99 @@
     }
 
     function renderChecklist() {
-        const container = document.getElementById('checklistAccordionContainer');
+        const container = document.getElementById('checklistMainContainer');
         let html = '';
 
-        Object.keys(checklistCategoryMap).forEach(cat => {
-            const items = checklistData.filter(i => (i.category || 'personal') === cat);
-            const total = items.length;
-            const done = items.filter(i => i.done).length;
-            const isOpen = checklistAccordionState[cat];
+        if (currentPrepTab === 'todo') {
+            const todos = checklistData.filter(i => i.category === 'todo');
+            const total = todos.length;
+            const done = todos.filter(i => i.done).length;
+
+            html += `
+            <div class="bg-card rounded-3xl p-5 shadow-sm border border-border/50 mb-4 transition-all">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold text-[15px]">待辦清單</h3>
+                    <p class="text-[11px] text-primary/60">已完成 ${done} / ${total}</p>
+                </div>
+                <div class="space-y-2">
+            `;
             
-            let itemsHtml = '';
-            if (isOpen) {
-                itemsHtml = `<div class="mt-4 space-y-2 border-t border-border/40 pt-4">`;
-                if(items.length === 0) {
-                    itemsHtml += `<div class="text-xs text-primary/40 text-center py-3">尚無項目</div>`;
-                } else {
-                    items.forEach(item => {
-                        itemsHtml += `
-                        <div class="flex items-center justify-between p-3 bg-bg rounded-xl border border-border/40">
+            if (todos.length === 0) {
+                html += `<div class="text-xs text-primary/40 text-center py-6 border border-dashed border-border/60 rounded-xl">尚無待辦事項</div>`;
+            } else {
+                todos.forEach(item => {
+                    html += `
+                        <div class="flex items-center justify-between p-3 bg-bg rounded-xl border border-border/40 hover:border-accent/30 transition">
                           <div class="flex items-center gap-3">
                             <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleCheck(${item.id})" class="w-4 h-4 accent-accent cursor-pointer rounded">
                             <span class="text-sm ${item.done ? 'line-through text-primary/40' : 'text-primary'}">${item.text}</span>
                           </div>
                           <button onclick="deleteCheckItem(${item.id})" class="text-primary/30 hover:text-danger transition"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                         </div>
-                        `;
-                    });
-                }
-                
-                itemsHtml += `
-                <div class="mt-3 flex gap-2">
-                    <input type="text" id="newCheckItem-${cat}" class="flex-1 border border-border/80 rounded-xl p-2.5 text-sm bg-bg outline-none focus:border-accent text-primary transition" placeholder="新增${checklistCategoryMap[cat]}..." onkeydown="if(event.key === 'Enter') addCheckItem('${cat}')">
-                    <button onclick="addCheckItem('${cat}')" class="bg-accent text-white px-4 py-2.5 rounded-xl font-bold text-sm shadow-sm hover:opacity-90 transition">新增</button>
-                </div>
-                `;
-
-                itemsHtml += `</div>`;
+                    `;
+                });
             }
 
             html += `
-            <div class="bg-card rounded-3xl p-5 shadow-sm border border-border/50 transition-all overflow-hidden">
-                <div class="flex justify-between items-center cursor-pointer" onclick="toggleAccordion('${cat}')">
-                    <div>
-                        <h3 class="font-bold text-[15px]">${checklistCategoryMap[cat]}</h3>
-                        <p class="text-[11px] text-primary/60 mt-1">已完成 ${done} / ${total} 項</p>
-                    </div>
-                    <div class="p-1 rounded-full hover:bg-bg transition transform ${isOpen ? 'rotate-180' : ''}">
-                        <i data-lucide="chevron-down" class="w-5 h-5 text-primary/50"></i>
-                    </div>
                 </div>
-                ${itemsHtml}
-            </div>
-            `;
-        });
+                <div class="mt-4 flex gap-2 border-t border-border/40 pt-4">
+                    <input type="text" id="newCheckItem-todo" class="flex-1 border border-border/80 rounded-xl p-2.5 text-sm bg-bg outline-none focus:border-accent text-primary transition" placeholder="新增待辦事項..." onkeydown="if(event.key === 'Enter') addCheckItem('todo')">
+                    <button onclick="addCheckItem('todo')" class="bg-accent text-white px-4 py-2.5 rounded-xl font-bold text-sm shadow-sm hover:opacity-90 transition">新增</button>
+                </div>
+            </div>`;
+
+        } else {
+            html += `<div id="checklistAccordionContainer" class="flex flex-col gap-4">`;
+            Object.keys(checklistCategoryMap).forEach(cat => {
+                const items = checklistData.filter(i => i.category === cat);
+                const total = items.length;
+                const done = items.filter(i => i.done).length;
+                const isOpen = checklistAccordionState[cat];
+                
+                let itemsHtml = '';
+                if (isOpen) {
+                    itemsHtml = `<div class="mt-4 space-y-2 border-t border-border/40 pt-4">`;
+                    if(items.length === 0) {
+                        itemsHtml += `<div class="text-xs text-primary/40 text-center py-3">尚無項目</div>`;
+                    } else {
+                        items.forEach(item => {
+                            itemsHtml += `
+                            <div class="flex items-center justify-between p-3 bg-bg rounded-xl border border-border/40">
+                              <div class="flex items-center gap-3">
+                                <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleCheck(${item.id})" class="w-4 h-4 accent-accent cursor-pointer rounded">
+                                <span class="text-sm ${item.done ? 'line-through text-primary/40' : 'text-primary'}">${item.text}</span>
+                              </div>
+                              <button onclick="deleteCheckItem(${item.id})" class="text-primary/30 hover:text-danger transition"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                            </div>
+                            `;
+                        });
+                    }
+                    
+                    itemsHtml += `
+                    <div class="mt-3 flex gap-2">
+                        <input type="text" id="newCheckItem-${cat}" class="flex-1 border border-border/80 rounded-xl p-2.5 text-sm bg-bg outline-none focus:border-accent text-primary transition" placeholder="新增${checklistCategoryMap[cat]}..." onkeydown="if(event.key === 'Enter') addCheckItem('${cat}')">
+                        <button onclick="addCheckItem('${cat}')" class="bg-accent text-white px-4 py-2.5 rounded-xl font-bold text-sm shadow-sm hover:opacity-90 transition">新增</button>
+                    </div>
+                    </div>`;
+                }
+
+                html += `
+                <div class="bg-card rounded-3xl p-5 shadow-sm border border-border/50 transition-all overflow-hidden">
+                    <div class="flex justify-between items-center cursor-pointer" onclick="toggleAccordion('${cat}')">
+                        <div>
+                            <h3 class="font-bold text-[15px]">${checklistCategoryMap[cat]}</h3>
+                            <p class="text-[11px] text-primary/60 mt-1">已完成 ${done} / ${total} 項</p>
+                        </div>
+                        <div class="p-1 rounded-full hover:bg-bg transition transform ${isOpen ? 'rotate-180' : ''}">
+                            <i data-lucide="chevron-down" class="w-5 h-5 text-primary/50"></i>
+                        </div>
+                    </div>
+                    ${itemsHtml}
+                </div>
+                `;
+            });
+            html += `</div>`;
+        }
         
         container.innerHTML = html;
         lucide.createIcons();
@@ -1467,9 +1594,10 @@
           document.getElementById('editId').value = item.id; 
           document.getElementById('aCategory').value = item.type; 
           document.getElementById('aName').value = item.name; 
-          document.getElementById('aHours').value = item.hours; 
-          document.getElementById('aCost').value = item.cost; 
-          document.getElementById('aNote').value = item.note;
+          document.getElementById('aHours').value = item.hours || ''; 
+          document.getElementById('aOpHours').value = item.opHours || ''; 
+          document.getElementById('aCost').value = item.cost || ''; 
+          document.getElementById('aNote').value = item.note || '';
           
           const mode = item.tMode || '';
           document.querySelectorAll('input[name="aTMode"]').forEach(r => {
@@ -1482,16 +1610,29 @@
               }
           });
           updateTModeUI(mode);
+          
+          currentActivityUploadImageBase64 = item.image || '';
+          if (currentActivityUploadImageBase64) {
+             document.getElementById('actImagePreview').src = currentActivityUploadImageBase64;
+             document.getElementById('actImagePreview').classList.remove('hidden');
+             document.getElementById('actUploadPlaceholder').classList.add('hidden');
+             document.getElementById('actRemoveImgBtn').classList.remove('hidden');
+          } else {
+             removeActivityPreviewImage();
+          }
+
         } else { 
           document.getElementById('modalTitle').innerText = '新增行程'; 
           document.getElementById('deleteBtn').classList.add('hidden'); 
           form.reset(); 
           document.getElementById('editId').value = ''; 
+          document.getElementById('aOpHours').value = ''; 
           document.querySelectorAll('input[name="aTMode"]').forEach(r => {
               r.checked = false;
               r.dataset.checked = 'false';
           });
           updateTModeUI('');
+          removeActivityPreviewImage();
         }
       }
       else if (modalId === 'dayEditModal') {
