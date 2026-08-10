@@ -646,6 +646,15 @@
           checklistData = parsed.checklistData || [];
           shoppingData = parsed.shoppingData || [];
           reservationsData = parsed.reservationsData || [];
+
+          // 【重要修復：向下相容】強制將所有舊資料的 id 與 tripId 轉為字串
+          tripsData.forEach(t => t.id = String(t.id));
+          daysData.forEach(d => { if (d.tripId) d.tripId = String(d.tripId); });
+          itineraryData.forEach(i => { i.id = String(i.id); if (i.tripId) i.tripId = String(i.tripId); });
+          checklistData.forEach(c => { c.id = String(c.id); if (c.tripId) c.tripId = String(c.tripId); });
+          shoppingData.forEach(s => { s.id = String(s.id); if (s.tripId) s.tripId = String(s.tripId); });
+          reservationsData.forEach(r => { r.id = String(r.id); if (r.tripId) r.tripId = String(r.tripId); });
+
           return true;
         } catch(e) { console.error('Data Load Error', e); }
       }
