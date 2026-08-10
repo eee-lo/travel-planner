@@ -1948,9 +1948,9 @@ html += isFlight ? renderFlightCard(item, iconInfo, mapUrl) : renderNormalCard(i
         Object.values(groups).forEach(g => g.classList.add('hidden'));
 
         const labelMap = {
-            flight: '名稱 (如：長榮航空)',
-            accomm: '名稱 (如：希爾頓飯店)',
-            transport: '名稱 (如：Avis 租車 / 火車班次)',
+            flight: '名稱',
+            accomm: '名稱',
+            transport: '名稱',
             other: '名稱'
         };
         document.getElementById('l_rName').innerText = labelMap[type] || '名稱';
