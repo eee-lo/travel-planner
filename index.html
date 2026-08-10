@@ -100,7 +100,7 @@
         <i data-lucide="calendar" class="w-5 h-5"></i> 行程 Plan
       </button>
       <button onclick="navigate('reservations')" id="nav-reservations" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors font-medium text-primary hover:bg-accent/10">
-        <i data-lucide="ticket" class="w-5 h-5"></i> 預約 Booking
+        <i data-lucide="ticket" class="w-5 h-5"></i> 預約 Reservation
       </button>
       <button onclick="navigate('toolbox')" id="nav-toolbox" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors font-medium text-primary hover:bg-accent/10">
         <i data-lucide="check-square" class="w-5 h-5"></i> 準備 Checklist
@@ -149,14 +149,11 @@
         </div>
 
         <div class="flex flex-col md:flex-row flex-1">
-          <!-- 頂部日期選擇列 -->
           <div class="md:w-64 flex-shrink-0 border-b md:border-b-0 md:border-r border-border/50 md:pr-6 bg-card md:bg-transparent z-10 sticky top-0">
             <div id="dateScroller" class="flex md:flex-col overflow-x-auto scrollbar-hide px-5 py-3 md:px-0 md:py-0 gap-3"></div>
           </div>
           <div class="flex-1 p-5 pt-4 md:pl-8 md:p-0">
-            <!-- 每日行程表頭 -->
             <div id="weatherHeader" class="relative bg-gradient-to-br from-accent to-accent/80 text-white rounded-2xl p-4 md:p-5 mb-6 shadow-md border-none flex justify-between items-center w-full"></div>
-            <!-- 行程清單 -->
             <div id="itineraryList" class="space-y-0"></div>
           </div>
         </div>
@@ -207,7 +204,7 @@
           <div class="flex justify-between items-start mb-2">
             <div>
               <h2 class="text-2xl font-bold mb-1">準備清單</h2>
-              <p class="text-sm text-primary/60">行前待辦與行李打包</p>
+              <p class="text-sm text-primary/60">出發前的準備事項與行李清單</p>
             </div>
             <button onclick="openModal('dataSyncModal')" class="p-1.5 -mr-1.5 text-primary/60 hover:text-primary transition md:hidden" title="匯出及匯入">
               <i data-lucide="more-vertical" class="w-6 h-6"></i>
@@ -307,7 +304,6 @@
     </div>
   </div>
   
-  <!-- 新增/編輯預約 Modal -->
   <div id="reservationModal" class="fixed inset-0 z-[60] hidden flex justify-center items-end md:items-center">
     <div class="absolute inset-0 bg-primary/40 backdrop-blur-sm" onclick="closeModal('reservationModal')"></div>
     <div class="relative bg-card w-full md:w-[480px] rounded-t-3xl md:rounded-3xl p-6 shadow-2xl z-10 transition-transform transform translate-y-full md:translate-y-0 pb-[calc(24px+env(safe-area-inset-bottom))] md:pb-6" id="reservationModalContent">
@@ -343,19 +339,16 @@
           <input type="text" id="rDate" class="hidden">
         </div>
 
-        <!-- 航班專屬的整合日期時間欄位 -->
         <div id="grp_flightDateTimes" class="grid grid-cols-2 gap-3">
           <div><label class="block text-xs font-medium mb-1 text-primary/70">起飛</label><input type="text" id="rFlightDep" class="hidden"></div>
           <div><label class="block text-xs font-medium mb-1 text-primary/70">抵達</label><input type="text" id="rFlightArr" class="hidden"></div>
         </div>
 
-        <!-- 住宿專屬的整合日期時間欄位 -->
         <div id="grp_accommDateTimes" class="hidden grid grid-cols-2 gap-3">
           <div><label class="block text-xs font-medium mb-1 text-primary/70">Check-in</label><input type="text" id="rCheckIn" class="hidden"></div>
           <div><label class="block text-xs font-medium mb-1 text-primary/70">Check-out</label><input type="text" id="rCheckOut" class="hidden"></div>
         </div>
 
-        <!-- 交通專屬 -->
         <div id="grp_transportTimes" class="hidden grid grid-cols-2 gap-3">
           <div><label class="block text-xs font-medium mb-1 text-primary/70">出發時間</label><input type="time" id="rTransDepTime" class="w-full border border-border rounded-xl p-2.5 text-sm bg-bg outline-none focus:border-accent text-primary"></div>
           <div><label class="block text-xs font-medium mb-1 text-primary/70">抵達時間</label><input type="time" id="rTransArrTime" class="w-full border border-border rounded-xl p-2.5 text-sm bg-bg outline-none focus:border-accent text-primary"></div>
@@ -366,7 +359,6 @@
           <input type="time" id="rTime" class="w-full border border-border rounded-xl p-2.5 text-sm bg-bg outline-none focus:border-accent text-primary">
         </div>
 
-        <!-- Specific Fields -->
         <div id="grp_flightSpecific" class="space-y-4">
           <div class="grid grid-cols-2 gap-3">
             <div><label class="block text-xs font-medium mb-1 text-primary/70">出發機場 (如: TPE)</label><input type="text" id="rDepAirport" class="w-full border border-border rounded-xl p-2.5 text-sm bg-bg outline-none focus:border-accent text-primary uppercase"></div>
@@ -380,7 +372,6 @@
           <div><label class="block text-xs font-medium mb-1 text-primary/70">預約網址 URL (選填，點擊可跳轉)</label><input type="url" id="rUrl" class="w-full border border-border rounded-xl p-2.5 text-sm bg-bg outline-none focus:border-accent text-primary" placeholder="https://www.airbnb.com/..."></div>
         </div>
 
-        <!-- File Upload -->
         <div>
           <label class="block text-xs font-medium mb-2 text-primary/70">上傳憑證照片/截圖 (QR Code或預約確認信)</label>
           <div class="flex flex-col items-center justify-center w-full">
@@ -1747,19 +1738,20 @@
       
       if (modalId === 'tripModal') {
         const form = document.getElementById('tripForm');
+        const fp = document.getElementById('tDate')._flatpickr;
         if (id) {
           document.getElementById('tripModalTitle').innerText = '編輯旅程';
           document.getElementById('tripSubmitBtn').innerText = '儲存修改';
           const trip = tripsData.find(t => t.id === id);
           document.getElementById('editTripId').value = trip.id;
           document.getElementById('tName').value = trip.name;
-          if(document.getElementById('tDate')._flatpickr) document.getElementById('tDate')._flatpickr.setDate(trip.dateStr); 
+          fp.setDate(trip.dateStr); 
           document.getElementById('tCover').value = trip.cover;
         } else {
           document.getElementById('tripModalTitle').innerText = '建立新旅程';
           document.getElementById('tripSubmitBtn').innerText = '建立旅程';
           form.reset();
-          if(document.getElementById('tDate')._flatpickr) document.getElementById('tDate')._flatpickr.clear(); 
+          fp.clear(); 
           document.getElementById('editTripId').value = '';
         }
       }
