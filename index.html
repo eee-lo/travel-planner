@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
-<head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Travel Planner App</title>
@@ -1418,7 +1417,7 @@ reservationsData = ${JSON.stringify(reservationsData.filter(r => r.tripId === cu
         const iconInfo = typeConfig[item.type] || typeConfig['other'];
 
         // 【修復2】：加入 drag-card class
-        html += isFlight ? renderFlightCard(item, iconInfo, mapUrl) : renderNormalCard(item, iconInfo, mapUrl);
+html += `<div class="relative group drag-card" data-id="${item.id}">${isFlight ? renderFlightCard(item, iconInfo, mapUrl) : renderNormalCard(item, iconInfo, mapUrl)}</div>`;
 
       list.innerHTML = html;
       lucide.createIcons();
