@@ -2116,17 +2116,66 @@ html += isFlight ? renderFlightCard(item, iconInfo, mapUrl) : renderNormalCard(i
 
       container.innerHTML = items.map(item => {
         const cfg = resTypeConfig[item.type];
-        let detailsHtml = '';
 
+        // ==========================================
+        // ✈️ 機票專屬 Boarding Pass UI
+        // ==========================================
         if (item.type === 'flight') {
-          detailsHtml = `
-            <div class="flex flex-wrap gap-x-4 gap-y-1 mb-1">
-              ${item.flightDep ? `<p class="text-xs text-primary/70 flex items-center gap-1"><i data-lucide="plane-takeoff" class="w-3 h-3 text-accent/70"></i>${formatResDateTime(item.flightDep)}</p>` : ''}
-              ${item.flightArr ? `<p class="text-xs text-primary/70 flex items-center gap-1"><i data-lucide="plane-landing" class="w-3 h-3 text-accent/70"></i>${formatResDateTime(item.flightArr)}</p>` : ''}
+          return `
+          <div class="bg-card rounded-2xl shadow-sm border border-border/60 relative overflow-hidden mb-2">
+            <!-- 頂部：航空公司與航班編號 -->
+            <div class="bg-accent/15 px-4 py-3 border-b border-accent/20 flex justify-between items-center">
+              <div class="flex items-center gap-2 min-w-0">
+                <i data-lucide="plane" class="w-4 h-4 text-accent flex-shrink-0"></i>
+                <span class="font-bold text-[13px] text-primary uppercase tracking-wider truncate">${item.name || 'FLIGHT'}</span>
+                ${item.flightNo ? `<span class="text-[10px] bg-white border border-accent/20 px-2 py-0.5 rounded-md text-accent font-black tracking-wider flex-shrink-0 shadow-sm">${item.flightNo}</span>` : ''}
+              </div>
+              <button onclick="openModal('reservationModal', '${item.id}')" class="p-1 -mr-1 text-primary/40 hover:text-accent transition flex-shrink-0"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
             </div>
-            ${(item.depAirport || item.arrAirport) ? `<p class="text-xs text-primary/60 mb-1">${item.depAirport || ''} → ${item.arrAirport || ''}${item.flightNo ? ' · ' + item.flightNo : ''}</p>` : ''}
+            
+            <!-- 中部：大字體機場代碼與飛機虛線 -->
+            <div class="px-5 py-6 flex items-center justify-between relative bg-white">
+              <div class="text-center flex-1">
+                <div class="text-3xl font-black text-primary mb-1 tracking-tight">${item.depAirport || '---'}</div>
+                <div class="text-[10px] text-primary/50 uppercase font-medium">${item.flightDep ? formatResDateTime(item.flightDep) : '時間未定'}</div>
+              </div>
+              
+              <div class="w-16 md:w-24 flex flex-col items-center justify-center px-2 flex-shrink-0 relative top-[-8px]">
+                <i data-lucide="plane-takeoff" class="w-4 h-4 text-accent/50 mb-1"></i>
+                <div class="w-full h-px border-t-2 border-dashed border-accent/30"></div>
+              </div>
+              
+              <div class="text-center flex-1">
+                <div class="text-3xl font-black text-primary mb-1 tracking-tight">${item.arrAirport || '---'}</div>
+                <div class="text-[10px] text-primary/50 uppercase font-medium">${item.flightArr ? formatResDateTime(item.flightArr) : '時間未定'}</div>
+              </div>
+            </div>
+
+            <!-- 底部：撕線、預約編號與備註 -->
+            <div class="px-5 py-3 bg-bg flex justify-between items-center border-t-2 border-dashed border-border/80 relative">
+              
+              <!-- 左側及右側的半圓形打孔效果 (扮撕飛位) -->
+              <div class="absolute left-[-10px] top-[-10px] w-5 h-5 bg-bg rounded-full shadow-inner"></div>
+              <div class="absolute right-[-10px] top-[-10px] w-5 h-5 bg-bg rounded-full shadow-inner"></div>
+
+              <div class="flex-1 min-w-0 pr-3 z-10">
+                <div>
+                  <div class="text-[9px] text-primary/50 uppercase mb-0.5 tracking-wider font-bold">Booking Ref</div>
+                  <div class="font-mono text-sm font-black text-primary tracking-widest truncate">${item.bookingRef || '-----'}</div>
+                </div>
+                ${item.note ? `<p class="text-[10px] text-primary/60 mt-1.5 truncate bg-white px-2 py-1 rounded border border-border/40 inline-block max-w-full" title="${item.note}">${item.note}</p>` : ''}
+              </div>
+              ${item.image ? `<img src="${item.image}" class="w-12 h-12 object-cover rounded-xl border border-border shadow-sm flex-shrink-0 z-10">` : ''}
+            </div>
+          </div>
           `;
-        } else if (item.type === 'accomm') {
+        }
+
+        // ==========================================
+        // 原本的其他類型 UI (住宿、交通、其他)
+        // ==========================================
+        let detailsHtml = '';
+        if (item.type === 'accomm') {
           detailsHtml = `
             <div class="flex flex-wrap gap-x-4 gap-y-1 mb-1">
               ${item.checkIn ? `<p class="text-xs text-primary/70 flex items-center gap-1"><i data-lucide="log-in" class="w-3 h-3 text-accent/70"></i>${formatResDateTime(item.checkIn)}</p>` : ''}
@@ -2157,13 +2206,13 @@ html += isFlight ? renderFlightCard(item, iconInfo, mapUrl) : renderNormalCard(i
           <div class="flex-1 min-w-0">
             <div class="flex justify-between items-start gap-2">
               <h3 class="font-bold text-primary text-[15px] truncate">${item.name}</h3>
-              <button onclick="openModal('reservationModal', '${item.id}')" class="p-1 -mr-1 text-primary/40 hover:text-primary transition flex-shrink-0"><i data-lucide="more-vertical" class="w-4 h-4"></i></button>
+              <button onclick="openModal('reservationModal', '${item.id}')" class="p-1 -mr-1 text-primary/40 hover:text-accent transition flex-shrink-0"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
             </div>
-            ${item.bookingRef ? `<p class="text-[11px] text-primary/50 font-mono mb-1">Ref: ${item.bookingRef}</p>` : ''}
+            ${item.bookingRef ? `<p class="text-[11px] text-primary/50 font-mono mb-1 tracking-wider font-bold">Ref: ${item.bookingRef}</p>` : ''}
             ${detailsHtml}
-            ${item.note ? `<p class="text-xs text-primary/70 bg-bg px-2 py-1 rounded-md inline-block mt-1 whitespace-pre-wrap break-words">${item.note}</p>` : ''}
+            ${item.note ? `<p class="text-xs text-primary/70 bg-bg px-2 py-1 rounded-md inline-block mt-1 whitespace-pre-wrap break-words border border-border/40">${item.note}</p>` : ''}
           </div>
-          ${item.image ? `<img src="${item.image}" class="w-14 h-14 object-cover rounded-xl border border-border/40 flex-shrink-0">` : ''}
+          ${item.image ? `<img src="${item.image}" class="w-14 h-14 object-cover rounded-xl border border-border/40 flex-shrink-0 shadow-sm">` : ''}
         </div>
         `;
       }).join('');
