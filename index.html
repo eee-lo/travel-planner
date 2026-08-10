@@ -45,6 +45,18 @@
     .view-enter { animation: fadeIn 0.3s ease-in-out forwards; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     
+    /* 自訂下拉選單箭頭完美置中 */
+    select.custom-select {
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23696969' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      background-size: 16px 16px;
+      padding-right: 36px;
+    }
+
     /* Flatpickr 客製化 */
     .flatpickr-calendar, .flatpickr-calendar * { font-family: 'Inter', 'Noto Sans JP', sans-serif !important; }
     .flatpickr-calendar { box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important; border: 1px solid #E0D9CE !important; border-radius: 1rem !important; padding-bottom: 8px !important; }
@@ -87,7 +99,6 @@
       <button onclick="navigate('tripDetail')" id="nav-tripDetail" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors font-medium text-primary hover:bg-accent/10">
         <i data-lucide="calendar" class="w-5 h-5"></i> 行程 Plan
       </button>
-      <!-- 新增預約 Tab -->
       <button onclick="navigate('reservations')" id="nav-reservations" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors font-medium text-primary hover:bg-accent/10">
         <i data-lucide="ticket" class="w-5 h-5"></i> 預約 Booking
       </button>
@@ -167,7 +178,6 @@
             </button>
           </div>
           
-          <!-- 預約管理的 4 大 Category Tabs -->
           <div class="flex overflow-x-auto scrollbar-hide gap-6 border-b border-border/60 mb-6 mt-4 pb-1">
             <button onclick="switchResTab('flight')" id="tab-res-flight" class="pb-2 border-b-2 border-accent text-accent font-bold transition flex items-center gap-1.5 text-sm whitespace-nowrap">
               <i data-lucide="plane" class="w-4 h-4"></i> 機票
@@ -183,11 +193,9 @@
             </button>
           </div>
 
-          <!-- 動態渲染預約卡片區塊 -->
           <div id="reservationsListContainer" class="flex flex-col gap-4 pb-10"></div>
         </div>
 
-        <!-- 右下角新增預約按鈕 -->
         <button onclick="openModal('reservationModal')" class="fixed right-6 z-30 bg-accent text-white p-4 rounded-full shadow-lg hover:shadow-xl transition transform hover:-translate-y-1 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] md:bottom-10 md:right-10">
           <i data-lucide="plus" class="w-6 h-6"></i>
         </button>
@@ -251,7 +259,7 @@
 
     </main>
 
-    <!-- 手機版：底部固定導航欄 (新增預約) -->
+    <!-- 手機版：底部固定導航欄 -->
     <nav class="md:hidden flex-shrink-0 w-full bg-card/95 backdrop-blur-md border-t border-border/50 flex justify-around items-start px-1 z-50 shadow-[0_-5px_15px_-5px_rgba(0,0,0,0.05)] pt-1 pb-[env(safe-area-inset-bottom)] h-[calc(4rem+env(safe-area-inset-bottom))]">
       <button onclick="navigate('dashboard')" id="mob-nav-dashboard" class="flex flex-col items-center justify-center flex-1 py-2 text-primary/60 transition">
         <i data-lucide="home" class="w-5 h-5 mb-1"></i>
@@ -312,7 +320,7 @@
         
         <div>
           <label class="block text-xs font-medium mb-1 text-primary/70">預約類型</label>
-          <select id="rType" onchange="toggleResFields()" class="w-full border border-border rounded-xl p-2.5 text-sm bg-bg outline-none focus:border-accent text-primary font-medium">
+          <select id="rType" onchange="toggleResFields()" class="w-full border border-border rounded-xl p-2.5 text-sm bg-bg outline-none focus:border-accent text-primary font-medium custom-select">
             <option value="flight">✈️ 機票</option>
             <option value="accomm">🏨 住宿</option>
             <option value="transport">🚆 交通</option>
@@ -330,26 +338,27 @@
           <input type="text" id="rBookingRef" class="w-full border border-border rounded-xl p-2.5 text-sm bg-bg outline-none focus:border-accent text-primary font-mono uppercase">
         </div>
 
-        <!-- Date Fields (Dynamic) -->
-        <div id="grp_singleDate">
+        <div id="grp_singleDate" class="hidden">
           <label class="block text-xs font-medium mb-1 text-primary/70">日期</label>
           <input type="text" id="rDate" class="hidden">
         </div>
 
-        <div id="grp_accommDates" class="hidden grid grid-cols-2 gap-3">
-          <div><label class="block text-xs font-medium mb-1 text-primary/70">Check-in 日期</label><input type="text" id="rCheckInDate" class="hidden"></div>
-          <div><label class="block text-xs font-medium mb-1 text-primary/70">Check-out 日期</label><input type="text" id="rCheckOutDate" class="hidden"></div>
+        <!-- 航班專屬的整合日期時間欄位 -->
+        <div id="grp_flightDateTimes" class="grid grid-cols-2 gap-3">
+          <div><label class="block text-xs font-medium mb-1 text-primary/70">起飛</label><input type="text" id="rFlightDep" class="hidden"></div>
+          <div><label class="block text-xs font-medium mb-1 text-primary/70">抵達</label><input type="text" id="rFlightArr" class="hidden"></div>
         </div>
 
-        <!-- Time Fields (Dynamic) -->
-        <div id="grp_flightTimes" class="grid grid-cols-2 gap-3">
-          <div><label class="block text-xs font-medium mb-1 text-primary/70">起飛時間</label><input type="time" id="rDepTime" class="w-full border border-border rounded-xl p-2.5 text-sm bg-bg outline-none focus:border-accent text-primary"></div>
-          <div><label class="block text-xs font-medium mb-1 text-primary/70">抵達時間</label><input type="time" id="rArrTime" class="w-full border border-border rounded-xl p-2.5 text-sm bg-bg outline-none focus:border-accent text-primary"></div>
+        <!-- 住宿專屬的整合日期時間欄位 -->
+        <div id="grp_accommDateTimes" class="hidden grid grid-cols-2 gap-3">
+          <div><label class="block text-xs font-medium mb-1 text-primary/70">Check-in</label><input type="text" id="rCheckIn" class="hidden"></div>
+          <div><label class="block text-xs font-medium mb-1 text-primary/70">Check-out</label><input type="text" id="rCheckOut" class="hidden"></div>
         </div>
 
-        <div id="grp_accommTimes" class="hidden grid grid-cols-2 gap-3">
-          <div><label class="block text-xs font-medium mb-1 text-primary/70">Check-in 時間</label><input type="time" id="rCheckInTime" class="w-full border border-border rounded-xl p-2.5 text-sm bg-bg outline-none focus:border-accent text-primary"></div>
-          <div><label class="block text-xs font-medium mb-1 text-primary/70">Check-out 時間</label><input type="time" id="rCheckOutTime" class="w-full border border-border rounded-xl p-2.5 text-sm bg-bg outline-none focus:border-accent text-primary"></div>
+        <!-- 交通專屬 -->
+        <div id="grp_transportTimes" class="hidden grid grid-cols-2 gap-3">
+          <div><label class="block text-xs font-medium mb-1 text-primary/70">出發時間</label><input type="time" id="rTransDepTime" class="w-full border border-border rounded-xl p-2.5 text-sm bg-bg outline-none focus:border-accent text-primary"></div>
+          <div><label class="block text-xs font-medium mb-1 text-primary/70">抵達時間</label><input type="time" id="rTransArrTime" class="w-full border border-border rounded-xl p-2.5 text-sm bg-bg outline-none focus:border-accent text-primary"></div>
         </div>
 
         <div id="grp_singleTime" class="hidden">
@@ -475,7 +484,6 @@
       <form id="activityForm" class="space-y-4 max-h-[65vh] overflow-y-auto pr-2 scrollbar-hide" onsubmit="submitActivityForm(event)">
         <input type="hidden" id="editId">
         
-        <!-- 交通方式選擇 -->
         <div>
           <label class="block text-xs font-medium mb-1 text-primary/70">交通方式 (點擊可取消)</label>
           <div class="flex gap-2">
@@ -496,7 +504,7 @@
 
         <div>
           <label class="block text-xs font-medium mb-1 text-primary/70">活動分類</label>
-          <select id="aCategory" class="w-full border border-border rounded-xl p-2.5 text-sm bg-bg outline-none focus:border-accent text-primary">
+          <select id="aCategory" class="w-full border border-border rounded-xl p-2.5 text-sm bg-bg outline-none focus:border-accent text-primary custom-select">
             <option value="sightseeing">📷 景點</option>
             <option value="accommodation">🏨 住宿</option>
             <option value="food">🍽️ 餐廳</option>
@@ -510,8 +518,11 @@
           <label class="block text-xs font-medium mb-1 text-primary/70">地點名稱</label>
           <input type="text" id="aName" required class="w-full border border-border rounded-xl p-2.5 text-sm bg-bg outline-none focus:border-accent text-primary">
         </div>
+        <div>
+          <label class="block text-xs font-medium mb-1 text-primary/70">詳細地址</label>
+          <input type="text" id="aAddress" class="w-full border border-border rounded-xl p-2.5 text-sm bg-bg outline-none focus:border-accent text-primary">
+        </div>
         
-        <!-- 新增照片上傳區塊 -->
         <div>
           <label class="block text-xs font-medium mb-2 text-primary/70">地點照片 (上傳後將顯示於卡片右側)</label>
           <div class="flex flex-col items-center justify-center w-full">
@@ -588,15 +599,15 @@
     let itineraryData = [];
     let checklistData = [];
     let shoppingData = [];
-    let reservationsData = []; // 新增預約資料
+    let reservationsData = []; 
 
     let checklistAccordionState = { personal: false, daily: false, clothing: false, electronic: false, carryon: false };
     const checklistCategoryMap = { personal: '個人物品', daily: '日用品', clothing: '服飾配件', electronic: '電子用品', carryon: '隨身行李' };
 
     let currentPrepTab = 'todo';
-    let currentResTab = 'flight'; // 預設預約分頁為機票
+    let currentResTab = 'flight'; 
     let currentActivityUploadImageBase64 = ''; 
-    let currentResUploadImageBase64 = ''; // 用於預約上傳憑證
+    let currentResUploadImageBase64 = ''; 
 
     function saveLocalData() {
       const data = { tripsData, daysData, itineraryData, checklistData, shoppingData, reservationsData };
@@ -640,12 +651,57 @@
         { id: 103, category: 'todo', text: '📄 辦理簽證', done: false },
         { id: 104, category: 'todo', text: '🛡️ 購買旅遊保險', done: false },
         { id: 105, category: 'todo', text: '📶 購買網卡 / 開通漫遊', done: false },
-        { id: 106, category: 'todo', text: '💵 兌換外幣', done: false }
+        { id: 106, category: 'todo', text: '💵 兌換外幣', done: false },
+
+        { id: 1, category: 'personal', text: '👓 眼鏡', done: false },
+        { id: 2, category: 'personal', text: '🕶️ 太陽眼鏡', done: false },
+        { id: 3, category: 'personal', text: '💊 藥物', done: false },
+        { id: 4, category: 'personal', text: '☂️ 雨傘', done: false },
+
+        { id: 5, category: 'daily', text: '🪥 牙膏牙刷', done: false },
+        { id: 6, category: 'daily', text: '💄 化妝品', done: false },
+        { id: 7, category: 'daily', text: '🧴 卸妝水', done: false },
+        { id: 8, category: 'daily', text: '🫧 護膚品', done: false },
+        { id: 9, category: 'daily', text: '😶‍🌫️ 面膜', done: false },
+        { id: 10, category: 'daily', text: '🛁 洗頭水、護髮素、沐浴露', done: false },
+        { id: 11, category: 'daily', text: '🧴 潤膚露', done: false },
+        { id: 12, category: 'daily', text: '☀️ 防曬', done: false },
+        { id: 13, category: 'daily', text: '👁️ 隱形眼鏡及藥水', done: false },
+        { id: 14, category: 'daily', text: '🌿 止汗劑', done: false },
+        { id: 15, category: 'daily', text: '🤍 化妝棉、棉花棒', done: false },
+        { id: 16, category: 'daily', text: '🌸 香水', done: false },
+        { id: 17, category: 'daily', text: '🩷 M巾、護墊', done: false },
+        { id: 18, category: 'daily', text: '💇🏻‍♀️ 直髮夾', done: false },
+
+        { id: 19, category: 'clothing', text: '👕 衣物', done: false },
+        { id: 20, category: 'clothing', text: '🩲 內衣褲', done: false },
+        { id: 21, category: 'clothing', text: '💤 睡衣', done: false },
+        { id: 22, category: 'clothing', text: '🧦 襪子', done: false },
+        { id: 23, category: 'clothing', text: '🧢 帽', done: false },
+        { id: 24, category: 'clothing', text: '🩴 拖鞋', done: false },
+        { id: 25, category: 'clothing', text: '👟 休閒鞋', done: false },
+        { id: 26, category: 'clothing', text: '🧖🏻‍♀️ 毛巾', done: false },
+        { id: 27, category: 'clothing', text: '💎 飾物', done: false },
+        { id: 28, category: 'clothing', text: '👜 袋', done: false },
+
+        { id: 29, category: 'electronic', text: '📷 相機充電器', done: false },
+        { id: 30, category: 'electronic', text: '📱 iPhone 插頭', done: false },
+        { id: 31, category: 'electronic', text: '🔌 充電線', done: false },
+        { id: 32, category: 'electronic', text: '🌍 轉插器', done: false },
+
+        { id: 33, category: 'carryon', text: '✈️ 護照、ID、車牌', done: false },
+        { id: 34, category: 'carryon', text: '💵 銀包、外幣', done: false },
+        { id: 35, category: 'carryon', text: '🔋 Portable 電源', done: false },
+        { id: 36, category: 'carryon', text: '💺 頸枕', done: false },
+        { id: 37, category: 'carryon', text: '🎧 Airpods', done: false },
+        { id: 38, category: 'carryon', text: '📱 iPad', done: false },
+        { id: 39, category: 'carryon', text: '📷 相機', done: false },
+        { id: 40, category: 'carryon', text: '🧻 紙巾', done: false }
       ];
       shoppingData = [];
       reservationsData = [
-        { id: 'r1', type: 'flight', name: '星宇航空 JX800', date: '2024-12-01', depAirport: 'TPE', arrAirport: 'OSL', flightNo: 'JX800', depTime: '08:30', arrTime: '12:45', bookingRef: 'ABC123XYZ', note: '記得線上報到', file: '' },
-        { id: 'r2', type: 'accomm', name: 'Lofoten Basecamp', checkInDate: '2024-12-01', checkInTime: '15:00', checkOutDate: '2024-12-04', checkOutTime: '11:00', address: 'Leknes 123, Norway', bookingRef: 'HTL98765', url: 'https://airbnb.com', note: '密碼鎖 1234', file: '' }
+        { id: 'r1', type: 'flight', name: '星宇航空 JX800', flightDep: '2024-12-01 08:30', flightArr: '2024-12-01 12:45', depAirport: 'TPE', arrAirport: 'OSL', flightNo: 'JX800', bookingRef: 'ABC123XYZ', note: '記得線上報到', file: '' },
+        { id: 'r2', type: 'accomm', name: 'Lofoten Basecamp', checkIn: '2024-12-01 15:00', checkOut: '2024-12-04 11:00', address: 'Leknes 123, Norway', bookingRef: 'HTL98765', url: 'https://airbnb.com', note: '密碼鎖 1234', file: '' }
       ];
       saveLocalData();
     }
@@ -914,10 +970,27 @@
         onValueUpdate: syncYearSelect
       };
 
+      const fpDateTimeOpts = {
+        enableTime: true,
+        dateFormat: "Y-m-d H:i",
+        time_24hr: true,
+        altInput: true,
+        altFormat: "d M y, H:i", 
+        altInputClass: "w-full border border-border rounded-xl p-2.5 text-sm bg-bg outline-none focus:border-accent text-primary cursor-pointer",
+        onReady: fpCommonOpts.onReady,
+        onYearChange: syncYearSelect,
+        onMonthChange: syncYearSelect,
+        onValueUpdate: syncYearSelect
+      };
+
       flatpickr("#tDate", { ...fpCommonOpts, mode: "range" });
       flatpickr("#rDate", fpCommonOpts);
-      flatpickr("#rCheckInDate", fpCommonOpts);
-      flatpickr("#rCheckOutDate", fpCommonOpts);
+      
+      // 合併的日期時間選擇器
+      flatpickr("#rCheckIn", fpDateTimeOpts);
+      flatpickr("#rCheckOut", fpDateTimeOpts);
+      flatpickr("#rFlightDep", fpDateTimeOpts);
+      flatpickr("#rFlightArr", fpDateTimeOpts);
 
       updateSidebarHeader();
       renderDashboard();
@@ -1087,7 +1160,7 @@
                 </div>
               `;
           } else {
-              tempHtml = `<div class="text-[11px] text-white/90 font-medium whitespace-nowrap mt-1 w-full text-center">${parts[0]}°C</div>`;
+              tempHtml = `<div class="text-[11px] text-white/90 font-medium whitespace-nowrap mt-1.5 w-full text-center">${parts[0]}°C</div>`;
           }
       }
       
@@ -1197,16 +1270,20 @@
         }
 
         if (item.tMode) {
-           const modeMap = { walk: {icon:'footprints', label:'步行'}, transit: {icon:'train-front', label:'公共'}, drive: {icon:'car', label:'自駕'} };
+           const modeMap = { walk: {icon:'footprints', label:'步行'}, transit: {icon:'train-front', label:'公共交通'}, drive: {icon:'car', label:'開車'} };
            const m = modeMap[item.tMode];
-           const timeText = item.tTime ? item.tTime : '';
            
-           if (index === 0 && currentDayData && currentDayData.accommodation) {
-               transportHtml = `<div class="flex items-center gap-2 text-xs text-primary/50 py-3 pl-4 border-l-2 border-dashed border-accent/40 ml-[23px]"><i data-lucide="hotel" class="w-3.5 h-3.5"></i> 從 ${currentDayData.accommodation} 出發 <i data-lucide="arrow-right" class="w-3 h-3 mx-1"></i> <i data-lucide="${m.icon}" class="w-3.5 h-3.5"></i> ${m.label} ${timeText}</div>`;
-           } else if (index > 0) {
-               transportHtml = `<div class="flex items-center gap-2 text-xs text-primary/50 py-3 pl-4 border-l-2 border-dashed border-accent/40 ml-[23px]"><i data-lucide="${m.icon}" class="w-3.5 h-3.5 text-accent"></i> <span>距離下一站：${m.label} ${timeText}</span></div>`;
-           }
-        } else if (index > 0) {
+           let travelmodeAB = '';
+           if(item.tMode === 'walk') travelmodeAB = 'walking';
+           if(item.tMode === 'transit') travelmodeAB = 'transit';
+           if(item.tMode === 'drive') travelmodeAB = 'driving';
+           
+           const destination = item.address || item.name;
+           const mapUrlAB = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(prevLocName)}&destination=${encodeURIComponent(destination)}&travelmode=${travelmodeAB}`;
+
+           transportHtml = `<a href="${mapUrlAB}" target="_blank" class="flex items-center gap-2 text-xs text-primary/50 py-3 pl-4 border-l-2 border-dashed border-accent/40 ml-[23px] hover:text-accent transition group cursor-pointer"><i data-lucide="${m.icon}" class="w-3.5 h-3.5 text-accent group-hover:scale-110 transition"></i> <span class="border-b border-dashed border-primary/30 group-hover:border-accent transition pb-0.5">${m.label}前往 (點擊使用 Google Map 規劃)</span></a>`;
+           
+        } else if (index > 0 || (index === 0 && prevLocName)) {
            transportHtml = `<div class="flex items-center gap-2 text-xs text-primary/50 py-3 pl-4 border-l-2 border-dashed border-accent/40 ml-[23px]"></div>`;
         }
         
@@ -1327,6 +1404,7 @@
       const formData = { 
           type: document.getElementById('aCategory').value, 
           name: document.getElementById('aName').value, 
+          address: document.getElementById('aAddress').value,
           hours: document.getElementById('aHours').value, 
           opHours: document.getElementById('aOpHours').value, 
           cost: document.getElementById('aCost').value, 
@@ -1503,318 +1581,6 @@
         lucide.createIcons();
     }
 
-    // === 預約管理功能 ===
-    function switchResTab(tab) {
-        currentResTab = tab;
-        const tabs = ['flight', 'accomm', 'transport', 'other'];
-        tabs.forEach(t => {
-            const btn = document.getElementById(`tab-res-${t}`);
-            if (t === tab) {
-                btn.classList.add('text-accent', 'border-accent', 'font-bold');
-                btn.classList.remove('text-primary/50', 'border-transparent', 'font-medium');
-            } else {
-                btn.classList.add('text-primary/50', 'border-transparent', 'font-medium');
-                btn.classList.remove('text-accent', 'border-accent', 'font-bold');
-            }
-        });
-        renderReservations();
-    }
-
-    function toggleResFields() {
-        const type = document.getElementById('rType').value;
-        const els = {
-            rNameLbl: document.getElementById('l_rName'),
-            grp_bookingRef: document.getElementById('grp_bookingRef'),
-            grp_singleDate: document.getElementById('grp_singleDate'),
-            grp_accommDates: document.getElementById('grp_accommDates'),
-            grp_flightTimes: document.getElementById('grp_flightTimes'),
-            grp_accommTimes: document.getElementById('grp_accommTimes'),
-            grp_singleTime: document.getElementById('grp_singleTime'),
-            grp_flightSpecific: document.getElementById('grp_flightSpecific'),
-            grp_accommSpecific: document.getElementById('grp_accommSpecific')
-        };
-        
-        // 隱藏所有特定欄位
-        ['grp_singleDate', 'grp_accommDates', 'grp_flightTimes', 'grp_accommTimes', 'grp_singleTime', 'grp_flightSpecific', 'grp_accommSpecific'].forEach(k => els[k].classList.add('hidden'));
-
-        // 依據類型顯示
-        if (type === 'flight') {
-            els.rNameLbl.innerText = '航空公司';
-            els.grp_singleDate.classList.remove('hidden');
-            els.grp_flightTimes.classList.remove('hidden');
-            els.grp_flightSpecific.classList.remove('hidden');
-        } else if (type === 'accomm') {
-            els.rNameLbl.innerText = '住宿名稱';
-            els.grp_accommDates.classList.remove('hidden');
-            els.grp_accommTimes.classList.remove('hidden');
-            els.grp_accommSpecific.classList.remove('hidden');
-        } else if (type === 'transport') {
-            els.rNameLbl.innerText = '交通營運商 (如: JR / 國光客運)';
-            els.grp_singleDate.classList.remove('hidden');
-            els.grp_flightTimes.classList.remove('hidden'); // 借用起抵時間
-            els.grp_flightTimes.querySelector('label').innerText = '出發時間';
-            els.grp_flightTimes.querySelectorAll('label')[1].innerText = '抵達時間';
-        } else if (type === 'other') {
-            els.rNameLbl.innerText = '預約名稱 (如: 餐廳 / 門票)';
-            els.grp_singleDate.classList.remove('hidden');
-            els.grp_singleTime.classList.remove('hidden');
-        }
-    }
-
-    function previewResImage(event) {
-      const file = event.target.files[0];
-      if (file) {
-        compressImage(file, function(compressedBase64) {
-          currentResUploadImageBase64 = compressedBase64;
-          document.getElementById('resImagePreview').src = compressedBase64;
-          document.getElementById('resImagePreview').classList.remove('hidden');
-          document.getElementById('resUploadPlaceholder').classList.add('hidden');
-          document.getElementById('resRemoveImgBtn').classList.remove('hidden');
-        });
-      }
-    }
-    
-    function removeResImage() { 
-      currentResUploadImageBase64 = ''; 
-      document.getElementById('res-dropzone-file').value = ''; 
-      document.getElementById('resImagePreview').src = ''; 
-      document.getElementById('resImagePreview').classList.add('hidden'); 
-      document.getElementById('resUploadPlaceholder').classList.remove('hidden'); 
-      document.getElementById('resRemoveImgBtn').classList.add('hidden'); 
-    }
-
-    function saveReservation(e) {
-      e.preventDefault(); 
-      const editId = document.getElementById('editResId').value;
-      const type = document.getElementById('rType').value;
-      
-      const formData = { 
-          type: type, 
-          name: document.getElementById('rName').value, 
-          bookingRef: document.getElementById('rBookingRef').value,
-          note: document.getElementById('rNote').value,
-          file: currentResUploadImageBase64
-      };
-
-      if(type === 'flight') {
-          formData.date = document.getElementById('rDate').value;
-          formData.depTime = document.getElementById('rDepTime').value;
-          formData.arrTime = document.getElementById('rArrTime').value;
-          formData.depAirport = document.getElementById('rDepAirport').value;
-          formData.arrAirport = document.getElementById('rArrAirport').value;
-          formData.flightNo = document.getElementById('rFlightNo').value;
-      } else if(type === 'accomm') {
-          formData.checkInDate = document.getElementById('rCheckInDate').value;
-          formData.checkOutDate = document.getElementById('rCheckOutDate').value;
-          formData.checkInTime = document.getElementById('rCheckInTime').value;
-          formData.checkOutTime = document.getElementById('rCheckOutTime').value;
-          formData.address = document.getElementById('rAddress').value;
-          formData.url = document.getElementById('rUrl').value;
-      } else if(type === 'transport') {
-          formData.date = document.getElementById('rDate').value;
-          formData.depTime = document.getElementById('rDepTime').value;
-          formData.arrTime = document.getElementById('rArrTime').value;
-      } else if(type === 'other') {
-          formData.date = document.getElementById('rDate').value;
-          formData.time = document.getElementById('rTime').value;
-      }
-      
-      if (editId) { 
-          const idx = reservationsData.findIndex(i => i.id === editId); 
-          reservationsData[idx] = { ...reservationsData[idx], ...formData }; 
-      } else { 
-          reservationsData.push({ id: 'r' + Date.now(), ...formData }); 
-      }
-      
-      saveLocalData();
-      closeModal('reservationModal'); 
-      renderReservations();
-    }
-
-    function confirmResDelete() { deleteTargetId = document.getElementById('editResId').value; document.getElementById('deleteResConfirmModal').classList.remove('hidden'); }
-    function cancelResDelete() { deleteTargetId = null; document.getElementById('deleteResConfirmModal').classList.add('hidden'); }
-    function executeResDelete() { if (deleteTargetId) { reservationsData = reservationsData.filter(i => i.id !== deleteTargetId); cancelResDelete(); closeModal('reservationModal'); renderReservations(); saveLocalData(); } }
-
-    function renderReservations() {
-        const container = document.getElementById('reservationsListContainer');
-        const items = reservationsData.filter(i => i.type === currentResTab);
-        
-        // 依據日期自動排序
-        items.sort((a, b) => {
-            const dA = new Date(a.type === 'accomm' ? a.checkInDate : a.date);
-            const dB = new Date(b.type === 'accomm' ? b.checkInDate : b.date);
-            return dA - dB;
-        });
-
-        if (items.length === 0) {
-            container.innerHTML = `<div class="text-center py-10 text-primary/50 text-sm">目前沒有相關預約，點擊右下角 + 新增。</div>`;
-            return;
-        }
-
-        let html = '';
-        items.forEach(item => {
-            if (item.type === 'flight') {
-                html += `
-                <div class="bg-card rounded-2xl shadow-sm border border-border/60 overflow-hidden flex transition hover:border-accent/30 relative group">
-                    <button onclick="editReservation('${item.id}')" class="absolute top-3 right-3 text-primary/30 hover:text-accent p-1 z-10 bg-white rounded-md"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
-                    <!-- Left: Flight Details -->
-                    <div class="flex-1 p-4 pr-3">
-                        <div class="flex items-center justify-between mb-3">
-                            <span class="text-[11px] font-bold tracking-widest text-accent uppercase flex items-center gap-1"><i data-lucide="plane" class="w-3.5 h-3.5"></i> ${item.name}</span>
-                            <span class="text-[11px] font-bold bg-bg px-2 py-0.5 rounded-full text-primary/70">${item.flightNo || 'TBD'}</span>
-                        </div>
-                        <div class="flex items-center justify-between mb-3 px-1">
-                            <div class="text-center">
-                                <div class="text-2xl font-bold text-primary leading-none">${item.depAirport || '---'}</div>
-                                <div class="text-[10px] text-primary/60 mt-1">${item.depTime || '--:--'}</div>
-                            </div>
-                            <div class="flex-1 px-4 flex flex-col items-center justify-center">
-                                <div class="w-full border-b-2 border-dashed border-border/60 relative">
-                                    <i data-lucide="plane" class="w-3 h-3 text-accent absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 bg-card px-1"></i>
-                                </div>
-                            </div>
-                            <div class="text-center">
-                                <div class="text-2xl font-bold text-primary leading-none">${item.arrAirport || '---'}</div>
-                                <div class="text-[10px] text-primary/60 mt-1">${item.arrTime || '--:--'}</div>
-                            </div>
-                        </div>
-                        <div class="flex justify-between items-center text-xs text-primary/70 bg-bg p-2 rounded-xl">
-                            <div><span class="opacity-60 text-[10px] block mb-0.5">DATE</span><span class="font-medium">${item.date ? parseDateToDDMM(item.date) : 'TBD'}</span></div>
-                            <div><span class="opacity-60 text-[10px] block mb-0.5">BOOKING REF</span><span class="font-mono font-bold uppercase">${item.bookingRef || '---'}</span></div>
-                        </div>
-                        ${item.note ? `<p class="text-[11px] mt-2 text-primary/60 px-1 truncate"><i data-lucide="info" class="w-3 h-3 inline mr-1 opacity-70"></i>${item.note}</p>` : ''}
-                    </div>
-                    <!-- Right: QR/Stub -->
-                    <div class="w-24 border-l border-dashed border-border/60 bg-bg flex flex-col items-center justify-center p-3 relative">
-                        <!-- Top & Bottom semi-circles for ticket effect -->
-                        <div class="absolute -top-2 -left-2 w-4 h-4 bg-bg rounded-full border-b border-r border-border/60 transform rotate-45 z-10"></div>
-                        <div class="absolute -bottom-2 -left-2 w-4 h-4 bg-bg rounded-full border-t border-r border-border/60 transform -rotate-45 z-10"></div>
-                        
-                        ${item.file ? `<img src="${item.file}" class="w-16 h-16 object-cover rounded-lg shadow-sm border border-border/50 cursor-pointer hover:scale-105 transition" onclick="window.open('${item.file}', '_blank')">` : `<div class="w-16 h-16 border-2 border-border border-dashed rounded-lg flex items-center justify-center"><i data-lucide="qr-code" class="w-6 h-6 text-primary/20"></i></div>`}
-                        <div class="text-[9px] text-primary/50 text-center mt-2 font-bold tracking-widest">BOARDING<br>PASS</div>
-                    </div>
-                </div>`;
-            } else if (item.type === 'accomm') {
-                html += `
-                <div class="bg-card rounded-2xl shadow-sm border border-border/60 p-4 transition hover:border-accent/30 relative group">
-                    <button onclick="editReservation('${item.id}')" class="absolute top-4 right-3 text-primary/30 hover:text-accent p-1 z-10"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
-                    <div class="flex items-center gap-3 mb-4 pr-6">
-                        <div class="w-10 h-10 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center flex-shrink-0 text-accent"><i data-lucide="hotel" class="w-5 h-5"></i></div>
-                        <div>
-                            <h3 class="font-bold text-primary text-[15px] leading-tight mb-0.5">${item.name}</h3>
-                            ${item.address ? `<p class="text-xs text-primary/50 flex items-center gap-1 truncate"><i data-lucide="map-pin" class="w-3 h-3 text-accent/70 flex-shrink-0"></i>${item.address}</p>` : ''}
-                        </div>
-                    </div>
-                    <div class="flex justify-between items-center bg-bg rounded-xl p-3 mb-3 border border-border/40">
-                        <div>
-                            <p class="text-[10px] text-primary/50 font-bold mb-1">CHECK-IN</p>
-                            <p class="text-xs font-bold text-primary">${item.checkInDate ? parseDateToDDMM(item.checkInDate) : '--/--'} <span class="font-medium opacity-70 ml-1">${item.checkInTime || ''}</span></p>
-                        </div>
-                        <i data-lucide="arrow-right" class="w-4 h-4 text-primary/30"></i>
-                        <div class="text-right">
-                            <p class="text-[10px] text-primary/50 font-bold mb-1">CHECK-OUT</p>
-                            <p class="text-xs font-bold text-primary">${item.checkOutDate ? parseDateToDDMM(item.checkOutDate) : '--/--'} <span class="font-medium opacity-70 ml-1">${item.checkOutTime || ''}</span></p>
-                        </div>
-                    </div>
-                    <div class="flex items-end justify-between gap-3 mt-3">
-                        <div class="flex-1">
-                            ${item.bookingRef ? `<p class="text-xs text-primary/70 mb-1"><span class="opacity-60 mr-1 text-[10px]">REF:</span><span class="font-mono font-bold uppercase">${item.bookingRef}</span></p>` : ''}
-                            ${item.note ? `<p class="text-[11px] text-primary/60 truncate w-full"><i data-lucide="info" class="w-3 h-3 inline mr-1 opacity-70"></i>${item.note}</p>` : ''}
-                        </div>
-                        ${item.url ? `<a href="${item.url}" target="_blank" class="flex-shrink-0 text-[11px] font-bold bg-accent text-white px-3 py-1.5 rounded-lg hover:opacity-90 shadow-sm flex items-center gap-1"><i data-lucide="external-link" class="w-3 h-3"></i>前往預約</a>` : ''}
-                        ${item.file ? `<img src="${item.file}" class="w-8 h-8 object-cover rounded-md shadow-sm border border-border/50 cursor-pointer" onclick="window.open('${item.file}', '_blank')">` : ''}
-                    </div>
-                </div>`;
-            } else if (item.type === 'transport') {
-                html += `
-                <div class="bg-card rounded-2xl shadow-sm border border-border/60 p-4 transition hover:border-accent/30 relative group flex gap-4 items-center">
-                    <button onclick="editReservation('${item.id}')" class="absolute top-3 right-3 text-primary/30 hover:text-accent p-1 z-10"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
-                    <div class="flex-1 pr-6 min-w-0">
-                        <h3 class="font-bold text-primary text-[15px] mb-2 truncate flex items-center gap-2"><i data-lucide="train-front" class="w-4 h-4 text-accent"></i>${item.name}</h3>
-                        <div class="flex items-center gap-3 text-xs font-medium text-primary bg-bg p-2 rounded-lg border border-border/40 mb-2 w-max">
-                            <span>${item.date ? parseDateToDDMM(item.date) : '--/--'}</span>
-                            <span class="border-l border-border/60 pl-3">${item.depTime || '--:--'} <i data-lucide="arrow-right" class="w-3 h-3 inline mx-0.5 opacity-50"></i> ${item.arrTime || '--:--'}</span>
-                        </div>
-                        <div class="flex items-center gap-3 mt-1">
-                            ${item.bookingRef ? `<span class="text-xs text-primary/70 font-mono font-bold bg-bg px-2 py-0.5 rounded-md uppercase">Ref: ${item.bookingRef}</span>` : ''}
-                            ${item.note ? `<span class="text-[11px] text-primary/50 truncate flex-1">${item.note}</span>` : ''}
-                        </div>
-                    </div>
-                    ${item.file ? `<div class="flex-shrink-0"><img src="${item.file}" class="w-14 h-14 object-cover rounded-xl shadow-sm border border-border/50 cursor-pointer hover:scale-105 transition" onclick="window.open('${item.file}', '_blank')"></div>` : ''}
-                </div>`;
-            } else {
-                // Other
-                html += `
-                <div class="bg-card rounded-2xl shadow-sm border border-border/60 p-4 transition hover:border-accent/30 relative group flex justify-between items-center gap-3">
-                    <button onclick="editReservation('${item.id}')" class="absolute top-3 right-3 text-primary/30 hover:text-accent p-1 z-10"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
-                    <div class="flex-1 min-w-0 pr-6">
-                        <div class="flex items-center gap-2 mb-1.5"><i data-lucide="bookmark" class="w-4 h-4 text-accent"></i><h3 class="font-bold text-primary text-sm truncate">${item.name}</h3></div>
-                        <div class="flex flex-wrap gap-2 mb-1.5">
-                            ${item.date ? `<span class="text-xs text-primary/70 font-medium">${parseDateToDDMM(item.date)}</span>` : ''}
-                            ${item.time ? `<span class="text-xs text-primary/70 font-medium border-l border-border/60 pl-2">${item.time}</span>` : ''}
-                            ${item.bookingRef ? `<span class="text-xs text-primary/70 font-mono font-bold border-l border-border/60 pl-2 uppercase">${item.bookingRef}</span>` : ''}
-                        </div>
-                        ${item.note ? `<p class="text-[11px] text-primary/50 truncate">${item.note}</p>` : ''}
-                    </div>
-                    ${item.file ? `<img src="${item.file}" class="w-12 h-12 object-cover rounded-lg shadow-sm border border-border/50 flex-shrink-0 cursor-pointer" onclick="window.open('${item.file}', '_blank')">` : ''}
-                </div>`;
-            }
-        });
-
-        container.innerHTML = html;
-        lucide.createIcons();
-    }
-
-    function editReservation(id) {
-        const item = reservationsData.find(i => i.id === id);
-        if(!item) return;
-
-        openModal('reservationModal');
-        document.getElementById('resModalTitle').innerText = '編輯預約';
-        document.getElementById('deleteResBtn').classList.remove('hidden');
-        
-        document.getElementById('editResId').value = item.id;
-        document.getElementById('rType').value = item.type;
-        toggleResFields();
-
-        document.getElementById('rName').value = item.name || '';
-        document.getElementById('rBookingRef').value = item.bookingRef || '';
-        document.getElementById('rNote').value = item.note || '';
-
-        // 日期需更新 Flatpickr 實例
-        if(document.getElementById('rDate')._flatpickr && item.date) document.getElementById('rDate')._flatpickr.setDate(item.date);
-        else if (document.getElementById('rDate')._flatpickr) document.getElementById('rDate')._flatpickr.clear();
-
-        if(document.getElementById('rCheckInDate')._flatpickr && item.checkInDate) document.getElementById('rCheckInDate')._flatpickr.setDate(item.checkInDate);
-        else if (document.getElementById('rCheckInDate')._flatpickr) document.getElementById('rCheckInDate')._flatpickr.clear();
-
-        if(document.getElementById('rCheckOutDate')._flatpickr && item.checkOutDate) document.getElementById('rCheckOutDate')._flatpickr.setDate(item.checkOutDate);
-        else if (document.getElementById('rCheckOutDate')._flatpickr) document.getElementById('rCheckOutDate')._flatpickr.clear();
-
-        document.getElementById('rDepTime').value = item.depTime || '';
-        document.getElementById('rArrTime').value = item.arrTime || '';
-        document.getElementById('rDepAirport').value = item.depAirport || '';
-        document.getElementById('rArrAirport').value = item.arrAirport || '';
-        document.getElementById('rFlightNo').value = item.flightNo || '';
-
-        document.getElementById('rCheckInTime').value = item.checkInTime || '';
-        document.getElementById('rCheckOutTime').value = item.checkOutTime || '';
-        document.getElementById('rAddress').value = item.address || '';
-        document.getElementById('rUrl').value = item.url || '';
-
-        document.getElementById('rTime').value = item.time || '';
-
-        currentResUploadImageBase64 = item.file || '';
-        if (currentResUploadImageBase64) {
-             document.getElementById('resImagePreview').src = currentResUploadImageBase64;
-             document.getElementById('resImagePreview').classList.remove('hidden');
-             document.getElementById('resUploadPlaceholder').classList.add('hidden');
-             document.getElementById('resRemoveImgBtn').classList.remove('hidden');
-        } else {
-             removeResImage();
-        }
-    }
-
     let currentShoppingTab = 'to-buy';
 
     function switchShoppingTab(tab) {
@@ -1981,20 +1747,19 @@
       
       if (modalId === 'tripModal') {
         const form = document.getElementById('tripForm');
-        const fp = document.getElementById('tDate')._flatpickr;
         if (id) {
           document.getElementById('tripModalTitle').innerText = '編輯旅程';
           document.getElementById('tripSubmitBtn').innerText = '儲存修改';
           const trip = tripsData.find(t => t.id === id);
           document.getElementById('editTripId').value = trip.id;
           document.getElementById('tName').value = trip.name;
-          fp.setDate(trip.dateStr); 
+          if(document.getElementById('tDate')._flatpickr) document.getElementById('tDate')._flatpickr.setDate(trip.dateStr); 
           document.getElementById('tCover').value = trip.cover;
         } else {
           document.getElementById('tripModalTitle').innerText = '建立新旅程';
           document.getElementById('tripSubmitBtn').innerText = '建立旅程';
           form.reset();
-          fp.clear(); 
+          if(document.getElementById('tDate')._flatpickr) document.getElementById('tDate')._flatpickr.clear(); 
           document.getElementById('editTripId').value = '';
         }
       }
@@ -2005,14 +1770,15 @@
             document.getElementById('deleteResBtn').classList.add('hidden');
             form.reset();
             document.getElementById('editResId').value = '';
-            document.getElementById('rType').value = currentResTab; // 預設帶入目前 Tab
+            document.getElementById('rType').value = currentResTab;
             toggleResFields();
             removeResImage();
             
-            // clear dates
             if(document.getElementById('rDate')._flatpickr) document.getElementById('rDate')._flatpickr.clear();
-            if(document.getElementById('rCheckInDate')._flatpickr) document.getElementById('rCheckInDate')._flatpickr.clear();
-            if(document.getElementById('rCheckOutDate')._flatpickr) document.getElementById('rCheckOutDate')._flatpickr.clear();
+            if(document.getElementById('rCheckIn')._flatpickr) document.getElementById('rCheckIn')._flatpickr.clear();
+            if(document.getElementById('rCheckOut')._flatpickr) document.getElementById('rCheckOut')._flatpickr.clear();
+            if(document.getElementById('rFlightDep')._flatpickr) document.getElementById('rFlightDep')._flatpickr.clear();
+            if(document.getElementById('rFlightArr')._flatpickr) document.getElementById('rFlightArr')._flatpickr.clear();
         }
       }
       else if (modalId === 'addShoppingModal') { 
@@ -2048,6 +1814,7 @@
           document.getElementById('editId').value = item.id; 
           document.getElementById('aCategory').value = item.type; 
           document.getElementById('aName').value = item.name; 
+          document.getElementById('aAddress').value = item.address || '';
           document.getElementById('aHours').value = item.hours || ''; 
           document.getElementById('aOpHours').value = item.opHours || ''; 
           document.getElementById('aCost').value = item.cost || ''; 
@@ -2080,7 +1847,7 @@
           document.getElementById('deleteBtn').classList.add('hidden'); 
           form.reset(); 
           document.getElementById('editId').value = ''; 
-          document.getElementById('aOpHours').value = ''; 
+          document.getElementById('aAddress').value = '';
           document.querySelectorAll('input[name="aTMode"]').forEach(r => {
               r.checked = false;
               r.dataset.checked = 'false';
