@@ -1418,8 +1418,7 @@ reservationsData = ${JSON.stringify(reservationsData.filter(r => r.tripId === cu
         const iconInfo = typeConfig[item.type] || typeConfig['other'];
 
         // 【修復2】：加入 drag-card class
-        html += `<div class="relative group drag-card" data-id="${item.id}">${isFlight ? renderFlightCard(item, iconInfo, mapUrl) : renderNormalCard(item, iconInfo, mapUrl)}</div>`;
-      });
+        html += isFlight ? renderFlightCard(item, iconInfo, mapUrl) : renderNormalCard(item, iconInfo, mapUrl);
 
       list.innerHTML = html;
       lucide.createIcons();
