@@ -1406,7 +1406,6 @@ reservationsData = ${JSON.stringify(reservationsData)};
            if(item.tMode === 'transit') travelmodeAB = 'transit';
            if(item.tMode === 'drive') travelmodeAB = 'driving';
            
-           // 明確指定起點與終點，確保 Google Map 打開時由上一個行程前往下一個行程
            const originLoc = prevLocName;
            const destLoc = resolveMapQuery(item.address, item.name);
            
@@ -1414,7 +1413,6 @@ reservationsData = ${JSON.stringify(reservationsData)};
              ? `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(originLoc)}&destination=${encodeURIComponent(destLoc)}&travelmode=${travelmodeAB}`
              : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(destLoc)}`;
 
-           // 直接讀取下一個景點(當前 item)填寫的路程時間
            const durationText = item.opHours ? item.opHours : '';
            const labelText = durationText ? `${m.label}前往：${durationText}` : `${m.label}前往`;
 
@@ -1446,14 +1444,20 @@ reservationsData = ${JSON.stringify(reservationsData)};
       sortableInstance = new Sortable(list, { 
           animation: 150, 
           handle: '.drag-grip', 
+          draggable: '.group', // 【修復1】明確限制只可以拖曳行程卡片，避開連接線
           ghostClass: 'sortable-ghost', 
-          onEnd: () => { reorderData(); renderItinerary(); } 
+          onEnd: () => { 
+              reorderData(); 
+              // 【修復2】使用 setTimeout 確保拖曳行為徹底完結後，才重建 DOM 刷新導航連結
+              setTimeout(() => renderItinerary(), 10); 
+          } 
       });
     }
 
    function renderFlightCard(item, iconInfo, mapUrl) {
+      // 【修復3】刪除內層的 data-id，避免同外層撞名
       return `
-        <div class="flex items-stretch mb-2 relative group/card w-full" data-id="${item.id}">
+        <div class="flex items-stretch mb-2 relative group/card w-full">
             <div class="flex-1 bg-accent/10 border border-accent/30 rounded-2xl py-4 pr-4 pl-8 shadow-sm flex items-center min-w-0 relative hover:bg-accent/20 transition">
               <div class="drag-grip absolute left-1.5 top-1/2 -translate-y-1/2 cursor-grab active:cursor-grabbing p-1.5 text-accent/40 hover:text-accent transition z-10">
                   <i data-lucide="grip-vertical" class="w-4 h-4"></i>
@@ -1476,10 +1480,11 @@ reservationsData = ${JSON.stringify(reservationsData)};
         </div>
       `;
     }
-
+    
     function renderNormalCard(item, iconInfo, mapUrl) {
+      // 【修復3】刪除內層的 data-id，避免同外層撞名
       return `
-        <div class="flex items-stretch mb-2 relative group/card" data-id="${item.id}">
+        <div class="flex items-stretch mb-2 relative group/card">
           <div class="flex flex-col items-center mr-3 w-10 flex-shrink-0">
             <div class="w-10 h-10 rounded-full bg-card border border-border/80 flex items-center justify-center shadow-sm z-10"><i data-lucide="${iconInfo.icon}" class="w-4 h-4 text-accent"></i></div>
             <div class="flex-1 w-[2px] bg-border/60 my-1"></div>
@@ -1589,7 +1594,14 @@ reservationsData = ${JSON.stringify(reservationsData)};
       renderItinerary();
     }
     
-    function reorderData() { document.querySelectorAll('#itineraryList [data-id]').forEach((el, index) => { const idx = itineraryData.findIndex(i => i.id === el.getAttribute('data-id')); if(idx > -1) itineraryData[idx].order = index + 1; }); saveLocalData(); }
+    function reorderData() { 
+        // 【修復4】精確定位外層 wrapper (.group)，徹底杜絕順序計錯
+        document.querySelectorAll('#itineraryList > .group').forEach((el, index) => { 
+            const idx = itineraryData.findIndex(i => i.id === el.getAttribute('data-id')); 
+            if(idx > -1) itineraryData[idx].order = index + 1; 
+        }); 
+        saveLocalData(); 
+    }
     function confirmDelete() { deleteTargetId = document.getElementById('editId').value; document.getElementById('deleteConfirmModal').classList.remove('hidden'); }
     function cancelDelete() { deleteTargetId = null; document.getElementById('deleteConfirmModal').classList.add('hidden'); }
     function executeDelete() { if (deleteTargetId) { itineraryData = itineraryData.filter(i => i.id !== deleteTargetId); cancelDelete(); closeModal('activityModal'); renderItinerary(); saveLocalData(); } }
