@@ -149,11 +149,14 @@
         </div>
 
         <div class="flex flex-col md:flex-row flex-1">
+          <!-- 頂部日期選擇列 -->
           <div class="md:w-64 flex-shrink-0 border-b md:border-b-0 md:border-r border-border/50 md:pr-6 bg-card md:bg-transparent z-10 sticky top-0">
             <div id="dateScroller" class="flex md:flex-col overflow-x-auto scrollbar-hide px-5 py-3 md:px-0 md:py-0 gap-3"></div>
           </div>
           <div class="flex-1 p-5 pt-4 md:pl-8 md:p-0">
+            <!-- 每日行程表頭 -->
             <div id="weatherHeader" class="relative bg-gradient-to-br from-accent to-accent/80 text-white rounded-2xl p-4 md:p-5 mb-6 shadow-md border-none flex justify-between items-center w-full"></div>
+            <!-- 行程清單 -->
             <div id="itineraryList" class="space-y-0"></div>
           </div>
         </div>
@@ -292,12 +295,19 @@
         <button onclick="closeModal('dataSyncModal')" class="text-primary/60 hover:text-primary"><i data-lucide="x" class="w-6 h-6"></i></button>
       </div>
       <p class="text-xs text-primary/70 mb-6 leading-relaxed">您可以將目前的行程匯出為備份檔案，或匯入同行者分享的行程檔。</p>
+      
       <div class="space-y-3">
         <button onclick="exportJSONData()" class="w-full flex items-center justify-center gap-2 bg-accent text-white py-3.5 rounded-xl text-sm font-bold shadow-sm hover:bg-accent/90 transition">
-          <i data-lucide="download" class="w-4 h-4"></i> 匯出
+          <i data-lucide="download" class="w-4 h-4"></i> 匯出備份檔案
         </button>
+        
+        <!-- 將 Coding更新 整合至此選單中 -->
+        <button onclick="generateHardcodeCode()" class="w-full flex items-center justify-center gap-2 bg-bg border border-border text-primary py-3.5 rounded-xl text-sm font-bold shadow-sm hover:bg-border/30 transition">
+          <i data-lucide="code" class="w-4 h-4 text-accent"></i> Coding更新
+        </button>
+
         <label for="importJsonFile" class="w-full flex items-center justify-center gap-2 bg-bg border border-border text-primary py-3.5 rounded-xl text-sm font-bold shadow-sm cursor-pointer hover:bg-border/30 transition">
-          <i data-lucide="upload" class="w-4 h-4 text-accent"></i> 匯入
+          <i data-lucide="upload" class="w-4 h-4 text-accent"></i> 匯入備份檔案
           <input type="file" id="importJsonFile" accept=".json" class="hidden" onchange="importJSONData(event)">
         </label>
       </div>
@@ -799,6 +809,29 @@
       closeModal('dataSyncModal');
     }
 
+    // 只針對目前檢視的旅程（tripsData[0]）生成硬編碼，不影響未來新增的其他旅程預設值
+    function generateHardcodeCode() {
+      const currentTrip = tripsData.length > 0 ? tripsData[0] : null;
+      if (!currentTrip) return alert('目前沒有可更新的旅程！');
+
+      const codeSnippet = `
+// 【Coding更新】僅針對目前旅程：${currentTrip.name}
+tripsData = ${JSON.stringify([currentTrip])};
+daysData = ${JSON.stringify(daysData)};
+itineraryData = ${JSON.stringify(itineraryData)};
+checklistData = ${JSON.stringify(checklistData)};
+shoppingData = ${JSON.stringify(shoppingData)};
+reservationsData = ${JSON.stringify(reservationsData)};
+      `.trim();
+      
+      navigator.clipboard.writeText(codeSnippet).then(() => {
+          alert('已成功將目前旅程的 Coding更新 碼複製到剪貼簿！您可以發給我幫您直接更新。');
+          closeModal('dataSyncModal');
+      }).catch(err => {
+          alert('複製失敗，請手動使用匯出備份檔案。');
+      });
+    }
+
     function importJSONData(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -923,7 +956,6 @@
       syncDaysData();
       saveLocalData();
 
-      // Flatpickr setup
       flatpickr.l10ns.default.months.longhand = ['AUG', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
       flatpickr.l10ns.default.months.shorthand = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
       flatpickr.l10ns.default.weekdays.shorthand = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
@@ -976,8 +1008,6 @@
 
       flatpickr("#tDate", { ...fpCommonOpts, mode: "range" });
       flatpickr("#rDate", fpCommonOpts);
-      
-      // 合併的日期時間選擇器
       flatpickr("#rCheckIn", fpDateTimeOpts);
       flatpickr("#rCheckOut", fpDateTimeOpts);
       flatpickr("#rFlightDep", fpDateTimeOpts);
@@ -1286,6 +1316,7 @@
         if(item.tMode === 'drive') travelmode = '&travelmode=driving';
         
         const mapUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(item.name)}${travelmode}`;
+        
         const iconInfo = typeConfig[item.type] || typeConfig['other'];
 
         html += `<div class="relative group" data-id="${item.id}">${isFlight ? renderFlightCard(item, iconInfo, mapUrl) : renderNormalCard(item, iconInfo, mapUrl)}</div>`;
