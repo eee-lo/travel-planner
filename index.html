@@ -2136,18 +2136,22 @@ html += isFlight ? renderFlightCard(item, iconInfo, mapUrl) : renderNormalCard(i
             <!-- 中部：大字體機場代碼與飛機虛線 -->
             <div class="px-5 py-6 flex items-center justify-between relative bg-white">
               <div class="text-center flex-1">
-                <div class="text-3xl font-black text-primary mb-1 tracking-tight">${item.depAirport || '---'}</div>
-                <div class="text-[10px] text-primary/50 uppercase font-medium">${item.flightDep ? formatResDateTime(item.flightDep) : '時間未定'}</div>
+                <div class="text-3xl md:text-4xl font-black text-primary mb-1.5 tracking-tight">${item.depAirport || '---'}</div>
+                <!-- 日期再放大為 text-sm -->
+                <div class="text-sm text-primary/60 uppercase font-bold tracking-wide">${item.flightDep ? formatResDateTime(item.flightDep) : '時間未定'}</div>
               </div>
               
-              <div class="w-16 md:w-24 flex flex-col items-center justify-center px-2 flex-shrink-0 relative top-[-8px]">
-                <i data-lucide="plane-takeoff" class="w-4 h-4 text-accent/50 mb-1"></i>
-                <div class="w-full h-px border-t-2 border-dashed border-accent/30"></div>
+              <!-- 擴闊中間空間俾大飛機 -->
+              <div class="w-20 md:w-28 flex flex-col items-center justify-center px-2 flex-shrink-0 relative top-[-10px]">
+                <!-- 中間飛機大幅放大為 w-8 h-8，顏色調實 -->
+                <i data-lucide="plane-takeoff" class="w-8 h-8 text-accent mb-2"></i>
+                <div class="w-full h-px border-t-2 border-dashed border-accent/40"></div>
               </div>
               
               <div class="text-center flex-1">
-                <div class="text-3xl font-black text-primary mb-1 tracking-tight">${item.arrAirport || '---'}</div>
-                <div class="text-[10px] text-primary/50 uppercase font-medium">${item.flightArr ? formatResDateTime(item.flightArr) : '時間未定'}</div>
+                <div class="text-3xl md:text-4xl font-black text-primary mb-1.5 tracking-tight">${item.arrAirport || '---'}</div>
+                <!-- 日期再放大為 text-sm -->
+                <div class="text-sm text-primary/60 uppercase font-bold tracking-wide">${item.flightArr ? formatResDateTime(item.flightArr) : '時間未定'}</div>
               </div>
             </div>
 
