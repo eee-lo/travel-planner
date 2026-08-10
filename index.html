@@ -439,7 +439,7 @@
         </div>
         <div class="flex gap-3 mt-2">
           <button type="button" id="deleteTripBtn" onclick="confirmTripDelete()" class="hidden w-1/3 bg-danger/10 text-danger py-3 rounded-xl text-sm font-bold border border-danger/20 hover:bg-danger hover:text-white transition">刪除</button>
-          <button type="submit" id="tripSubmitBtn" class="flex-1 bg-accent text-white py-3 rounded-xl text-sm font-bold shadow-sm">建立旅程</button>
+          <button type="submit" id="tripSubmitBtn" class="flex-1 bg-accent text-white py-3 rounded-xl text-sm font-bold shadow-sm mt-2">建立旅程</button>
         </div>
       </form>
     </div>
@@ -557,7 +557,7 @@
 
         <div class="grid grid-cols-2 gap-3">
           <div><label class="block text-xs font-medium mb-1 text-primary/70">時間</label><input type="text" id="aHours" class="w-full border border-border rounded-xl p-2.5 text-sm bg-bg outline-none focus:border-accent"></div>
-          <div><label class="block text-xs font-medium mb-1 text-primary/70">營業時間</label><input type="text" id="aOpHours" class="w-full border border-border rounded-xl p-2.5 text-sm bg-bg outline-none focus:border-accent"></div>
+          <div><label class="block text-xs font-medium mb-1 text-primary/70">路程時間 (如: 1h 30m)</label><input type="text" id="aOpHours" class="w-full border border-border rounded-xl p-2.5 text-sm bg-bg outline-none focus:border-accent"></div>
         </div>
         <div>
           <label class="block text-xs font-medium mb-1 text-primary/70">預計花費/門票</label>
@@ -578,7 +578,7 @@
     <div class="relative bg-card w-4/5 md:w-80 rounded-2xl p-6 shadow-xl text-center z-10">
       <div class="mx-auto w-12 h-12 bg-danger/10 text-danger rounded-full flex items-center justify-center mb-4"><i data-lucide="alert-triangle" class="w-6 h-6"></i></div>
       <h3 class="text-lg font-bold mb-2">確定刪除此行程？</h3>
-      <p class="text-xs text-primary/70 mb-6">刪除後將重新計算交通時間，且無法復原。</p>
+      <p class="text-xs text-primary/70 mb-6">刪除後無法復原。</p>
       <div class="flex gap-3">
         <button onclick="cancelDelete()" class="flex-1 py-2.5 rounded-xl text-sm font-medium border border-border">取消</button>
         <button onclick="executeDelete()" class="flex-1 py-2.5 rounded-xl text-sm font-medium bg-danger text-white hover:opacity-90 transition">刪除</button>
@@ -631,7 +631,7 @@
     let currentUploadImageBase64 = '';
 
     function saveLocalData() {
-      const data = { tripsData, daysData, itineraryData, checklistData, shoppingData, reservationsData };
+      const data = { tripsData, daysData, itineraryData, checklistData, shoppingData, reservationsData, version: 'v3' };
       localStorage.setItem('tripPlannerBackup', JSON.stringify(data));
     }
 
@@ -640,14 +640,16 @@
       if (stored) {
         try {
           const parsed = JSON.parse(stored);
-          tripsData = parsed.tripsData || [];
-          daysData = parsed.daysData || [];
-          itineraryData = parsed.itineraryData || [];
-          checklistData = parsed.checklistData || [];
-          shoppingData = parsed.shoppingData || [];
-          reservationsData = parsed.reservationsData || [];
-          return true;
-        } catch(e) { console.error('Data Load Error', e); }
+          if (parsed && Array.isArray(parsed.tripsData)) {
+            tripsData = parsed.tripsData;
+            daysData = parsed.daysData || [];
+            itineraryData = parsed.itineraryData || [];
+            checklistData = parsed.checklistData || [];
+            shoppingData = parsed.shoppingData || [];
+            reservationsData = parsed.reservationsData || [];
+            return true;
+          }
+        } catch(e) { console.error('Data Load Error, resetting to default', e); }
       }
       return false;
     }
@@ -1127,7 +1129,7 @@ reservationsData = ${JSON.stringify(reservationsData)};
       `});
 
       html += `
-        <button onclick="openModal('tripModal')" class="min-h-[200px] border-2 border-dashed border-accent/50 rounded-3xl flex flex-col items-center justify-center text-accent hover:bg-accent/10 transition">
+        <button onclick="openModal('tripModal')" class="border-2 border-dashed border-accent/50 rounded-3xl flex flex-col items-center justify-center text-accent hover:bg-accent/10 transition min-h-[200px]">
           <i data-lucide="plus" class="w-8 h-8 mb-2"></i>
           <span class="font-medium">新增旅程</span>
         </button>
@@ -1346,18 +1348,13 @@ reservationsData = ${JSON.stringify(reservationsData)};
         }
     }
 
-    // 如果「地址」欄位入面貼咗係 Google Maps 分享連結，唔可以整條 URL 直接塞入去我哋自己整嘅
-    // 導航連結度 (會變成 URL 入面包住 URL，令 Google Maps 出 error)。
-    // 呢個function會嘗試由連結入面攞返實際經緯度；攞唔到就改用地點名稱做後備。
+    // 將可能帶有座標或地圖分享連結的文字萃取出純座標，或是回退到原始文字
     function extractLatLngFromMapsUrl(url) {
       if (!url) return null;
-      // 最精準：地點資訊入面嘅 !3dLAT!4dLNG pin 座標
       let m = url.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/);
       if (m) return `${m[1]},${m[2]}`;
-      // ?q=lat,lng 或 &q=lat,lng
       m = url.match(/[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/);
       if (m) return `${m[1]},${m[2]}`;
-      // 網址中的 @lat,lng,zoom (地圖中心點，較粗略但仍可用)
       m = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
       if (m) return `${m[1]},${m[2]}`;
       return null;
@@ -1369,38 +1366,9 @@ reservationsData = ${JSON.stringify(reservationsData)};
       if (/^https?:\/\//i.test(t)) {
         const latlng = extractLatLngFromMapsUrl(t);
         if (latlng) return latlng;
-        // 無法從連結解析出座標 (例如已縮短嘅 goo.gl 分享連結)，改用地點名稱代替
         return (fallbackText || '').trim();
       }
       return t;
-    }
-
-    // 由「時間」欄位(例如 "08:30 - 12:45" 或 "16:30")入面攞出所有 HH:MM 時間點，轉做分鐘數
-    function parseTimeTokens(hoursStr) {
-      if (!hoursStr) return [];
-      const matches = hoursStr.match(/\d{1,2}:\d{2}/g);
-      if (!matches) return [];
-      return matches.map(t => {
-        const [h, m] = t.split(':').map(Number);
-        return h * 60 + m;
-      });
-    }
-
-    // 計算上一點到下一點嘅時間差，格式例如 "1h 30m"、"45m"。攞唔到時間就回傳空字串。
-    function computeTravelDuration(prevHoursStr, currentHoursStr) {
-      const prevTokens = parseTimeTokens(prevHoursStr);
-      const currTokens = parseTimeTokens(currentHoursStr);
-      if (prevTokens.length === 0 || currTokens.length === 0) return '';
-      const departMinutes = prevTokens[prevTokens.length - 1]; // 上一點的結束/當刻時間
-      const arriveMinutes = currTokens[0]; // 下一點的開始/當刻時間
-      let diff = arriveMinutes - departMinutes;
-      if (diff < 0) diff += 24 * 60; // 跨日
-      if (diff <= 0) return '';
-      const h = Math.floor(diff / 60);
-      const m = diff % 60;
-      if (h > 0 && m > 0) return `${h}h ${m}m`;
-      if (h > 0) return `${h}h`;
-      return `${m}m`;
     }
 
     function renderItinerary() {
@@ -1437,13 +1405,16 @@ reservationsData = ${JSON.stringify(reservationsData)};
            if(item.tMode === 'drive') travelmodeAB = 'driving';
            
            const destination = resolveMapQuery(item.address, item.name);
+           
+           // Google Maps URL: origin = 上一個景點 (prevLocName), destination = 目前景點 (destination)
+           // 如果沒有上一景點，直接變成搜尋目的地
            const mapUrlAB = prevLocName
              ? `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(prevLocName)}&destination=${encodeURIComponent(destination)}&travelmode=${travelmodeAB}`
              : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(destination)}`;
 
-           const prevItemForTime = index === 0 ? null : currentItems[index - 1];
-           const durationText = prevItemForTime ? computeTravelDuration(prevItemForTime.hours, item.hours) : '';
-           const labelText = durationText ? `${m.label}前往：${durationText}` : `${m.label}前往`;
+           // 取用目前景點 (下一個點) 所填寫的「路程時間」(原營業時間欄位) 作為顯示
+           const durationText = item.opHours ? item.opHours : '';
+           const labelText = durationText ? `${m.label}前往 ${durationText}` : `${m.label}前往`;
 
            transportHtml = `<a href="${mapUrlAB}" target="_blank" class="flex items-center gap-2 text-xs text-primary/50 py-3 pl-4 border-l-2 border-dashed border-accent/40 ml-[23px] hover:text-accent transition group cursor-pointer"><i data-lucide="${m.icon}" class="w-3.5 h-3.5 text-accent group-hover:scale-110 transition"></i> <span class="border-b border-dashed border-primary/30 group-hover:border-accent transition pb-0.5">${labelText}</span></a>`;
            
@@ -1522,7 +1493,7 @@ reservationsData = ${JSON.stringify(reservationsData)};
                 <h3 class="font-bold text-primary text-[15px] mb-2 truncate">${item.name}</h3>
                 <div class="flex flex-wrap gap-x-4 gap-y-1 mb-2">
                   ${item.hours ? `<p class="text-xs text-primary/70 flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3 text-accent/70"></i>${item.hours}</p>` : ''}
-                  ${item.opHours ? `<p class="text-xs text-primary/70 flex items-center gap-1"><i data-lucide="store" class="w-3 h-3 text-accent/70"></i>${item.opHours}</p>` : ''}
+                  ${item.opHours ? `<p class="text-xs text-primary/70 flex items-center gap-1"><i data-lucide="navigation" class="w-3 h-3 text-accent/70"></i>${item.opHours}</p>` : ''}
                   ${item.cost ? `<p class="text-xs text-primary/70 flex items-center gap-1"><i data-lucide="credit-card" class="w-3 h-3 text-accent/70"></i>${item.cost}</p>` : ''}
                 </div>
                 ${item.note ? `<div class="bg-bg p-2.5 rounded-xl border border-border/40 mb-2"><p class="text-xs text-primary/80 break-words">${item.note}</p></div>` : ''}
@@ -1658,7 +1629,6 @@ reservationsData = ${JSON.stringify(reservationsData)};
         const input = document.getElementById(`newCheckItem-${cat}`); 
         if(!input || input.value.trim() === '') return; 
         const newItem = { id: Date.now(), category: cat, text: input.value, done: false };
-        // 待辦清單 (todo) 每個旅程獨立儲存；行李清單 (personal/daily/clothing/electronic/carryon) 維持共用
         if (cat === 'todo') newItem.tripId = getCurrentTripId();
         checklistData.push(newItem); 
         input.value = ''; 
@@ -1700,7 +1670,6 @@ reservationsData = ${JSON.stringify(reservationsData)};
                 });
             }
 
-            // 移除了上方原有的 border-t 橫線
             html += `
                 </div>
                 <div class="mt-4 flex gap-2 pt-2">
@@ -1928,28 +1897,17 @@ reservationsData = ${JSON.stringify(reservationsData)};
       renderShoppingList(); 
     }
 
-    /* ========== 預約管理 (Reservations) ========== */
-
-    const resTypeConfig = { 
-      flight: { icon: 'plane', label: '機票' }, 
-      accomm: { icon: 'hotel', label: '住宿' }, 
-      transport: { icon: 'train-front', label: '交通' }, 
-      other: { icon: 'bookmark', label: '其他' } 
-    };
-
-    let deleteResTargetId = null;
-
     function switchResTab(tab) {
         currentResTab = tab;
-        ['flight', 'accomm', 'transport', 'other'].forEach(t => {
-            const btn = document.getElementById('tab-res-' + t);
-            if (!btn) return;
+        const tabs = ['flight', 'accomm', 'transport', 'other'];
+        tabs.forEach(t => {
+            const btn = document.getElementById(`tab-res-${t}`);
             if (t === tab) {
-                btn.classList.add('border-accent', 'text-accent', 'font-bold');
-                btn.classList.remove('border-transparent', 'text-primary/50', 'font-medium');
+                btn.classList.add('text-accent', 'border-accent', 'font-bold');
+                btn.classList.remove('text-primary/50', 'border-transparent', 'font-medium');
             } else {
-                btn.classList.remove('border-accent', 'text-accent', 'font-bold');
-                btn.classList.add('border-transparent', 'text-primary/50', 'font-medium');
+                btn.classList.add('text-primary/50', 'border-transparent', 'font-medium');
+                btn.classList.remove('text-accent', 'border-accent', 'font-bold');
             }
         });
         renderReservations();
@@ -1957,39 +1915,37 @@ reservationsData = ${JSON.stringify(reservationsData)};
 
     function toggleResFields() {
         const type = document.getElementById('rType').value;
-        const groups = {
-            flightDateTimes: document.getElementById('grp_flightDateTimes'),
-            flightSpecific: document.getElementById('grp_flightSpecific'),
-            accommDateTimes: document.getElementById('grp_accommDateTimes'),
-            accommSpecific: document.getElementById('grp_accommSpecific'),
-            transportTimes: document.getElementById('grp_transportTimes'),
-            singleDate: document.getElementById('grp_singleDate'),
-            singleTime: document.getElementById('grp_singleTime')
+        const els = {
+            rNameLbl: document.getElementById('l_rName'),
+            grp_bookingRef: document.getElementById('grp_bookingRef'),
+            grp_singleDate: document.getElementById('grp_singleDate'),
+            grp_flightDateTimes: document.getElementById('grp_flightDateTimes'),
+            grp_accommDateTimes: document.getElementById('grp_accommDateTimes'),
+            grp_transportTimes: document.getElementById('grp_transportTimes'),
+            grp_singleTime: document.getElementById('grp_singleTime'),
+            grp_flightSpecific: document.getElementById('grp_flightSpecific'),
+            grp_accommSpecific: document.getElementById('grp_accommSpecific')
         };
-        Object.values(groups).forEach(g => g.classList.add('hidden'));
-
-        const labelMap = {
-            flight: '名稱 (如：長榮航空)',
-            accomm: '名稱 (如：希爾頓飯店)',
-            transport: '名稱 (如：Avis 租車 / 火車班次)',
-            other: '名稱'
-        };
-        document.getElementById('l_rName').innerText = labelMap[type] || '名稱';
+        
+        ['grp_singleDate', 'grp_flightDateTimes', 'grp_accommDateTimes', 'grp_transportTimes', 'grp_singleTime', 'grp_flightSpecific', 'grp_accommSpecific'].forEach(k => els[k].classList.add('hidden'));
 
         if (type === 'flight') {
-            groups.flightDateTimes.classList.remove('hidden');
-            groups.flightSpecific.classList.remove('hidden');
+            els.rNameLbl.innerText = '航空公司';
+            els.grp_flightDateTimes.classList.remove('hidden');
+            els.grp_flightSpecific.classList.remove('hidden');
         } else if (type === 'accomm') {
-            groups.accommDateTimes.classList.remove('hidden');
-            groups.accommSpecific.classList.remove('hidden');
+            els.rNameLbl.innerText = '住宿名稱';
+            els.grp_accommDateTimes.classList.remove('hidden');
+            els.grp_accommSpecific.classList.remove('hidden');
         } else if (type === 'transport') {
-            groups.singleDate.classList.remove('hidden');
-            groups.transportTimes.classList.remove('hidden');
-        } else {
-            groups.singleDate.classList.remove('hidden');
-            groups.singleTime.classList.remove('hidden');
+            els.rNameLbl.innerText = '交通營運商 (如: JR / 國光客運)';
+            els.grp_singleDate.classList.remove('hidden');
+            els.grp_transportTimes.classList.remove('hidden');
+        } else if (type === 'other') {
+            els.rNameLbl.innerText = '預約名稱 (如: 餐廳 / 門票)';
+            els.grp_singleDate.classList.remove('hidden');
+            els.grp_singleTime.classList.remove('hidden');
         }
-        lucide.createIcons();
     }
 
     function previewResImage(event) {
@@ -2004,351 +1960,260 @@ reservationsData = ${JSON.stringify(reservationsData)};
         });
       }
     }
-
-    function removeResImage() {
-      currentResUploadImageBase64 = '';
-      document.getElementById('res-dropzone-file').value = '';
-      document.getElementById('resImagePreview').src = '';
-      document.getElementById('resImagePreview').classList.add('hidden');
-      document.getElementById('resUploadPlaceholder').classList.remove('hidden');
-      document.getElementById('resRemoveImgBtn').classList.add('hidden');
-    }
-
-    function formatResDateTime(dtStr) {
-      if (!dtStr) return '';
-      const d = new Date(dtStr.replace(' ', 'T'));
-      if (isNaN(d)) return dtStr;
-      const dd = String(d.getDate()).padStart(2, '0');
-      const months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
-      const mmm = months[d.getMonth()];
-      const hh = String(d.getHours()).padStart(2, '0');
-      const mi = String(d.getMinutes()).padStart(2, '0');
-      return `${dd} ${mmm} ${hh}:${mi}`;
-    }
-
-    function formatResDate(dStr) {
-      if (!dStr) return '';
-      const d = new Date(dStr);
-      if (isNaN(d)) return dStr;
-      const dd = String(d.getDate()).padStart(2, '0');
-      const months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
-      return `${dd} ${months[d.getMonth()]}`;
+    
+    function removeResImage() { 
+      currentResUploadImageBase64 = ''; 
+      document.getElementById('res-dropzone-file').value = ''; 
+      document.getElementById('resImagePreview').src = ''; 
+      document.getElementById('resImagePreview').classList.add('hidden'); 
+      document.getElementById('resUploadPlaceholder').classList.remove('hidden'); 
+      document.getElementById('resRemoveImgBtn').classList.add('hidden'); 
     }
 
     function saveReservation(e) {
-      e.preventDefault();
+      e.preventDefault(); 
       const editId = document.getElementById('editResId').value;
       const type = document.getElementById('rType').value;
-
-      const formData = {
-        type: type,
-        name: document.getElementById('rName').value,
-        bookingRef: document.getElementById('rBookingRef').value,
-        note: document.getElementById('rNote').value,
-        image: currentResUploadImageBase64
+      
+      const formData = { 
+          type: type, 
+          name: document.getElementById('rName').value, 
+          bookingRef: document.getElementById('rBookingRef').value,
+          note: document.getElementById('rNote').value,
+          file: currentResUploadImageBase64
       };
 
-      if (type === 'flight') {
-        formData.flightDep = document.getElementById('rFlightDep').value;
-        formData.flightArr = document.getElementById('rFlightArr').value;
-        formData.depAirport = document.getElementById('rDepAirport').value;
-        formData.arrAirport = document.getElementById('rArrAirport').value;
-        formData.flightNo = document.getElementById('rFlightNo').value;
-      } else if (type === 'accomm') {
-        formData.checkIn = document.getElementById('rCheckIn').value;
-        formData.checkOut = document.getElementById('rCheckOut').value;
-        formData.address = document.getElementById('rAddress').value;
-        formData.url = document.getElementById('rUrl').value;
-      } else if (type === 'transport') {
-        formData.date = document.getElementById('rDate').value;
-        formData.transDepTime = document.getElementById('rTransDepTime').value;
-        formData.transArrTime = document.getElementById('rTransArrTime').value;
-      } else {
-        formData.date = document.getElementById('rDate').value;
-        formData.time = document.getElementById('rTime').value;
+      if(type === 'flight') {
+          formData.flightDep = document.getElementById('rFlightDep').value;
+          formData.flightArr = document.getElementById('rFlightArr').value;
+          formData.depAirport = document.getElementById('rDepAirport').value;
+          formData.arrAirport = document.getElementById('rArrAirport').value;
+          formData.flightNo = document.getElementById('rFlightNo').value;
+      } else if(type === 'accomm') {
+          formData.checkIn = document.getElementById('rCheckIn').value;
+          formData.checkOut = document.getElementById('rCheckOut').value;
+          formData.address = document.getElementById('rAddress').value;
+          formData.url = document.getElementById('rUrl').value;
+      } else if(type === 'transport') {
+          formData.date = document.getElementById('rDate').value;
+          formData.depTime = document.getElementById('rTransDepTime').value;
+          formData.arrTime = document.getElementById('rTransArrTime').value;
+      } else if(type === 'other') {
+          formData.date = document.getElementById('rDate').value;
+          formData.time = document.getElementById('rTime').value;
       }
-
-      if (editId) {
-        const idx = reservationsData.findIndex(r => r.id === editId);
-        if (idx > -1) reservationsData[idx] = { ...reservationsData[idx], ...formData };
-      } else {
-        reservationsData.push({ id: Date.now().toString(), tripId: getCurrentTripId(), ...formData });
+      
+      if (editId) { 
+          const idx = reservationsData.findIndex(i => i.id === editId); 
+          reservationsData[idx] = { ...reservationsData[idx], ...formData }; 
+      } else { 
+          reservationsData.push({ id: 'r' + Date.now(), tripId: getCurrentTripId(), ...formData }); 
       }
-
+      
       saveLocalData();
-      closeModal('reservationModal');
-      switchResTab(type);
+      closeModal('reservationModal'); 
+      renderReservations();
     }
 
-    function confirmResDelete() {
-      deleteResTargetId = document.getElementById('editResId').value;
-      document.getElementById('deleteResConfirmModal').classList.remove('hidden');
-    }
-
-    function cancelResDelete() {
-      deleteResTargetId = null;
-      document.getElementById('deleteResConfirmModal').classList.add('hidden');
-    }
-
-    function executeResDelete() {
-      if (deleteResTargetId) {
-        reservationsData = reservationsData.filter(r => r.id !== deleteResTargetId);
-        cancelResDelete();
-        closeModal('reservationModal');
-        saveLocalData();
-        renderReservations();
-      }
-    }
+    function confirmResDelete() { deleteTargetId = document.getElementById('editResId').value; document.getElementById('deleteResConfirmModal').classList.remove('hidden'); }
+    function cancelResDelete() { deleteTargetId = null; document.getElementById('deleteResConfirmModal').classList.add('hidden'); }
+    function executeResDelete() { if (deleteTargetId) { reservationsData = reservationsData.filter(i => i.id !== deleteTargetId); cancelResDelete(); closeModal('reservationModal'); renderReservations(); saveLocalData(); } }
 
     function renderReservations() {
-      const container = document.getElementById('reservationsListContainer');
-      if (!container) return;
+        const container = document.getElementById('reservationsListContainer');
+        const tripId = getCurrentTripId();
+        const items = reservationsData.filter(i => i.type === currentResTab && i.tripId === tripId);
+        
+        items.sort((a, b) => {
+            const dA = new Date(a.type === 'accomm' ? a.checkIn : (a.type === 'flight' ? a.flightDep : a.date));
+            const dB = new Date(b.type === 'accomm' ? b.checkIn : (b.type === 'flight' ? b.flightDep : b.date));
+            return dA - dB;
+        });
 
-      const getTime = (r) => {
-        if (r.type === 'flight') return r.flightDep ? new Date(r.flightDep.replace(' ', 'T')).getTime() : Infinity;
-        if (r.type === 'accomm') return r.checkIn ? new Date(r.checkIn.replace(' ', 'T')).getTime() : Infinity;
-        return r.date ? new Date(r.date).getTime() : Infinity;
-      };
-
-      const tripId = getCurrentTripId();
-      const items = reservationsData.filter(r => r.type === currentResTab && r.tripId === tripId).sort((a, b) => getTime(a) - getTime(b));
-
-      if (items.length === 0) {
-        container.innerHTML = `<div class="text-center py-10 text-primary/50 text-sm">尚無${resTypeConfig[currentResTab].label}預約，點擊右下角 + 新增。</div>`;
-        return;
-      }
-
-      container.innerHTML = items.map(item => {
-        const cfg = resTypeConfig[item.type];
-        let detailsHtml = '';
-
-        if (item.type === 'flight') {
-          detailsHtml = `
-            <div class="flex flex-wrap gap-x-4 gap-y-1 mb-1">
-              ${item.flightDep ? `<p class="text-xs text-primary/70 flex items-center gap-1"><i data-lucide="plane-takeoff" class="w-3 h-3 text-accent/70"></i>${formatResDateTime(item.flightDep)}</p>` : ''}
-              ${item.flightArr ? `<p class="text-xs text-primary/70 flex items-center gap-1"><i data-lucide="plane-landing" class="w-3 h-3 text-accent/70"></i>${formatResDateTime(item.flightArr)}</p>` : ''}
-            </div>
-            ${(item.depAirport || item.arrAirport) ? `<p class="text-xs text-primary/60 mb-1">${item.depAirport || ''} → ${item.arrAirport || ''}${item.flightNo ? ' · ' + item.flightNo : ''}</p>` : ''}
-          `;
-        } else if (item.type === 'accomm') {
-          detailsHtml = `
-            <div class="flex flex-wrap gap-x-4 gap-y-1 mb-1">
-              ${item.checkIn ? `<p class="text-xs text-primary/70 flex items-center gap-1"><i data-lucide="log-in" class="w-3 h-3 text-accent/70"></i>${formatResDateTime(item.checkIn)}</p>` : ''}
-              ${item.checkOut ? `<p class="text-xs text-primary/70 flex items-center gap-1"><i data-lucide="log-out" class="w-3 h-3 text-accent/70"></i>${formatResDateTime(item.checkOut)}</p>` : ''}
-            </div>
-            ${item.address ? `<p class="text-xs text-primary/60 mb-1 truncate">${item.address}</p>` : ''}
-          `;
-        } else if (item.type === 'transport') {
-          detailsHtml = `
-            <div class="flex flex-wrap gap-x-4 gap-y-1 mb-1">
-              ${item.date ? `<p class="text-xs text-primary/70 flex items-center gap-1"><i data-lucide="calendar" class="w-3 h-3 text-accent/70"></i>${formatResDate(item.date)}</p>` : ''}
-              ${item.transDepTime ? `<p class="text-xs text-primary/70 flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3 text-accent/70"></i>${item.transDepTime}${item.transArrTime ? ' - ' + item.transArrTime : ''}</p>` : ''}
-            </div>
-          `;
-        } else {
-          detailsHtml = `
-            <div class="flex flex-wrap gap-x-4 gap-y-1 mb-1">
-              ${item.date ? `<p class="text-xs text-primary/70 flex items-center gap-1"><i data-lucide="calendar" class="w-3 h-3 text-accent/70"></i>${formatResDate(item.date)}</p>` : ''}
-              ${item.time ? `<p class="text-xs text-primary/70 flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3 text-accent/70"></i>${item.time}</p>` : ''}
-            </div>
-          `;
+        if (items.length === 0) {
+            container.innerHTML = `<div class="text-center py-10 text-primary/50 text-sm">目前沒有相關預約，點擊右下角 + 新增。</div>`;
+            return;
         }
 
-        return `
-        <div class="bg-card rounded-2xl p-4 shadow-sm border border-border/50 flex gap-3 items-start">
-          <div class="p-2.5 bg-bg rounded-xl flex-shrink-0 border border-border/40"><i data-lucide="${cfg.icon}" class="w-5 h-5 text-accent"></i></div>
-          <div class="flex-1 min-w-0">
-            <div class="flex justify-between items-start gap-2">
-              <h3 class="font-bold text-primary text-[15px] truncate">${item.name}</h3>
-              <button onclick="openModal('reservationModal', '${item.id}')" class="p-1 -mr-1 text-primary/40 hover:text-primary transition flex-shrink-0"><i data-lucide="more-vertical" class="w-4 h-4"></i></button>
-            </div>
-            ${item.bookingRef ? `<p class="text-[11px] text-primary/50 font-mono mb-1">Ref: ${item.bookingRef}</p>` : ''}
-            ${detailsHtml}
-            ${item.note ? `<p class="text-xs text-primary/70 bg-bg px-2 py-1 rounded-md inline-block mt-1">${item.note}</p>` : ''}
-          </div>
-          ${item.image ? `<img src="${item.image}" class="w-14 h-14 object-cover rounded-xl border border-border/40 flex-shrink-0">` : ''}
-        </div>
-        `;
-      }).join('');
+        let html = '';
+        items.forEach(item => {
+            if (item.type === 'flight') {
+                const depParts = (item.flightDep || '').split(' ');
+                const depDate = depParts[0] ? depParts[0].split('-').slice(1).reverse().join('/') : '--/--';
+                const depTime = depParts[1] || '--:--';
 
-      lucide.createIcons();
-    }
+                const arrParts = (item.flightArr || '').split(' ');
+                const arrDate = arrParts[0] ? arrParts[0].split('-').slice(1).reverse().join('/') : '--/--';
+                const arrTime = arrParts[1] || '--:--';
 
-    function openModal(modalId, id = null) {
-      document.getElementById(modalId).classList.remove('hidden');
-      const content = document.getElementById(modalId + 'Content');
-      if (content) { setTimeout(() => { content.classList.remove('translate-y-full'); if(window.innerWidth >= 768) content.classList.remove('md:translate-y-0'); }, 10); }
-      
-      if (modalId === 'tripModal') {
-        const form = document.getElementById('tripForm');
-        const fp = document.getElementById('tDate')._flatpickr;
-        if (id) {
-          document.getElementById('tripModalTitle').innerText = '編輯旅程';
-          document.getElementById('tripSubmitBtn').innerText = '儲存修改';
-          document.getElementById('deleteTripBtn').classList.remove('hidden');
-          const trip = tripsData.find(t => t.id === id);
-          document.getElementById('editTripId').value = trip.id;
-          document.getElementById('tName').value = trip.name;
-          fp.setDate(trip.dateStr); 
-          document.getElementById('tCover').value = trip.cover;
-        } else {
-          document.getElementById('tripModalTitle').innerText = '建立新旅程';
-          document.getElementById('tripSubmitBtn').innerText = '建立旅程';
-          document.getElementById('deleteTripBtn').classList.add('hidden');
-          form.reset();
-          fp.clear(); 
-          document.getElementById('editTripId').value = '';
-        }
-      }
-      else if (modalId === 'reservationModal') {
-        const form = document.getElementById('reservationForm');
-        if(!id) {
-            document.getElementById('resModalTitle').innerText = '新增預約';
-            document.getElementById('deleteResBtn').classList.add('hidden');
-            form.reset();
-            document.getElementById('editResId').value = '';
-            document.getElementById('rType').value = currentResTab;
-            toggleResFields();
-            removeResImage();
-            
-            if(document.getElementById('rDate')._flatpickr) document.getElementById('rDate')._flatpickr.clear();
-            if(document.getElementById('rCheckIn')._flatpickr) document.getElementById('rCheckIn')._flatpickr.clear();
-            if(document.getElementById('rCheckOut')._flatpickr) document.getElementById('rCheckOut')._flatpickr.clear();
-            if(document.getElementById('rFlightDep')._flatpickr) document.getElementById('rFlightDep')._flatpickr.clear();
-            if(document.getElementById('rFlightArr')._flatpickr) document.getElementById('rFlightArr')._flatpickr.clear();
-        } else {
-            document.getElementById('resModalTitle').innerText = '編輯預約';
-            document.getElementById('deleteResBtn').classList.remove('hidden');
-            const item = reservationsData.find(r => r.id === id);
-            if (item) {
-                document.getElementById('editResId').value = item.id;
-                document.getElementById('rType').value = item.type;
-                toggleResFields();
-                document.getElementById('rName').value = item.name || '';
-                document.getElementById('rBookingRef').value = item.bookingRef || '';
-                document.getElementById('rNote').value = item.note || '';
+                html += `
+                <div class="bg-card rounded-2xl shadow-sm border border-border/60 overflow-hidden flex transition hover:border-accent/30 relative group">
+                    <button onclick="editReservation('${item.id}')" class="absolute top-3 right-3 text-primary/30 hover:text-accent p-1 z-10 bg-white rounded-md"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
+                    <div class="flex-1 p-4 pr-3">
+                        <div class="flex items-center justify-between mb-3 pr-4">
+                            <span class="text-[11px] font-bold tracking-widest text-accent uppercase flex items-center gap-1"><i data-lucide="plane" class="w-3.5 h-3.5"></i> ${item.name}</span>
+                            <span class="text-[11px] font-bold bg-bg px-2 py-0.5 rounded-full text-primary/70">${item.flightNo || 'TBD'}</span>
+                        </div>
+                        <div class="flex items-center justify-between mb-3 px-1">
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-primary leading-none">${item.depAirport || '---'}</div>
+                                <div class="text-[14px] font-bold text-primary mt-1.5">${depTime}</div>
+                                <div class="text-[10px] text-primary/50 font-medium">${depDate}</div>
+                            </div>
+                            <div class="flex-1 px-4 flex flex-col items-center justify-center">
+                                <div class="w-full border-b-2 border-dashed border-border/60 relative">
+                                    <i data-lucide="plane" class="w-3 h-3 text-accent absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 bg-card px-1"></i>
+                                </div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-primary leading-none">${item.arrAirport || '---'}</div>
+                                <div class="text-[14px] font-bold text-primary mt-1.5">${arrTime}</div>
+                                <div class="text-[10px] text-primary/50 font-medium">${arrDate}</div>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center text-xs text-primary/70 bg-bg p-2.5 rounded-xl border border-border/30">
+                            <div><span class="opacity-60 text-[9px] font-bold tracking-widest block mb-0.5">DATE</span><span class="font-medium">${depDate}</span></div>
+                            <div class="text-right"><span class="opacity-60 text-[9px] font-bold tracking-widest block mb-0.5">BOOKING REF</span><span class="font-mono font-bold uppercase text-[13px]">${item.bookingRef || '---'}</span></div>
+                        </div>
+                        ${item.note ? `<p class="text-[11px] mt-2 text-primary/60 px-1 truncate"><i data-lucide="info" class="w-3 h-3 inline mr-1 opacity-70"></i>${item.note}</p>` : ''}
+                    </div>
+                    <div class="w-24 border-l border-dashed border-border/60 bg-bg flex flex-col items-center justify-center p-3 relative">
+                        <div class="absolute -top-2 -left-2 w-4 h-4 bg-bg rounded-full border-b border-r border-border/60 transform rotate-45 z-10"></div>
+                        <div class="absolute -bottom-2 -left-2 w-4 h-4 bg-bg rounded-full border-t border-r border-border/60 transform -rotate-45 z-10"></div>
+                        ${item.file ? `<img src="${item.file}" class="w-16 h-16 object-cover rounded-lg shadow-sm border border-border/50 cursor-pointer hover:scale-105 transition" onclick="window.open('${item.file}', '_blank')">` : `<div class="w-16 h-16 border-2 border-border border-dashed rounded-lg flex items-center justify-center"><i data-lucide="qr-code" class="w-6 h-6 text-primary/20"></i></div>`}
+                        <div class="text-[9px] text-primary/50 text-center mt-2 font-bold tracking-widest leading-tight">BOARDING<br>PASS</div>
+                    </div>
+                </div>`;
+            } else if (item.type === 'accomm') {
+                const inParts = (item.checkIn || '').split(' ');
+                const inDate = inParts[0] ? inParts[0].split('-').slice(1).reverse().join('/') : '--/--';
+                const inTime = inParts[1] || '';
 
-                if(document.getElementById('rDate')._flatpickr) document.getElementById('rDate')._flatpickr.setDate(item.date || '');
-                if(document.getElementById('rCheckIn')._flatpickr) document.getElementById('rCheckIn')._flatpickr.setDate(item.checkIn || '');
-                if(document.getElementById('rCheckOut')._flatpickr) document.getElementById('rCheckOut')._flatpickr.setDate(item.checkOut || '');
-                if(document.getElementById('rFlightDep')._flatpickr) document.getElementById('rFlightDep')._flatpickr.setDate(item.flightDep || '');
-                if(document.getElementById('rFlightArr')._flatpickr) document.getElementById('rFlightArr')._flatpickr.setDate(item.flightArr || '');
+                const outParts = (item.checkOut || '').split(' ');
+                const outDate = outParts[0] ? outParts[0].split('-').slice(1).reverse().join('/') : '--/--';
+                const outTime = outParts[1] || '';
 
-                document.getElementById('rTransDepTime').value = item.transDepTime || '';
-                document.getElementById('rTransArrTime').value = item.transArrTime || '';
-                document.getElementById('rTime').value = item.time || '';
-
-                document.getElementById('rDepAirport').value = item.depAirport || '';
-                document.getElementById('rArrAirport').value = item.arrAirport || '';
-                document.getElementById('rFlightNo').value = item.flightNo || '';
-
-                document.getElementById('rAddress').value = item.address || '';
-                document.getElementById('rUrl').value = item.url || '';
-
-                currentResUploadImageBase64 = item.image || '';
-                if (currentResUploadImageBase64) {
-                    document.getElementById('resImagePreview').src = currentResUploadImageBase64;
-                    document.getElementById('resImagePreview').classList.remove('hidden');
-                    document.getElementById('resUploadPlaceholder').classList.add('hidden');
-                    document.getElementById('resRemoveImgBtn').classList.remove('hidden');
-                } else {
-                    removeResImage();
-                }
+                html += `
+                <div class="bg-card rounded-2xl shadow-sm border border-border/60 p-4 transition hover:border-accent/30 relative group">
+                    <button onclick="editReservation('${item.id}')" class="absolute top-4 right-3 text-primary/30 hover:text-accent p-1 z-10"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
+                    <div class="flex items-center gap-3 mb-4 pr-6">
+                        <div class="w-10 h-10 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center flex-shrink-0 text-accent"><i data-lucide="hotel" class="w-5 h-5"></i></div>
+                        <div>
+                            <h3 class="font-bold text-primary text-[15px] leading-tight mb-0.5">${item.name}</h3>
+                            ${item.address ? `<p class="text-xs text-primary/50 flex items-center gap-1 truncate"><i data-lucide="map-pin" class="w-3 h-3 text-accent/70 flex-shrink-0"></i>${item.address}</p>` : ''}
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center bg-bg rounded-xl p-3 mb-3 border border-border/40">
+                        <div>
+                            <p class="text-[10px] text-primary/50 font-bold mb-1">CHECK-IN</p>
+                            <p class="text-xs font-bold text-primary">${inDate} <span class="font-medium opacity-70 ml-1">${inTime}</span></p>
+                        </div>
+                        <i data-lucide="arrow-right" class="w-4 h-4 text-primary/30"></i>
+                        <div class="text-right">
+                            <p class="text-[10px] text-primary/50 font-bold mb-1">CHECK-OUT</p>
+                            <p class="text-xs font-bold text-primary">${outDate} <span class="font-medium opacity-70 ml-1">${outTime}</span></p>
+                        </div>
+                    </div>
+                    <div class="flex items-end justify-between gap-3 mt-3">
+                        <div class="flex-1">
+                            ${item.bookingRef ? `<p class="text-xs text-primary/70 mb-1"><span class="opacity-60 mr-1 text-[10px]">REF:</span><span class="font-mono font-bold uppercase">${item.bookingRef}</span></p>` : ''}
+                            ${item.note ? `<p class="text-[11px] text-primary/60 truncate w-full"><i data-lucide="info" class="w-3 h-3 inline mr-1 opacity-70"></i>${item.note}</p>` : ''}
+                        </div>
+                        ${item.url ? `<a href="${item.url}" target="_blank" class="flex-shrink-0 text-[11px] font-bold bg-accent text-white px-3 py-1.5 rounded-lg hover:opacity-90 shadow-sm flex items-center gap-1"><i data-lucide="external-link" class="w-3 h-3"></i>前往預約</a>` : ''}
+                        ${item.file ? `<img src="${item.file}" class="w-8 h-8 object-cover rounded-md shadow-sm border border-border/50 cursor-pointer" onclick="window.open('${item.file}', '_blank')">` : ''}
+                    </div>
+                </div>`;
+            } else if (item.type === 'transport') {
+                html += `
+                <div class="bg-card rounded-2xl shadow-sm border border-border/60 p-4 transition hover:border-accent/30 relative group flex gap-4 items-center">
+                    <button onclick="editReservation('${item.id}')" class="absolute top-3 right-3 text-primary/30 hover:text-accent p-1 z-10"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
+                    <div class="flex-1 pr-6 min-w-0">
+                        <h3 class="font-bold text-primary text-[15px] mb-2 truncate flex items-center gap-2"><i data-lucide="train-front" class="w-4 h-4 text-accent"></i>${item.name}</h3>
+                        <div class="flex items-center gap-3 text-xs font-medium text-primary bg-bg p-2 rounded-lg border border-border/40 mb-2 w-max">
+                            <span>${item.date ? parseDateToDDMM(item.date) : '--/--'}</span>
+                            <span class="border-l border-border/60 pl-3">${item.depTime || '--:--'} <i data-lucide="arrow-right" class="w-3 h-3 inline mx-0.5 opacity-50"></i> ${item.arrTime || '--:--'}</span>
+                        </div>
+                        <div class="flex items-center gap-3 mt-1">
+                            ${item.bookingRef ? `<span class="text-xs text-primary/70 font-mono font-bold bg-bg px-2 py-0.5 rounded-md uppercase">Ref: ${item.bookingRef}</span>` : ''}
+                            ${item.note ? `<span class="text-[11px] text-primary/50 truncate flex-1">${item.note}</span>` : ''}
+                        </div>
+                    </div>
+                    ${item.file ? `<div class="flex-shrink-0"><img src="${item.file}" class="w-14 h-14 object-cover rounded-xl shadow-sm border border-border/50 cursor-pointer hover:scale-105 transition" onclick="window.open('${item.file}', '_blank')"></div>` : ''}
+                </div>`;
+            } else {
+                html += `
+                <div class="bg-card rounded-2xl shadow-sm border border-border/60 p-4 transition hover:border-accent/30 relative group flex justify-between items-center gap-3">
+                    <button onclick="editReservation('${item.id}')" class="absolute top-3 right-3 text-primary/30 hover:text-accent p-1 z-10"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
+                    <div class="flex-1 min-w-0 pr-6">
+                        <div class="flex items-center gap-2 mb-1.5"><i data-lucide="bookmark" class="w-4 h-4 text-accent"></i><h3 class="font-bold text-primary text-sm truncate">${item.name}</h3></div>
+                        <div class="flex flex-wrap gap-2 mb-1.5">
+                            ${item.date ? `<span class="text-xs text-primary/70 font-medium">${parseDateToDDMM(item.date)}</span>` : ''}
+                            ${item.time ? `<span class="text-xs text-primary/70 font-medium border-l border-border/60 pl-2">${item.time}</span>` : ''}
+                            ${item.bookingRef ? `<span class="text-xs text-primary/70 font-mono font-bold border-l border-border/60 pl-2 uppercase">${item.bookingRef}</span>` : ''}
+                        </div>
+                        ${item.note ? `<p class="text-[11px] text-primary/50 truncate">${item.note}</p>` : ''}
+                    </div>
+                    ${item.file ? `<img src="${item.file}" class="w-12 h-12 object-cover rounded-lg shadow-sm border border-border/50 flex-shrink-0 cursor-pointer" onclick="window.open('${item.file}', '_blank')">` : ''}
+                </div>`;
             }
-        }
-      }
-      else if (modalId === 'addShoppingModal') { 
-        const form = document.getElementById('shoppingForm');
-        if (id) {
-          document.getElementById('shoppingModalTitle').innerText = '編輯商品';
-          document.getElementById('deleteShoppingBtn').classList.remove('hidden');
-          const item = shoppingData.find(i => i.id === id);
-          document.getElementById('editShoppingId').value = item.id;
-          document.getElementById('sName').value = item.name;
-          currentUploadImageBase64 = item.image || '';
-          if (currentUploadImageBase64) {
-             document.getElementById('imagePreview').src = currentUploadImageBase64;
-             document.getElementById('imagePreview').classList.remove('hidden');
-             document.getElementById('uploadPlaceholder').classList.add('hidden');
-             document.getElementById('removeImgBtn').classList.remove('hidden');
-          } else {
-             removePreviewImage();
-          }
-        } else {
-          document.getElementById('shoppingModalTitle').innerText = '新增購買商品';
-          document.getElementById('deleteShoppingBtn').classList.add('hidden');
-          form.reset(); 
-          document.getElementById('editShoppingId').value = '';
-          removePreviewImage(); 
-        }
-      }
-      else if (modalId === 'activityModal') {
-        const form = document.getElementById('activityForm');
-        if (id) {
-          document.getElementById('modalTitle').innerText = '編輯行程'; document.getElementById('deleteBtn').classList.remove('hidden');
-          const item = itineraryData.find(i => i.id === id);
-          document.getElementById('editId').value = item.id; 
-          document.getElementById('aCategory').value = item.type; 
-          document.getElementById('aName').value = item.name; 
-          document.getElementById('aAddress').value = item.address || '';
-          document.getElementById('aHours').value = item.hours || ''; 
-          document.getElementById('aOpHours').value = item.opHours || ''; 
-          document.getElementById('aCost').value = item.cost || ''; 
-          document.getElementById('aNote').value = item.note || '';
-          
-          const mode = item.tMode || '';
-          document.querySelectorAll('input[name="aTMode"]').forEach(r => {
-              if (r.value === mode && mode !== '') {
-                  r.checked = true;
-                  r.dataset.checked = 'true';
-              } else {
-                  r.checked = false;
-                  r.dataset.checked = 'false';
-              }
-          });
-          updateTModeUI(mode);
-          
-          currentActivityUploadImageBase64 = item.image || '';
-          document.getElementById('aImageUrl').value = (currentActivityUploadImageBase64 && !currentActivityUploadImageBase64.startsWith('data:')) ? currentActivityUploadImageBase64 : '';
-          if (currentActivityUploadImageBase64) {
-             document.getElementById('actImagePreview').src = currentActivityUploadImageBase64;
-             document.getElementById('actImagePreview').classList.remove('hidden');
-             document.getElementById('actUploadPlaceholder').classList.add('hidden');
-             document.getElementById('actRemoveImgBtn').classList.remove('hidden');
-          } else {
-             removeActivityPreviewImage();
-          }
+        });
 
-        } else { 
-          document.getElementById('modalTitle').innerText = '新增行程'; 
-          document.getElementById('deleteBtn').classList.add('hidden'); 
-          form.reset(); 
-          document.getElementById('editId').value = ''; 
-          document.getElementById('aAddress').value = '';
-          document.querySelectorAll('input[name="aTMode"]').forEach(r => {
-              r.checked = false;
-              r.dataset.checked = 'false';
-          });
-          updateTModeUI('');
-          removeActivityPreviewImage();
-        }
-      }
-      else if (modalId === 'dayEditModal') {
-        const day = daysData.find(d => d.id === id && d.tripId === getCurrentTripId());
-        if (day) {
-            document.getElementById('editDayId').value = day.id;
-            document.getElementById('dOverview').value = day.overview || '';
-            document.getElementById('dLocation').value = day.location || '';
-            document.getElementById('dAccommodation').value = day.accommodation || '';
-        }
-      }
+        container.innerHTML = html;
+        lucide.createIcons();
     }
-    
-    function closeModal(modalId) {
-      const content = document.getElementById(modalId + 'Content');
-      if (content && window.innerWidth < 768) { content.classList.add('translate-y-full'); setTimeout(() => document.getElementById(modalId).classList.add('hidden'), 300); } 
-      else { document.getElementById(modalId).classList.add('hidden'); }
+
+    function editReservation(id) {
+        const item = reservationsData.find(i => i.id === id);
+        if(!item) return;
+
+        openModal('reservationModal');
+        document.getElementById('resModalTitle').innerText = '編輯預約';
+        document.getElementById('deleteResBtn').classList.remove('hidden');
+        
+        document.getElementById('editResId').value = item.id;
+        document.getElementById('rType').value = item.type;
+        toggleResFields();
+
+        document.getElementById('rName').value = item.name || '';
+        document.getElementById('rBookingRef').value = item.bookingRef || '';
+        document.getElementById('rNote').value = item.note || '';
+
+        if(document.getElementById('rDate')._flatpickr && item.date) document.getElementById('rDate')._flatpickr.setDate(item.date);
+        else if (document.getElementById('rDate')._flatpickr) document.getElementById('rDate')._flatpickr.clear();
+
+        if(document.getElementById('rCheckIn')._flatpickr && item.checkIn) document.getElementById('rCheckIn')._flatpickr.setDate(item.checkIn);
+        else if (document.getElementById('rCheckIn')._flatpickr) document.getElementById('rCheckIn')._flatpickr.clear();
+
+        if(document.getElementById('rCheckOut')._flatpickr && item.checkOut) document.getElementById('rCheckOut')._flatpickr.setDate(item.checkOut);
+        else if (document.getElementById('rCheckOut')._flatpickr) document.getElementById('rCheckOut')._flatpickr.clear();
+
+        if(document.getElementById('rFlightDep')._flatpickr && item.flightDep) document.getElementById('rFlightDep')._flatpickr.setDate(item.flightDep);
+        else if (document.getElementById('rFlightDep')._flatpickr) document.getElementById('rFlightDep')._flatpickr.clear();
+
+        if(document.getElementById('rFlightArr')._flatpickr && item.flightArr) document.getElementById('rFlightArr')._flatpickr.setDate(item.flightArr);
+        else if (document.getElementById('rFlightArr')._flatpickr) document.getElementById('rFlightArr')._flatpickr.clear();
+
+        document.getElementById('rTransDepTime').value = item.depTime || '';
+        document.getElementById('rTransArrTime').value = item.arrTime || '';
+        document.getElementById('rDepAirport').value = item.depAirport || '';
+        document.getElementById('rArrAirport').value = item.arrAirport || '';
+        document.getElementById('rFlightNo').value = item.flightNo || '';
+
+        document.getElementById('rAddress').value = item.address || '';
+        document.getElementById('rUrl').value = item.url || '';
+        document.getElementById('rTime').value = item.time || '';
+
+        currentResUploadImageBase64 = item.file || '';
+        if (currentResUploadImageBase64) {
+             document.getElementById('resImagePreview').src = currentResUploadImageBase64;
+             document.getElementById('resImagePreview').classList.remove('hidden');
+             document.getElementById('resUploadPlaceholder').classList.add('hidden');
+             document.getElementById('resRemoveImgBtn').classList.remove('hidden');
+        } else {
+             removeResImage();
+        }
     }
+
   </script>
 </body>
 </html>
