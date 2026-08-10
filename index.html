@@ -1058,7 +1058,7 @@ reservationsData = ${JSON.stringify(reservationsData)};
         const displayDateStr = formatDisplayDate(trip.dateStr);
 
         return `
-        <div class="bg-card rounded-3xl overflow-hidden shadow-sm border border-border/50 transition flex flex-col min-h-[200px]">
+        <div class="bg-card rounded-3xl overflow-hidden shadow-sm border border-border/50 transition flex flex-col">
           <div class="h-36 bg-gray-200 relative group flex-shrink-0">
             <img src="${trip.cover}" class="w-full h-full object-cover" alt="${trip.name}">
             <div class="absolute inset-0 bg-gradient-to-t from-primary/80 via-primary/30 to-transparent"></div>
@@ -1082,7 +1082,7 @@ reservationsData = ${JSON.stringify(reservationsData)};
       `});
 
       html += `
-        <button onclick="openModal('tripModal')" class="min-h-[200px] border-2 border-dashed border-accent/50 rounded-3xl flex flex-col items-center justify-center text-accent hover:bg-accent/10 transition">
+        <button onclick="openModal('tripModal')" class="border-2 border-dashed border-accent/50 rounded-3xl flex flex-col items-center justify-center text-accent hover:bg-accent/10 transition min-h-[200px]">
           <i data-lucide="plus" class="w-8 h-8 mb-2"></i>
           <span class="font-medium">新增旅程</span>
         </button>
