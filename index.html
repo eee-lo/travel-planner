@@ -41,7 +41,7 @@
     
     .scrollbar-hide::-webkit-scrollbar { display: none; }
     .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-    .sortable-ghost { opacity: 0.4; background-color: #f1f5f9; border-radius: 1rem;}
+    .sortable-ghost { opacity: 0.4; }
     .view-enter { animation: fadeIn 0.3s ease-in-out forwards; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     
@@ -588,7 +588,7 @@
 
   <div id="dayEditModal" class="fixed inset-0 z-[60] hidden flex justify-center items-end md:items-center">
     <div class="absolute inset-0 bg-primary/40 backdrop-blur-sm" onclick="closeModal('dayEditModal')"></div>
-    <div class="relative bg-card w-full md:w-[400px] rounded-t-3xl md:rounded-3xl p-6 shadow-2xl z-10 transition-transform transform translate-y-full md:translate-y-0 pb-[calc(24px+env(safe-area-inset-bottom))] md:pb-6" id="dayEditModalContent">
+    <div class="relative bg-card w-full md:w-[400px] rounded-t-3xl md:rounded-3xl p-6 shadow-2xl z-10 transition-transform transform translate-y-full md:translate-y-0 pb-[calc(24px+env(safe-area-bottom))] md:pb-6" id="dayEditModalContent">
       <div class="flex justify-between items-center mb-6">
         <h3 class="text-lg font-bold text-primary">編輯當日資訊</h3>
         <button onclick="closeModal('dayEditModal')" class="text-primary/60 hover:text-primary transition"><i data-lucide="x" class="w-6 h-6"></i></button>
@@ -614,16 +614,6 @@
 
   <!-- ========== 腳本邏輯 ========== -->
   <script>
-    // 解決時區 Bug 輔助函數
-    function parseLocalDate(dateString) {
-      if (!dateString) return new Date();
-      const parts = dateString.split('-');
-      if (parts.length === 3) {
-          return new Date(parts[0], parts[1] - 1, parts[2]); // 強制使用本地時區
-      }
-      return new Date(dateString);
-    }
-
     let tripsData = [];
     let daysData = [];
     let itineraryData = [];
@@ -639,6 +629,16 @@
     let currentActivityUploadImageBase64 = ''; 
     let currentResUploadImageBase64 = ''; 
     let currentUploadImageBase64 = '';
+
+    // 【修復1】：解析本地時間，防止跨時區導致日期倒退
+    function parseLocalDate(dateStr) {
+      if (!dateStr) return new Date();
+      const parts = dateStr.trim().split('-');
+      if (parts.length === 3) {
+        return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+      }
+      return new Date(dateStr.replace(/-/g, '/')); 
+    }
 
     function saveLocalData() {
       const data = { tripsData, daysData, itineraryData, checklistData, shoppingData, reservationsData };
@@ -657,7 +657,6 @@
           shoppingData = parsed.shoppingData || [];
           reservationsData = parsed.reservationsData || [];
 
-          // 向下相容，確保 ID 為字串
           tripsData.forEach(t => t.id = String(t.id));
           daysData.forEach(d => { if (d.tripId) d.tripId = String(d.tripId); });
           itineraryData.forEach(i => { i.id = String(i.id); if (i.tripId) i.tripId = String(i.tripId); });
@@ -698,10 +697,8 @@
       checklistData = [
         { id: '1', category: 'personal', text: '👓 眼鏡', done: false },
         { id: '2', category: 'personal', text: '🕶️ 太陽眼鏡', done: false },
-        { id: '5', category: 'daily', text: '🪥 牙膏牙刷', done: false },
-        { id: '19', category: 'clothing', text: '👕 衣物', done: false },
-        { id: '29', category: 'electronic', text: '📷 相機充電器', done: false },
-        { id: '33', category: 'carryon', text: '✈️ 護照、ID、車牌', done: false }
+        { id: '3', category: 'personal', text: '💊 藥物', done: false },
+        { id: '4', category: 'personal', text: '☂️ 雨傘', done: false }
       ];
       shoppingData = [];
       reservationsData = [];
@@ -759,6 +756,7 @@
         if (!trip.dateStr) return;
         
         const parts = trip.dateStr.split(' to ');
+        // 【修復1套用】：使用 parseLocalDate 防止跨時區倒退
         const start = parseLocalDate(parts[0]);
         const end = parts.length > 1 ? parseLocalDate(parts[1]) : parseLocalDate(parts[0]);
 
@@ -821,16 +819,18 @@
     function generateHardcodeCode() {
       const currentTrip = tripsData.length > 0 ? tripsData[0] : null;
       if (!currentTrip) return alert('目前沒有可更新的旅程！');
-      
-      const cId = currentTrip.id;
+
+      const curId = currentTrip.id;
+
+      // 【修復4】：確保 stringify 前加上 filter，防止外洩其他旅程資料
       const codeSnippet = `
 // 【Coding更新】僅針對目前旅程：${currentTrip.name}
 tripsData = ${JSON.stringify([currentTrip])};
-daysData = ${JSON.stringify(daysData.filter(d => d.tripId === cId))};
-itineraryData = ${JSON.stringify(itineraryData.filter(i => i.tripId === cId))};
-checklistData = ${JSON.stringify(checklistData.filter(c => c.category !== 'todo' || c.tripId === cId))};
-shoppingData = ${JSON.stringify(shoppingData.filter(s => s.tripId === cId))};
-reservationsData = ${JSON.stringify(reservationsData.filter(r => r.tripId === cId))};
+daysData = ${JSON.stringify(daysData.filter(d => d.tripId === curId))};
+itineraryData = ${JSON.stringify(itineraryData.filter(i => i.tripId === curId))};
+checklistData = ${JSON.stringify(checklistData.filter(c => c.tripId === curId))};
+shoppingData = ${JSON.stringify(shoppingData.filter(s => s.tripId === curId))};
+reservationsData = ${JSON.stringify(reservationsData.filter(r => r.tripId === curId))};
       `.trim();
       
       navigator.clipboard.writeText(codeSnippet).then(() => {
@@ -883,7 +883,10 @@ reservationsData = ${JSON.stringify(reservationsData.filter(r => r.tripId === cI
       const startDateStr = dateRangeStr.split(' to ')[0];
       const today = new Date();
       today.setHours(0, 0, 0, 0);
+      
+      // 【修復1套用】
       const start = parseLocalDate(startDateStr);
+      start.setHours(0, 0, 0, 0);
       return Math.ceil((start - today) / (1000 * 60 * 60 * 24));
     }
 
@@ -930,6 +933,7 @@ reservationsData = ${JSON.stringify(reservationsData.filter(r => r.tripId === cI
         
         const nextTrip = tripsData[0];
         const startDateStr = nextTrip.dateStr.split(' to ')[0];
+        // 【修復1套用】
         const targetDate = parseLocalDate(startDateStr);
         const now = new Date();
         const diff = targetDate - now;
@@ -1175,26 +1179,25 @@ reservationsData = ${JSON.stringify(reservationsData.filter(r => r.tripId === cI
       reservationsData = reservationsData.filter(r => r.tripId !== deleteTripTargetId);
       shoppingData = shoppingData.filter(s => s.tripId !== deleteTripTargetId);
       checklistData = checklistData.filter(c => !(c.category === 'todo' && c.tripId === deleteTripTargetId));
-      
       activeDay = 1;
+
       cancelTripDelete();
       closeModal('tripModal');
 
+      // 【修復3】：刪除旅程後強制更新行程畫面
       if (tripsData.length > 0) {
         syncDaysData();
-        updateSidebarHeader();
-        renderDashboard();
         if (!document.getElementById('view-tripDetail').classList.contains('hidden')) {
             renderDateScroller();
             switchDay(activeDay);
         }
       } else {
         navigate('dashboard');
-        updateSidebarHeader();
-        renderDashboard();
       }
       
       saveLocalData();
+      updateSidebarHeader();
+      renderDashboard();
     }
 
     function updateSidebarHeader() {
@@ -1375,9 +1378,6 @@ reservationsData = ${JSON.stringify(reservationsData.filter(r => r.tripId === cI
             prevLocName = resolveMapQuery(prevItem.address, prevItem.name);
         }
 
-        const originLoc = prevLocName;
-        const destLoc = resolveMapQuery(item.address, item.name);
-
         if (item.tMode) {
            const modeMap = { walk: {icon:'footprints', label:'步行'}, transit: {icon:'train-front', label:'公共交通'}, drive: {icon:'car', label:'開車'} };
            const m = modeMap[item.tMode];
@@ -1387,7 +1387,10 @@ reservationsData = ${JSON.stringify(reservationsData.filter(r => r.tripId === cI
            if(item.tMode === 'transit') travelmodeAB = 'transit';
            if(item.tMode === 'drive') travelmodeAB = 'driving';
            
-           // Google Maps 導航永遠精準： origin 為上一站，destination 為目前站點
+           const originLoc = prevLocName;
+           const destLoc = resolveMapQuery(item.address, item.name);
+           
+           // 【修復5】：取消倒轉 Hack，直接將 origin = 上一站，destination = 此站
            const mapUrlAB = originLoc
              ? `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(originLoc)}&destination=${encodeURIComponent(destLoc)}&travelmode=${travelmodeAB}`
              : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(destLoc)}`;
@@ -1403,20 +1406,19 @@ reservationsData = ${JSON.stringify(reservationsData.filter(r => r.tripId === cI
         
         html += transportHtml;
 
-        let travelmode = '';
-        if(item.tMode === 'walk') travelmode = '&travelmode=walking';
-        if(item.tMode === 'transit') travelmode = '&travelmode=transit';
-        if(item.tMode === 'drive') travelmode = '&travelmode=driving';
+        // 處理卡片內「導航」按鈕的交通方式（如果沒有選擇，預設為步行）
+        let btnTravelMode = '&travelmode=walking';
+        if(item.tMode === 'transit') btnTravelMode = '&travelmode=transit';
+        if(item.tMode === 'drive') btnTravelMode = '&travelmode=driving';
         
-        // 點擊卡片內部導航按鈕的 URL
-        const mapUrl = originLoc
-            ? `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(originLoc)}&destination=${encodeURIComponent(destLoc)}${travelmode}`
-            : `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destLoc)}${travelmode}`;
+        const mapDestination = resolveMapQuery(item.address, item.name);
+        // 刻意不設定 origin，讓 Google Maps 打開時自動偵測使用者的當前實時位置
+        const mapUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(mapDestination)}${btnTravelMode}`;
         
         const iconInfo = typeConfig[item.type] || typeConfig['other'];
 
-        // 加入 draggable-item 確保只有卡片主體可拖曳，避免與交通虛線混淆
-        html += `<div class="relative group draggable-item" data-id="${item.id}">${isFlight ? renderFlightCard(item, iconInfo, mapUrl) : renderNormalCard(item, iconInfo, mapUrl)}</div>`;
+        // 【修復2】：加入 drag-card class
+        html += `<div class="relative group drag-card" data-id="${item.id}">${isFlight ? renderFlightCard(item, iconInfo, mapUrl) : renderNormalCard(item, iconInfo, mapUrl)}</div>`;
       });
 
       list.innerHTML = html;
@@ -1426,14 +1428,11 @@ reservationsData = ${JSON.stringify(reservationsData.filter(r => r.tripId === cI
       sortableInstance = new Sortable(list, { 
           animation: 150, 
           handle: '.drag-grip', 
-          draggable: '.draggable-item', // 嚴格綁定，防誤觸交通連結
+          draggable: '.drag-card', // 【修復2套用】：不再綁定 .group
           ghostClass: 'sortable-ghost', 
           onEnd: () => { 
               reorderData(); 
-              // 核心修復：必須使用 setTimeout 讓 SortableJS 完成事件，避免引發 JS 錯誤導致無法刷新
-              setTimeout(() => { 
-                  renderItinerary(); 
-              }, 10);
+              setTimeout(() => renderItinerary(), 10); 
           } 
       });
     }
@@ -1577,14 +1576,13 @@ reservationsData = ${JSON.stringify(reservationsData.filter(r => r.tripId === cI
     }
     
     function reorderData() { 
-        // 精確綁定 .draggable-item，無縫接軌剛才拖放的正確順序
-        document.querySelectorAll('#itineraryList > .draggable-item').forEach((el, index) => { 
+        // 【修復2套用】：改抓 .drag-card，避免抓到路徑虛線而死機
+        document.querySelectorAll('#itineraryList > .drag-card').forEach((el, index) => { 
             const idx = itineraryData.findIndex(i => i.id === el.getAttribute('data-id')); 
             if(idx > -1) itineraryData[idx].order = index + 1; 
         }); 
         saveLocalData(); 
     }
-    
     function confirmDelete() { deleteTargetId = document.getElementById('editId').value; document.getElementById('deleteConfirmModal').classList.remove('hidden'); }
     function cancelDelete() { deleteTargetId = null; document.getElementById('deleteConfirmModal').classList.add('hidden'); }
     function executeDelete() { if (deleteTargetId) { itineraryData = itineraryData.filter(i => i.id !== deleteTargetId); cancelDelete(); closeModal('activityModal'); renderItinerary(); saveLocalData(); } }
