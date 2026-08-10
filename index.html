@@ -41,7 +41,7 @@
     
     .scrollbar-hide::-webkit-scrollbar { display: none; }
     .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-    .sortable-ghost { opacity: 0.4; }
+    .sortable-ghost { opacity: 0.4; background-color: #f1f5f9; border-radius: 1rem;}
     .view-enter { animation: fadeIn 0.3s ease-in-out forwards; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     
@@ -614,6 +614,16 @@
 
   <!-- ========== 腳本邏輯 ========== -->
   <script>
+    // 解決時區 Bug 輔助函數
+    function parseLocalDate(dateString) {
+      if (!dateString) return new Date();
+      const parts = dateString.split('-');
+      if (parts.length === 3) {
+          return new Date(parts[0], parts[1] - 1, parts[2]); // 強制使用本地時區
+      }
+      return new Date(dateString);
+    }
+
     let tripsData = [];
     let daysData = [];
     let itineraryData = [];
@@ -647,7 +657,7 @@
           shoppingData = parsed.shoppingData || [];
           reservationsData = parsed.reservationsData || [];
 
-          // 【重要修復：向下相容】強制將所有舊資料的 id 與 tripId 轉為字串
+          // 向下相容，確保 ID 為字串
           tripsData.forEach(t => t.id = String(t.id));
           daysData.forEach(d => { if (d.tripId) d.tripId = String(d.tripId); });
           itineraryData.forEach(i => { i.id = String(i.id); if (i.tripId) i.tripId = String(i.tripId); });
@@ -688,48 +698,10 @@
       checklistData = [
         { id: '1', category: 'personal', text: '👓 眼鏡', done: false },
         { id: '2', category: 'personal', text: '🕶️ 太陽眼鏡', done: false },
-        { id: '3', category: 'personal', text: '💊 藥物', done: false },
-        { id: '4', category: 'personal', text: '☂️ 雨傘', done: false },
-
         { id: '5', category: 'daily', text: '🪥 牙膏牙刷', done: false },
-        { id: '6', category: 'daily', text: '💄 化妝品', done: false },
-        { id: '7', category: 'daily', text: '🧴 卸妝水', done: false },
-        { id: '8', category: 'daily', text: '🫧 護膚品', done: false },
-        { id: '9', category: 'daily', text: '😶‍🌫️ 面膜', done: false },
-        { id: '10', category: 'daily', text: '🛁 洗頭水、護髮素、沐浴露', done: false },
-        { id: '11', category: 'daily', text: '🧴 潤膚露', done: false },
-        { id: '12', category: 'daily', text: '☀️ 防曬', done: false },
-        { id: '13', category: 'daily', text: '👁️ 隱形眼鏡及藥水', done: false },
-        { id: '14', category: 'daily', text: '🌿 止汗劑', done: false },
-        { id: '15', category: 'daily', text: '🤍 化妝棉、棉花棒', done: false },
-        { id: '16', category: 'daily', text: '🌸 香水', done: false },
-        { id: '17', category: 'daily', text: '🩷 M巾、護墊', done: false },
-        { id: '18', category: 'daily', text: '💇🏻‍♀️ 直髮夾', done: false },
-
         { id: '19', category: 'clothing', text: '👕 衣物', done: false },
-        { id: '20', category: 'clothing', text: '🩲 內衣褲', done: false },
-        { id: '21', category: 'clothing', text: '💤 睡衣', done: false },
-        { id: '22', category: 'clothing', text: '🧦 襪子', done: false },
-        { id: '23', category: 'clothing', text: '🧢 帽', done: false },
-        { id: '24', category: 'clothing', text: '🩴 拖鞋', done: false },
-        { id: '25', category: 'clothing', text: '👟 休閒鞋', done: false },
-        { id: '26', category: 'clothing', text: '🧖🏻‍♀️ 毛巾', done: false },
-        { id: '27', category: 'clothing', text: '💎 飾物', done: false },
-        { id: '28', category: 'clothing', text: '👜 袋', done: false },
-
         { id: '29', category: 'electronic', text: '📷 相機充電器', done: false },
-        { id: '30', category: 'electronic', text: '📱 iPhone 插頭', done: false },
-        { id: '31', category: 'electronic', text: '🔌 充電線', done: false },
-        { id: '32', category: 'electronic', text: '🌍 轉插器', done: false },
-
-        { id: '33', category: 'carryon', text: '✈️ 護照、ID、車牌', done: false },
-        { id: '34', category: 'carryon', text: '💵 銀包、外幣', done: false },
-        { id: '35', category: 'carryon', text: '🔋 Portable 電源', done: false },
-        { id: '36', category: 'carryon', text: '💺 頸枕', done: false },
-        { id: '37', category: 'carryon', text: '🎧 Airpods', done: false },
-        { id: '38', category: 'carryon', text: '📱 iPad', done: false },
-        { id: '39', category: 'carryon', text: '📷 相機', done: false },
-        { id: '40', category: 'carryon', text: '🧻 紙巾', done: false }
+        { id: '33', category: 'carryon', text: '✈️ 護照、ID、車牌', done: false }
       ];
       shoppingData = [];
       reservationsData = [];
@@ -787,8 +759,8 @@
         if (!trip.dateStr) return;
         
         const parts = trip.dateStr.split(' to ');
-        const start = new Date(parts[0]);
-        const end = parts.length > 1 ? new Date(parts[1]) : new Date(parts[0]);
+        const start = parseLocalDate(parts[0]);
+        const end = parts.length > 1 ? parseLocalDate(parts[1]) : parseLocalDate(parts[0]);
 
         const timeDiff = end.getTime() - start.getTime();
         const dayCount = Math.ceil(timeDiff / (1000 * 3600 * 24)) + 1;
@@ -849,15 +821,16 @@
     function generateHardcodeCode() {
       const currentTrip = tripsData.length > 0 ? tripsData[0] : null;
       if (!currentTrip) return alert('目前沒有可更新的旅程！');
-
+      
+      const cId = currentTrip.id;
       const codeSnippet = `
 // 【Coding更新】僅針對目前旅程：${currentTrip.name}
 tripsData = ${JSON.stringify([currentTrip])};
-daysData = ${JSON.stringify(daysData)};
-itineraryData = ${JSON.stringify(itineraryData)};
-checklistData = ${JSON.stringify(checklistData)};
-shoppingData = ${JSON.stringify(shoppingData)};
-reservationsData = ${JSON.stringify(reservationsData)};
+daysData = ${JSON.stringify(daysData.filter(d => d.tripId === cId))};
+itineraryData = ${JSON.stringify(itineraryData.filter(i => i.tripId === cId))};
+checklistData = ${JSON.stringify(checklistData.filter(c => c.category !== 'todo' || c.tripId === cId))};
+shoppingData = ${JSON.stringify(shoppingData.filter(s => s.tripId === cId))};
+reservationsData = ${JSON.stringify(reservationsData.filter(r => r.tripId === cId))};
       `.trim();
       
       navigator.clipboard.writeText(codeSnippet).then(() => {
@@ -910,8 +883,7 @@ reservationsData = ${JSON.stringify(reservationsData)};
       const startDateStr = dateRangeStr.split(' to ')[0];
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      const start = new Date(startDateStr);
-      start.setHours(0, 0, 0, 0);
+      const start = parseLocalDate(startDateStr);
       return Math.ceil((start - today) / (1000 * 60 * 60 * 24));
     }
 
@@ -919,7 +891,7 @@ reservationsData = ${JSON.stringify(reservationsData)};
       if (!rangeStr) return '';
       const parts = rangeStr.split(' to ');
       const formatPart = (dStr) => {
-        const d = new Date(dStr);
+        const d = parseLocalDate(dStr);
         const dd = String(d.getDate()).padStart(2, '0');
         const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
         const mmm = months[d.getMonth()];
@@ -958,7 +930,7 @@ reservationsData = ${JSON.stringify(reservationsData)};
         
         const nextTrip = tripsData[0];
         const startDateStr = nextTrip.dateStr.split(' to ')[0];
-        const targetDate = new Date(startDateStr + 'T00:00:00');
+        const targetDate = parseLocalDate(startDateStr);
         const now = new Date();
         const diff = targetDate - now;
         
@@ -1203,20 +1175,26 @@ reservationsData = ${JSON.stringify(reservationsData)};
       reservationsData = reservationsData.filter(r => r.tripId !== deleteTripTargetId);
       shoppingData = shoppingData.filter(s => s.tripId !== deleteTripTargetId);
       checklistData = checklistData.filter(c => !(c.category === 'todo' && c.tripId === deleteTripTargetId));
+      
       activeDay = 1;
-
       cancelTripDelete();
       closeModal('tripModal');
 
       if (tripsData.length > 0) {
         syncDaysData();
+        updateSidebarHeader();
+        renderDashboard();
+        if (!document.getElementById('view-tripDetail').classList.contains('hidden')) {
+            renderDateScroller();
+            switchDay(activeDay);
+        }
       } else {
         navigate('dashboard');
+        updateSidebarHeader();
+        renderDashboard();
       }
       
       saveLocalData();
-      updateSidebarHeader();
-      renderDashboard();
     }
 
     function updateSidebarHeader() {
@@ -1397,6 +1375,9 @@ reservationsData = ${JSON.stringify(reservationsData)};
             prevLocName = resolveMapQuery(prevItem.address, prevItem.name);
         }
 
+        const originLoc = prevLocName;
+        const destLoc = resolveMapQuery(item.address, item.name);
+
         if (item.tMode) {
            const modeMap = { walk: {icon:'footprints', label:'步行'}, transit: {icon:'train-front', label:'公共交通'}, drive: {icon:'car', label:'開車'} };
            const m = modeMap[item.tMode];
@@ -1406,13 +1387,9 @@ reservationsData = ${JSON.stringify(reservationsData)};
            if(item.tMode === 'transit') travelmodeAB = 'transit';
            if(item.tMode === 'drive') travelmodeAB = 'driving';
            
-           const originLoc = prevLocName;
-           const destLoc = resolveMapQuery(item.address, item.name);
-           
-           // 【修復核心】：強制將 Google Maps 嘅 origin (起點) 同 destination (終點) 對調！
-           // 將 origin 設為 destLoc，destination 設為 originLoc，抵銷手機彈出時方向相反嘅 Bug。
+           // Google Maps 導航永遠精準： origin 為上一站，destination 為目前站點
            const mapUrlAB = originLoc
-             ? `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(destLoc)}&destination=${encodeURIComponent(originLoc)}&travelmode=${travelmodeAB}`
+             ? `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(originLoc)}&destination=${encodeURIComponent(destLoc)}&travelmode=${travelmodeAB}`
              : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(destLoc)}`;
 
            const durationText = item.opHours ? item.opHours : '';
@@ -1431,15 +1408,15 @@ reservationsData = ${JSON.stringify(reservationsData)};
         if(item.tMode === 'transit') travelmode = '&travelmode=transit';
         if(item.tMode === 'drive') travelmode = '&travelmode=driving';
         
-        const mapDestination = resolveMapQuery(item.address, item.name);
-        // （卡片內嘅導航掣維持唔變）
-        const mapUrl = prevLocName
-            ? `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(prevLocName)}&destination=${encodeURIComponent(mapDestination)}${travelmode}`
-            : `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(mapDestination)}${travelmode}`;
+        // 點擊卡片內部導航按鈕的 URL
+        const mapUrl = originLoc
+            ? `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(originLoc)}&destination=${encodeURIComponent(destLoc)}${travelmode}`
+            : `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destLoc)}${travelmode}`;
         
         const iconInfo = typeConfig[item.type] || typeConfig['other'];
 
-        html += `<div class="relative group" data-id="${item.id}">${isFlight ? renderFlightCard(item, iconInfo, mapUrl) : renderNormalCard(item, iconInfo, mapUrl)}</div>`;
+        // 加入 draggable-item 確保只有卡片主體可拖曳，避免與交通虛線混淆
+        html += `<div class="relative group draggable-item" data-id="${item.id}">${isFlight ? renderFlightCard(item, iconInfo, mapUrl) : renderNormalCard(item, iconInfo, mapUrl)}</div>`;
       });
 
       list.innerHTML = html;
@@ -1449,17 +1426,19 @@ reservationsData = ${JSON.stringify(reservationsData)};
       sortableInstance = new Sortable(list, { 
           animation: 150, 
           handle: '.drag-grip', 
-          draggable: '.group', 
+          draggable: '.draggable-item', // 嚴格綁定，防誤觸交通連結
           ghostClass: 'sortable-ghost', 
           onEnd: () => { 
               reorderData(); 
-              setTimeout(() => renderItinerary(), 10); 
+              // 核心修復：必須使用 setTimeout 讓 SortableJS 完成事件，避免引發 JS 錯誤導致無法刷新
+              setTimeout(() => { 
+                  renderItinerary(); 
+              }, 10);
           } 
       });
     }
 
    function renderFlightCard(item, iconInfo, mapUrl) {
-      // 【修復3】刪除內層的 data-id，避免同外層撞名
       return `
         <div class="flex items-stretch mb-2 relative group/card w-full">
             <div class="flex-1 bg-accent/10 border border-accent/30 rounded-2xl py-4 pr-4 pl-8 shadow-sm flex items-center min-w-0 relative hover:bg-accent/20 transition">
@@ -1486,7 +1465,6 @@ reservationsData = ${JSON.stringify(reservationsData)};
     }
     
     function renderNormalCard(item, iconInfo, mapUrl) {
-      // 【修復3】刪除內層的 data-id，避免同外層撞名
       return `
         <div class="flex items-stretch mb-2 relative group/card">
           <div class="flex flex-col items-center mr-3 w-10 flex-shrink-0">
@@ -1599,13 +1577,14 @@ reservationsData = ${JSON.stringify(reservationsData)};
     }
     
     function reorderData() { 
-        // 【修復4】精確定位外層 wrapper (.group)，徹底杜絕順序計錯
-        document.querySelectorAll('#itineraryList > .group').forEach((el, index) => { 
+        // 精確綁定 .draggable-item，無縫接軌剛才拖放的正確順序
+        document.querySelectorAll('#itineraryList > .draggable-item').forEach((el, index) => { 
             const idx = itineraryData.findIndex(i => i.id === el.getAttribute('data-id')); 
             if(idx > -1) itineraryData[idx].order = index + 1; 
         }); 
         saveLocalData(); 
     }
+    
     function confirmDelete() { deleteTargetId = document.getElementById('editId').value; document.getElementById('deleteConfirmModal').classList.remove('hidden'); }
     function cancelDelete() { deleteTargetId = null; document.getElementById('deleteConfirmModal').classList.add('hidden'); }
     function executeDelete() { if (deleteTargetId) { itineraryData = itineraryData.filter(i => i.id !== deleteTargetId); cancelDelete(); closeModal('activityModal'); renderItinerary(); saveLocalData(); } }
