@@ -1409,8 +1409,10 @@ reservationsData = ${JSON.stringify(reservationsData)};
            const originLoc = prevLocName;
            const destLoc = resolveMapQuery(item.address, item.name);
            
+           // 【修復核心】：強制將 Google Maps 嘅 origin (起點) 同 destination (終點) 對調！
+           // 將 origin 設為 destLoc，destination 設為 originLoc，抵銷手機彈出時方向相反嘅 Bug。
            const mapUrlAB = originLoc
-             ? `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(originLoc)}&destination=${encodeURIComponent(destLoc)}&travelmode=${travelmodeAB}`
+             ? `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(destLoc)}&destination=${encodeURIComponent(originLoc)}&travelmode=${travelmodeAB}`
              : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(destLoc)}`;
 
            const durationText = item.opHours ? item.opHours : '';
@@ -1430,7 +1432,10 @@ reservationsData = ${JSON.stringify(reservationsData)};
         if(item.tMode === 'drive') travelmode = '&travelmode=driving';
         
         const mapDestination = resolveMapQuery(item.address, item.name);
-        const mapUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(mapDestination)}${travelmode}`;
+        // （卡片內嘅導航掣維持唔變）
+        const mapUrl = prevLocName
+            ? `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(prevLocName)}&destination=${encodeURIComponent(mapDestination)}${travelmode}`
+            : `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(mapDestination)}${travelmode}`;
         
         const iconInfo = typeConfig[item.type] || typeConfig['other'];
 
@@ -1444,11 +1449,10 @@ reservationsData = ${JSON.stringify(reservationsData)};
       sortableInstance = new Sortable(list, { 
           animation: 150, 
           handle: '.drag-grip', 
-          draggable: '.group', // 【修復1】明確限制只可以拖曳行程卡片，避開連接線
+          draggable: '.group', 
           ghostClass: 'sortable-ghost', 
           onEnd: () => { 
               reorderData(); 
-              // 【修復2】使用 setTimeout 確保拖曳行為徹底完結後，才重建 DOM 刷新導航連結
               setTimeout(() => renderItinerary(), 10); 
           } 
       });
