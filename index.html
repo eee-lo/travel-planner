@@ -2138,7 +2138,7 @@ html += isFlight ? renderFlightCard(item, iconInfo, mapUrl) : renderNormalCard(i
                 <div class="text-sm text-primary/60 uppercase font-bold tracking-wide">${item.flightDep ? formatResDateTime(item.flightDep) : '時間未定'}</div>
               </div>
               <div class="w-20 md:w-28 flex flex-col items-center justify-center px-2 flex-shrink-0 relative top-[-10px]">
-                <i data-lucide="plane-takeoff" class="w-8 h-8 text-accent mb-2"></i>
+                <i data-lucide="plane-takeoff" class="w-8 h-8 text-accent/60 mb-2"></i>
                 <div class="w-full h-px border-t-2 border-dashed border-accent/40"></div>
               </div>
               <div class="text-center flex-1">
@@ -2165,7 +2165,7 @@ html += isFlight ? renderFlightCard(item, iconInfo, mapUrl) : renderNormalCard(i
         }
 
         // ==========================================
-        // 🏨 2. 住宿：Hotel Voucher UI (漸變色 + 床)
+        // 🏨 2. 住宿：Accomodation UI (漸變色 + 床)
         // ==========================================
         if (item.type === 'accomm') {
           return `
@@ -2175,7 +2175,7 @@ html += isFlight ? renderFlightCard(item, iconInfo, mapUrl) : renderNormalCard(i
               <div class="flex-1 min-w-0 pr-4">
                 <div class="flex items-center gap-1.5 mb-1.5">
                   <i data-lucide="hotel" class="w-3.5 h-3.5 text-accent"></i>
-                  <span class="text-[10px] font-bold tracking-widest text-accent opacity-90 uppercase">Hotel Voucher</span>
+                  <span class="text-[10px] font-bold tracking-widest text-accent opacity-90 uppercase">Accomodation</span>
                 </div>
                 <h3 class="font-bold text-base text-primary truncate">${item.name}</h3>
                 ${item.bookingRef ? `<div class="mt-1 font-mono text-[11px] text-primary/60 font-bold tracking-wider">Ref: ${item.bookingRef}</div>` : ''}
@@ -2189,9 +2189,9 @@ html += isFlight ? renderFlightCard(item, iconInfo, mapUrl) : renderNormalCard(i
                   <div class="text-[10px] text-primary/50 uppercase font-bold tracking-wider mb-1">Check-in</div>
                   <div class="text-sm font-black text-primary">${item.checkIn ? formatResDateTime(item.checkIn) : '-- --'}</div>
                </div>
-               <div class="w-16 flex flex-col items-center px-2 relative top-[-4px]">
-                  <i data-lucide="bed" class="w-5 h-5 text-accent/60 mb-2"></i>
-                  <div class="w-full h-px border-t-2 border-dashed border-accent/30"></div>
+               <div class="w-20 flex flex-col items-center px-2 relative top-[-4px]">
+                  <i data-lucide="bed" class="w-7 h-7 text-accent/60 mb-2"></i>
+                  <div class="w-full h-px border-t-2 border-dashed border-accent/40"></div>
                </div>
                <div class="text-center flex-1">
                   <div class="text-[10px] text-primary/50 uppercase font-bold tracking-wider mb-1">Check-out</div>
