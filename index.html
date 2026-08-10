@@ -439,7 +439,7 @@
         </div>
         <div class="flex gap-3 mt-2">
           <button type="button" id="deleteTripBtn" onclick="confirmTripDelete()" class="hidden w-1/3 bg-danger/10 text-danger py-3 rounded-xl text-sm font-bold border border-danger/20 hover:bg-danger hover:text-white transition">刪除</button>
-          <button type="submit" id="tripSubmitBtn" class="flex-1 bg-accent text-white py-3 rounded-xl text-sm font-bold shadow-sm mt-2">建立旅程</button>
+          <button type="submit" id="tripSubmitBtn" class="flex-1 bg-accent text-white py-3 rounded-xl text-sm font-bold shadow-sm">建立旅程</button>
         </div>
       </form>
     </div>
@@ -631,7 +631,7 @@
     let currentUploadImageBase64 = '';
 
     function saveLocalData() {
-      const data = { tripsData, daysData, itineraryData, checklistData, shoppingData, reservationsData, version: 'v3' };
+      const data = { tripsData, daysData, itineraryData, checklistData, shoppingData, reservationsData };
       localStorage.setItem('tripPlannerBackup', JSON.stringify(data));
     }
 
@@ -640,22 +640,18 @@
       if (stored) {
         try {
           const parsed = JSON.parse(stored);
-          if (parsed && Array.isArray(parsed.tripsData)) {
-            tripsData = parsed.tripsData;
-            daysData = parsed.daysData || [];
-            itineraryData = parsed.itineraryData || [];
-            checklistData = parsed.checklistData || [];
-            shoppingData = parsed.shoppingData || [];
-            reservationsData = parsed.reservationsData || [];
-            return true;
-          }
-        } catch(e) { console.error('Data Load Error, resetting to default', e); }
+          tripsData = parsed.tripsData || [];
+          daysData = parsed.daysData || [];
+          itineraryData = parsed.itineraryData || [];
+          checklistData = parsed.checklistData || [];
+          shoppingData = parsed.shoppingData || [];
+          reservationsData = parsed.reservationsData || [];
+          return true;
+        } catch(e) { console.error('Data Load Error', e); }
       }
       return false;
     }
 
-    // 資料版本遷移：舊版沒有「每個旅程獨立儲存」設計，行程/預約/購物/待辦資料沒有 tripId。
-    // 這裡把沒有 tripId 的舊資料，全部歸屬到目前的旅程 (tripsData[0])，避免升級後資料消失。
     function migrateLegacyTripData() {
       const currentTripId = getCurrentTripId();
       if (currentTripId === null) return;
@@ -673,59 +669,58 @@
       defaultFutureEnd.setDate(defaultFutureEnd.getDate() + 3);
       const mockDateStr = `${defaultFutureDate.getFullYear()}-${String(defaultFutureDate.getMonth()+1).padStart(2,'0')}-${String(defaultFutureDate.getDate()).padStart(2,'0')} to ${defaultFutureEnd.getFullYear()}-${String(defaultFutureEnd.getMonth()+1).padStart(2,'0')}-${String(defaultFutureEnd.getDate()).padStart(2,'0')}`;
 
-      tripsData = [{ id: 1, name: 'Lofoten・Norway', dateStr: mockDateStr, progress: 40, cover: 'https://res.cloudinary.com/fjordtours/image/upload/w_auto/dpr_auto/c_fill/f_auto/q_auto/c_limit,w_1920/v1/norway/places-to-visit/northern-norway/lofoten/reine-lofoten-summer?_a=BAVMn6DY0' }];
+      tripsData = [{ id: '1', name: 'Lofoten・Norway', dateStr: mockDateStr, progress: 40, cover: 'https://res.cloudinary.com/fjordtours/image/upload/w_auto/dpr_auto/c_fill/f_auto/q_auto/c_limit,w_1920/v1/norway/places-to-visit/northern-norway/lofoten/reine-lofoten-summer?_a=BAVMn6DY0' }];
       
       itineraryData = [
-        { id: '1', dayId: 1, tripId: 1, order: 1, type: 'flight', name: '星宇航空 JX800', hours: '08:30 - 12:45', opHours: '', cost: 'T1 航廈', note: '飛往奧斯陸', tMode: '', image: '' },
-        { id: '2', dayId: 1, tripId: 1, order: 2, type: 'transport', name: '取車', hours: '16:30', opHours: '09:00 - 18:00', cost: '', note: '預約 Avis', tMode: 'transit', image: '' },
+        { id: '1', dayId: 1, tripId: '1', order: 1, type: 'flight', name: '星宇航空 JX800', hours: '08:30 - 12:45', opHours: '', cost: 'T1 航廈', note: '飛往奧斯陸', tMode: '', image: '' },
+        { id: '2', dayId: 1, tripId: '1', order: 2, type: 'transport', name: '取車', hours: '16:30', opHours: '45m', cost: '', note: '預約 Avis', tMode: 'transit', image: '' },
       ];
       
-      // 確保待辦清單 (todo) 預設為完全空白
       checklistData = [
-        { id: 1, category: 'personal', text: '👓 眼鏡', done: false },
-        { id: 2, category: 'personal', text: '🕶️ 太陽眼鏡', done: false },
-        { id: 3, category: 'personal', text: '💊 藥物', done: false },
-        { id: 4, category: 'personal', text: '☂️ 雨傘', done: false },
+        { id: '1', category: 'personal', text: '👓 眼鏡', done: false },
+        { id: '2', category: 'personal', text: '🕶️ 太陽眼鏡', done: false },
+        { id: '3', category: 'personal', text: '💊 藥物', done: false },
+        { id: '4', category: 'personal', text: '☂️ 雨傘', done: false },
 
-        { id: 5, category: 'daily', text: '🪥 牙膏牙刷', done: false },
-        { id: 6, category: 'daily', text: '💄 化妝品', done: false },
-        { id: 7, category: 'daily', text: '🧴 卸妝水', done: false },
-        { id: 8, category: 'daily', text: '🫧 護膚品', done: false },
-        { id: 9, category: 'daily', text: '😶‍🌫️ 面膜', done: false },
-        { id: 10, category: 'daily', text: '🛁 洗頭水、護髮素、沐浴露', done: false },
-        { id: 11, category: 'daily', text: '🧴 潤膚露', done: false },
-        { id: 12, category: 'daily', text: '☀️ 防曬', done: false },
-        { id: 13, category: 'daily', text: '👁️ 隱形眼鏡及藥水', done: false },
-        { id: 14, category: 'daily', text: '🌿 止汗劑', done: false },
-        { id: 15, category: 'daily', text: '🤍 化妝棉、棉花棒', done: false },
-        { id: 16, category: 'daily', text: '🌸 香水', done: false },
-        { id: 17, category: 'daily', text: '🩷 M巾、護墊', done: false },
-        { id: 18, category: 'daily', text: '💇🏻‍♀️ 直髮夾', done: false },
+        { id: '5', category: 'daily', text: '🪥 牙膏牙刷', done: false },
+        { id: '6', category: 'daily', text: '💄 化妝品', done: false },
+        { id: '7', category: 'daily', text: '🧴 卸妝水', done: false },
+        { id: '8', category: 'daily', text: '🫧 護膚品', done: false },
+        { id: '9', category: 'daily', text: '😶‍🌫️ 面膜', done: false },
+        { id: '10', category: 'daily', text: '🛁 洗頭水、護髮素、沐浴露', done: false },
+        { id: '11', category: 'daily', text: '🧴 潤膚露', done: false },
+        { id: '12', category: 'daily', text: '☀️ 防曬', done: false },
+        { id: '13', category: 'daily', text: '👁️ 隱形眼鏡及藥水', done: false },
+        { id: '14', category: 'daily', text: '🌿 止汗劑', done: false },
+        { id: '15', category: 'daily', text: '🤍 化妝棉、棉花棒', done: false },
+        { id: '16', category: 'daily', text: '🌸 香水', done: false },
+        { id: '17', category: 'daily', text: '🩷 M巾、護墊', done: false },
+        { id: '18', category: 'daily', text: '💇🏻‍♀️ 直髮夾', done: false },
 
-        { id: 19, category: 'clothing', text: '👕 衣物', done: false },
-        { id: 20, category: 'clothing', text: '🩲 內衣褲', done: false },
-        { id: 21, category: 'clothing', text: '💤 睡衣', done: false },
-        { id: 22, category: 'clothing', text: '🧦 襪子', done: false },
-        { id: 23, category: 'clothing', text: '🧢 帽', done: false },
-        { id: 24, category: 'clothing', text: '🩴 拖鞋', done: false },
-        { id: 25, category: 'clothing', text: '👟 休閒鞋', done: false },
-        { id: 26, category: 'clothing', text: '🧖🏻‍♀️ 毛巾', done: false },
-        { id: 27, category: 'clothing', text: '💎 飾物', done: false },
-        { id: 28, category: 'clothing', text: '👜 袋', done: false },
+        { id: '19', category: 'clothing', text: '👕 衣物', done: false },
+        { id: '20', category: 'clothing', text: '🩲 內衣褲', done: false },
+        { id: '21', category: 'clothing', text: '💤 睡衣', done: false },
+        { id: '22', category: 'clothing', text: '🧦 襪子', done: false },
+        { id: '23', category: 'clothing', text: '🧢 帽', done: false },
+        { id: '24', category: 'clothing', text: '🩴 拖鞋', done: false },
+        { id: '25', category: 'clothing', text: '👟 休閒鞋', done: false },
+        { id: '26', category: 'clothing', text: '🧖🏻‍♀️ 毛巾', done: false },
+        { id: '27', category: 'clothing', text: '💎 飾物', done: false },
+        { id: '28', category: 'clothing', text: '👜 袋', done: false },
 
-        { id: 29, category: 'electronic', text: '📷 相機充電器', done: false },
-        { id: 30, category: 'electronic', text: '📱 iPhone 插頭', done: false },
-        { id: 31, category: 'electronic', text: '🔌 充電線', done: false },
-        { id: 32, category: 'electronic', text: '🌍 轉插器', done: false },
+        { id: '29', category: 'electronic', text: '📷 相機充電器', done: false },
+        { id: '30', category: 'electronic', text: '📱 iPhone 插頭', done: false },
+        { id: '31', category: 'electronic', text: '🔌 充電線', done: false },
+        { id: '32', category: 'electronic', text: '🌍 轉插器', done: false },
 
-        { id: 33, category: 'carryon', text: '✈️ 護照、ID、車牌', done: false },
-        { id: 34, category: 'carryon', text: '💵 銀包、外幣', done: false },
-        { id: 35, category: 'carryon', text: '🔋 Portable 電源', done: false },
-        { id: 36, category: 'carryon', text: '💺 頸枕', done: false },
-        { id: 37, category: 'carryon', text: '🎧 Airpods', done: false },
-        { id: 38, category: 'carryon', text: '📱 iPad', done: false },
-        { id: 39, category: 'carryon', text: '📷 相機', done: false },
-        { id: 40, category: 'carryon', text: '🧻 紙巾', done: false }
+        { id: '33', category: 'carryon', text: '✈️ 護照、ID、車牌', done: false },
+        { id: '34', category: 'carryon', text: '💵 銀包、外幣', done: false },
+        { id: '35', category: 'carryon', text: '🔋 Portable 電源', done: false },
+        { id: '36', category: 'carryon', text: '💺 頸枕', done: false },
+        { id: '37', category: 'carryon', text: '🎧 Airpods', done: false },
+        { id: '38', category: 'carryon', text: '📱 iPad', done: false },
+        { id: '39', category: 'carryon', text: '📷 相機', done: false },
+        { id: '40', category: 'carryon', text: '🧻 紙巾', done: false }
       ];
       shoppingData = [];
       reservationsData = [];
@@ -777,8 +772,6 @@
         }
     }
 
-    // 每個旅程獨立儲存：只重新計算「目前旅程」(tripsData[0]) 的天數，
-    // 其他旅程的 daysData 完全不受影響。
     function syncDaysData() {
         if (tripsData.length === 0) return;
         const trip = tripsData[0];
@@ -1110,7 +1103,7 @@ reservationsData = ${JSON.stringify(reservationsData)};
             <img src="${trip.cover}" class="w-full h-full object-cover" alt="${trip.name}">
             <div class="absolute inset-0 bg-gradient-to-t from-primary/80 via-primary/30 to-transparent"></div>
             
-            <button onclick="openModal('tripModal', ${trip.id})" class="absolute top-3 right-3 p-2 text-white/70 hover:text-white transition z-10 drop-shadow-md cursor-pointer">
+            <button onclick="openModal('tripModal', '${trip.id}')" class="absolute top-3 right-3 p-2 text-white/70 hover:text-white transition z-10 drop-shadow-md cursor-pointer">
               <i data-lucide="edit-2" class="w-3.5 h-3.5"></i>
             </button>
 
@@ -1121,7 +1114,7 @@ reservationsData = ${JSON.stringify(reservationsData)};
               </div>
             </div>
           </div>
-          <div class="p-4 cursor-pointer hover:bg-bg/50 transition flex-1 flex flex-col justify-between" onclick="selectAndOpenTrip(${trip.id})">
+          <div class="p-4 cursor-pointer hover:bg-bg/50 transition flex-1 flex flex-col justify-between" onclick="selectAndOpenTrip('${trip.id}')">
             <div class="text-xs text-primary/70">${displayDateStr}</div>
             <div class="mt-3 text-xs text-center text-primary/50 flex items-center justify-center gap-1">進入行程規劃 <i data-lucide="arrow-right" class="w-3 h-3"></i></div>
           </div>
@@ -1144,7 +1137,7 @@ reservationsData = ${JSON.stringify(reservationsData)};
             const selected = tripsData.splice(idx, 1)[0];
             tripsData.unshift(selected);
         }
-        activeDay = 1; 
+        activeDay = 1;
         syncDaysData();
         saveLocalData();
         navigate('tripDetail');
@@ -1160,14 +1153,14 @@ reservationsData = ${JSON.stringify(reservationsData)};
       if (!dateStr) return alert('請選擇日期');
 
       if (editId) {
-        const idx = tripsData.findIndex(t => t.id == editId);
+        const idx = tripsData.findIndex(t => t.id === editId);
         if (idx > -1) {
           tripsData[idx].name = name;
           tripsData[idx].dateStr = dateStr;
           tripsData[idx].cover = coverUrl;
         }
       } else {
-        const newTripId = Date.now();
+        const newTripId = Date.now().toString();
         tripsData.unshift({ id: newTripId, name: name, dateStr: dateStr, cover: coverUrl });
       }
       
@@ -1195,12 +1188,12 @@ reservationsData = ${JSON.stringify(reservationsData)};
     function executeTripDelete() {
       if (!deleteTripTargetId) return;
 
-      tripsData = tripsData.filter(t => t.id != deleteTripTargetId);
-      daysData = daysData.filter(d => d.tripId != deleteTripTargetId);
-      itineraryData = itineraryData.filter(i => i.tripId != deleteTripTargetId);
-      reservationsData = reservationsData.filter(r => r.tripId != deleteTripTargetId);
-      shoppingData = shoppingData.filter(s => s.tripId != deleteTripTargetId);
-      checklistData = checklistData.filter(c => !(c.category === 'todo' && c.tripId == deleteTripTargetId));
+      tripsData = tripsData.filter(t => t.id !== deleteTripTargetId);
+      daysData = daysData.filter(d => d.tripId !== deleteTripTargetId);
+      itineraryData = itineraryData.filter(i => i.tripId !== deleteTripTargetId);
+      reservationsData = reservationsData.filter(r => r.tripId !== deleteTripTargetId);
+      shoppingData = shoppingData.filter(s => s.tripId !== deleteTripTargetId);
+      checklistData = checklistData.filter(c => !(c.category === 'todo' && c.tripId === deleteTripTargetId));
       activeDay = 1;
 
       cancelTripDelete();
@@ -1208,7 +1201,10 @@ reservationsData = ${JSON.stringify(reservationsData)};
 
       if (tripsData.length > 0) {
         syncDaysData();
+      } else {
+        navigate('dashboard');
       }
+      
       saveLocalData();
       updateSidebarHeader();
       renderDashboard();
@@ -1401,14 +1397,17 @@ reservationsData = ${JSON.stringify(reservationsData)};
            if(item.tMode === 'transit') travelmodeAB = 'transit';
            if(item.tMode === 'drive') travelmodeAB = 'driving';
            
-           const destination = resolveMapQuery(item.address, item.name);
+           // 明確指定起點與終點，確保 Google Map 打開時由上一個行程前往下一個行程
+           const originLoc = prevLocName;
+           const destLoc = resolveMapQuery(item.address, item.name);
            
-           const mapUrlAB = prevLocName
-             ? `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(prevLocName)}&destination=${encodeURIComponent(destination)}&travelmode=${travelmodeAB}`
-             : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(destination)}`;
+           const mapUrlAB = originLoc
+             ? `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(originLoc)}&destination=${encodeURIComponent(destLoc)}&travelmode=${travelmodeAB}`
+             : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(destLoc)}`;
 
+           // 直接讀取下一個景點(當前 item)填寫的路程時間
            const durationText = item.opHours ? item.opHours : '';
-           const labelText = durationText ? `${m.label}前往 ${durationText}` : `${m.label}前往`;
+           const labelText = durationText ? `${m.label}前往：${durationText}` : `${m.label}前往`;
 
            transportHtml = `<a href="${mapUrlAB}" target="_blank" class="flex items-center gap-2 text-xs text-primary/50 py-3 pl-4 border-l-2 border-dashed border-accent/40 ml-[23px] hover:text-accent transition group cursor-pointer"><i data-lucide="${m.icon}" class="w-3.5 h-3.5 text-accent group-hover:scale-110 transition"></i> <span class="border-b border-dashed border-primary/30 group-hover:border-accent transition pb-0.5">${labelText}</span></a>`;
            
@@ -1458,6 +1457,7 @@ reservationsData = ${JSON.stringify(reservationsData)};
                     <h3 class="font-bold text-[15px] leading-tight mb-2 truncate">${item.name}</h3>
                     <div class="flex flex-wrap gap-x-4 gap-y-1 mb-2">
                         ${item.hours ? `<p class="text-xs text-primary/70 flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3 text-accent/70"></i>${item.hours}</p>` : ''}
+                        ${item.opHours ? `<p class="text-xs text-primary/70 flex items-center gap-1"><i data-lucide="timer" class="w-3 h-3 text-accent/70"></i>路程: ${item.opHours}</p>` : ''}
                         ${item.cost ? `<p class="text-xs text-primary/70 flex items-center gap-1"><i data-lucide="credit-card" class="w-3 h-3 text-accent/70"></i>${item.cost}</p>` : ''}
                     </div>
                     ${item.note ? `<p class="text-[11px] mt-2 bg-white/60 border border-accent/20 px-2 py-1 text-primary/80 rounded-md inline-block max-w-full truncate">${item.note}</p>` : ''}
@@ -1486,6 +1486,7 @@ reservationsData = ${JSON.stringify(reservationsData)};
                 <h3 class="font-bold text-primary text-[15px] mb-2 truncate">${item.name}</h3>
                 <div class="flex flex-wrap gap-x-4 gap-y-1 mb-2">
                   ${item.hours ? `<p class="text-xs text-primary/70 flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3 text-accent/70"></i>${item.hours}</p>` : ''}
+                  ${item.opHours ? `<p class="text-xs text-primary/70 flex items-center gap-1"><i data-lucide="timer" class="w-3 h-3 text-accent/70"></i>路程: ${item.opHours}</p>` : ''}
                   ${item.cost ? `<p class="text-xs text-primary/70 flex items-center gap-1"><i data-lucide="credit-card" class="w-3 h-3 text-accent/70"></i>${item.cost}</p>` : ''}
                 </div>
                 ${item.note ? `<div class="bg-bg p-2.5 rounded-xl border border-border/40 mb-2"><p class="text-xs text-primary/80 break-words">${item.note}</p></div>` : ''}
@@ -1539,6 +1540,13 @@ reservationsData = ${JSON.stringify(reservationsData)};
 
     function submitActivityForm(e) {
       e.preventDefault(); 
+      
+      const tripId = getCurrentTripId();
+      if (!tripId) {
+          alert('請先建立一個旅程！');
+          return;
+      }
+
       const editId = document.getElementById('editId').value;
       const tModeEl = document.querySelector('input[name="aTMode"]:checked');
       const tMode = tModeEl ? tModeEl.value : '';
@@ -1557,9 +1565,8 @@ reservationsData = ${JSON.stringify(reservationsData)};
       
       if (editId) { 
           const idx = itineraryData.findIndex(i => i.id === editId); 
-          itineraryData[idx] = { ...itineraryData[idx], ...formData }; 
+          if(idx > -1) itineraryData[idx] = { ...itineraryData[idx], ...formData }; 
       } else { 
-          const tripId = getCurrentTripId();
           const items = itineraryData.filter(i => i.dayId === activeDay && i.tripId === tripId); 
           itineraryData.push({ 
               id: Date.now().toString(), 
@@ -1618,10 +1625,15 @@ reservationsData = ${JSON.stringify(reservationsData)};
     }
 
     function addCheckItem(cat) { 
+        const tripId = getCurrentTripId();
+        if (cat === 'todo' && !tripId) {
+            alert('請先建立一個旅程！');
+            return;
+        }
         const input = document.getElementById(`newCheckItem-${cat}`); 
         if(!input || input.value.trim() === '') return; 
-        const newItem = { id: Date.now(), category: cat, text: input.value, done: false };
-        if (cat === 'todo') newItem.tripId = getCurrentTripId();
+        const newItem = { id: Date.now().toString(), category: cat, text: input.value, done: false };
+        if (cat === 'todo') newItem.tripId = tripId;
         checklistData.push(newItem); 
         input.value = ''; 
         renderChecklist(); 
@@ -1653,10 +1665,10 @@ reservationsData = ${JSON.stringify(reservationsData)};
                     html += `
                         <div class="flex items-center justify-between p-3 bg-bg rounded-xl border border-border/40 hover:border-accent/30 transition">
                           <div class="flex items-center gap-3">
-                            <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleCheck(${item.id})" class="w-4 h-4 accent-accent cursor-pointer rounded">
+                            <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleCheck('${item.id}')" class="w-4 h-4 accent-accent cursor-pointer rounded">
                             <span class="text-sm ${item.done ? 'line-through text-primary/40' : 'text-primary'}">${item.text}</span>
                           </div>
-                          <button onclick="deleteCheckItem(${item.id})" class="text-primary/30 hover:text-danger transition"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                          <button onclick="deleteCheckItem('${item.id}')" class="text-primary/30 hover:text-danger transition"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                         </div>
                     `;
                 });
@@ -1688,10 +1700,10 @@ reservationsData = ${JSON.stringify(reservationsData)};
                             itemsHtml += `
                             <div class="flex items-center justify-between p-3 bg-bg rounded-xl border border-border/40">
                               <div class="flex items-center gap-3">
-                                <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleCheck(${item.id})" class="w-4 h-4 accent-accent cursor-pointer rounded">
+                                <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleCheck('${item.id}')" class="w-4 h-4 accent-accent cursor-pointer rounded">
                                 <span class="text-sm ${item.done ? 'line-through text-primary/40' : 'text-primary'}">${item.text}</span>
                               </div>
-                              <button onclick="deleteCheckItem(${item.id})" class="text-primary/30 hover:text-danger transition"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                              <button onclick="deleteCheckItem('${item.id}')" class="text-primary/30 hover:text-danger transition"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                             </div>
                             `;
                         });
@@ -1726,6 +1738,8 @@ reservationsData = ${JSON.stringify(reservationsData)};
         container.innerHTML = html;
         lucide.createIcons();
     }
+
+    let currentShoppingTab = 'to-buy';
 
     function switchShoppingTab(tab) {
         currentShoppingTab = tab;
@@ -1772,7 +1786,7 @@ reservationsData = ${JSON.stringify(reservationsData)};
     function deleteShoppingItemFromModal() {
         const id = document.getElementById('editShoppingId').value;
         if(id) {
-            shoppingData = shoppingData.filter(i => i.id !== Number(id));
+            shoppingData = shoppingData.filter(i => i.id !== id);
             saveLocalData();
             renderShoppingList();
             closeModal('addShoppingModal');
@@ -1803,19 +1817,344 @@ reservationsData = ${JSON.stringify(reservationsData)};
               
           return `
           <div class="bg-card rounded-2xl p-3 flex items-center shadow-sm border border-border/50 gap-3">
-              <input type="checkbox" ${item.purchased ? 'checked' : ''} onchange="toggleShoppingItem(${item.id})" class="w-5 h-5 accent-accent flex-shrink-0 cursor-pointer rounded">
+              <input type="checkbox" ${item.purchased ? 'checked' : ''} onchange="toggleShoppingItem('${item.id}')" class="w-5 h-5 accent-accent flex-shrink-0 cursor-pointer rounded">
               <div class="w-14 h-14 bg-bg rounded-xl border border-border/30 overflow-hidden flex-shrink-0 flex items-center justify-center">
                   ${imgHtml}
               </div>
               <div class="flex-1 min-w-0">
                   <h4 class="font-bold text-sm text-primary truncate ${item.purchased ? 'line-through opacity-50' : ''}" title="${item.name}">${item.name}</h4>
               </div>
-              <button onclick="openModal('addShoppingModal', ${item.id})" class="p-2 -mr-2 text-primary/40 hover:text-primary transition flex-shrink-0">
+              <button onclick="openModal('addShoppingModal', '${item.id}')" class="p-2 -mr-2 text-primary/40 hover:text-primary transition flex-shrink-0">
                   <i data-lucide="more-vertical" class="w-5 h-5"></i>
               </button>
           </div>`;
       }).join('');
       
+      lucide.createIcons();
+    }
+
+    function compressImage(file, callback) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          const maxDim = 800;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > maxDim) { height *= maxDim / width; width = maxDim; }
+          } else {
+            if (height > maxDim) { width *= maxDim / height; height = maxDim; }
+          }
+          canvas.width = width; canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          callback(canvas.toDataURL('image/jpeg', 0.6)); 
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function previewImage(event) {
+      const file = event.target.files[0];
+      if (file) {
+        compressImage(file, function(compressedBase64) {
+          currentUploadImageBase64 = compressedBase64;
+          document.getElementById('imagePreview').src = compressedBase64;
+          document.getElementById('imagePreview').classList.remove('hidden');
+          document.getElementById('uploadPlaceholder').classList.add('hidden');
+          document.getElementById('removeImgBtn').classList.remove('hidden');
+        });
+      }
+    }
+    
+    function removePreviewImage() { currentUploadImageBase64 = ''; document.getElementById('dropzone-file').value = ''; document.getElementById('imagePreview').src = ''; document.getElementById('imagePreview').classList.add('hidden'); document.getElementById('uploadPlaceholder').classList.remove('hidden'); document.getElementById('removeImgBtn').classList.add('hidden'); }
+    
+    function saveShoppingItem(e) { 
+      e.preventDefault(); 
+      const tripId = getCurrentTripId();
+      if (!tripId) {
+          alert('請先建立一個旅程！');
+          return;
+      }
+      const editId = document.getElementById('editShoppingId').value;
+      const name = document.getElementById('sName').value;
+      
+      if (editId) {
+          const idx = shoppingData.findIndex(i => i.id === editId);
+          if(idx > -1) {
+              shoppingData[idx].name = name;
+              if (currentUploadImageBase64 !== '') {
+                  shoppingData[idx].image = currentUploadImageBase64;
+              }
+          }
+      } else {
+          shoppingData.push({ 
+              id: Date.now().toString(), 
+              tripId: tripId,
+              name: name, 
+              image: currentUploadImageBase64,
+              purchased: false
+          }); 
+      }
+      
+      saveLocalData(); 
+      closeModal('addShoppingModal'); 
+      renderShoppingList(); 
+    }
+
+    /* ========== 預約管理 (Reservations) ========== */
+
+    const resTypeConfig = { 
+      flight: { icon: 'plane', label: '機票' }, 
+      accomm: { icon: 'hotel', label: '住宿' }, 
+      transport: { icon: 'train-front', label: '交通' }, 
+      other: { icon: 'bookmark', label: '其他' } 
+    };
+
+    let deleteResTargetId = null;
+
+    function switchResTab(tab) {
+        currentResTab = tab;
+        ['flight', 'accomm', 'transport', 'other'].forEach(t => {
+            const btn = document.getElementById('tab-res-' + t);
+            if (!btn) return;
+            if (t === tab) {
+                btn.classList.add('border-accent', 'text-accent', 'font-bold');
+                btn.classList.remove('border-transparent', 'text-primary/50', 'font-medium');
+            } else {
+                btn.classList.remove('border-accent', 'text-accent', 'font-bold');
+                btn.classList.add('border-transparent', 'text-primary/50', 'font-medium');
+            }
+        });
+        renderReservations();
+    }
+
+    function toggleResFields() {
+        const type = document.getElementById('rType').value;
+        const groups = {
+            flightDateTimes: document.getElementById('grp_flightDateTimes'),
+            flightSpecific: document.getElementById('grp_flightSpecific'),
+            accommDateTimes: document.getElementById('grp_accommDateTimes'),
+            accommSpecific: document.getElementById('grp_accommSpecific'),
+            transportTimes: document.getElementById('grp_transportTimes'),
+            singleDate: document.getElementById('grp_singleDate'),
+            singleTime: document.getElementById('grp_singleTime')
+        };
+        Object.values(groups).forEach(g => g.classList.add('hidden'));
+
+        const labelMap = {
+            flight: '名稱 (如：長榮航空)',
+            accomm: '名稱 (如：希爾頓飯店)',
+            transport: '名稱 (如：Avis 租車 / 火車班次)',
+            other: '名稱'
+        };
+        document.getElementById('l_rName').innerText = labelMap[type] || '名稱';
+
+        if (type === 'flight') {
+            groups.flightDateTimes.classList.remove('hidden');
+            groups.flightSpecific.classList.remove('hidden');
+        } else if (type === 'accomm') {
+            groups.accommDateTimes.classList.remove('hidden');
+            groups.accommSpecific.classList.remove('hidden');
+        } else if (type === 'transport') {
+            groups.singleDate.classList.remove('hidden');
+            groups.transportTimes.classList.remove('hidden');
+        } else {
+            groups.singleDate.classList.remove('hidden');
+            groups.singleTime.classList.remove('hidden');
+        }
+        lucide.createIcons();
+    }
+
+    function previewResImage(event) {
+      const file = event.target.files[0];
+      if (file) {
+        compressImage(file, function(compressedBase64) {
+          currentResUploadImageBase64 = compressedBase64;
+          document.getElementById('resImagePreview').src = compressedBase64;
+          document.getElementById('resImagePreview').classList.remove('hidden');
+          document.getElementById('resUploadPlaceholder').classList.add('hidden');
+          document.getElementById('resRemoveImgBtn').classList.remove('hidden');
+        });
+      }
+    }
+
+    function removeResImage() {
+      currentResUploadImageBase64 = '';
+      document.getElementById('res-dropzone-file').value = '';
+      document.getElementById('resImagePreview').src = '';
+      document.getElementById('resImagePreview').classList.add('hidden');
+      document.getElementById('resUploadPlaceholder').classList.remove('hidden');
+      document.getElementById('resRemoveImgBtn').classList.add('hidden');
+    }
+
+    function formatResDateTime(dtStr) {
+      if (!dtStr) return '';
+      const d = new Date(dtStr.replace(' ', 'T'));
+      if (isNaN(d)) return dtStr;
+      const dd = String(d.getDate()).padStart(2, '0');
+      const months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+      const mmm = months[d.getMonth()];
+      const hh = String(d.getHours()).padStart(2, '0');
+      const mi = String(d.getMinutes()).padStart(2, '0');
+      return `${dd} ${mmm} ${hh}:${mi}`;
+    }
+
+    function formatResDate(dStr) {
+      if (!dStr) return '';
+      const d = new Date(dStr);
+      if (isNaN(d)) return dStr;
+      const dd = String(d.getDate()).padStart(2, '0');
+      const months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+      return `${dd} ${months[d.getMonth()]}`;
+    }
+
+    function saveReservation(e) {
+      e.preventDefault();
+      const tripId = getCurrentTripId();
+      if (!tripId) {
+          alert('請先建立一個旅程！');
+          return;
+      }
+      
+      const editId = document.getElementById('editResId').value;
+      const type = document.getElementById('rType').value;
+
+      const formData = {
+        type: type,
+        name: document.getElementById('rName').value,
+        bookingRef: document.getElementById('rBookingRef').value,
+        note: document.getElementById('rNote').value,
+        image: currentResUploadImageBase64
+      };
+
+      if (type === 'flight') {
+        formData.flightDep = document.getElementById('rFlightDep').value;
+        formData.flightArr = document.getElementById('rFlightArr').value;
+        formData.depAirport = document.getElementById('rDepAirport').value;
+        formData.arrAirport = document.getElementById('rArrAirport').value;
+        formData.flightNo = document.getElementById('rFlightNo').value;
+      } else if (type === 'accomm') {
+        formData.checkIn = document.getElementById('rCheckIn').value;
+        formData.checkOut = document.getElementById('rCheckOut').value;
+        formData.address = document.getElementById('rAddress').value;
+        formData.url = document.getElementById('rUrl').value;
+      } else if (type === 'transport') {
+        formData.date = document.getElementById('rDate').value;
+        formData.transDepTime = document.getElementById('rTransDepTime').value;
+        formData.transArrTime = document.getElementById('rTransArrTime').value;
+      } else {
+        formData.date = document.getElementById('rDate').value;
+        formData.time = document.getElementById('rTime').value;
+      }
+
+      if (editId) {
+        const idx = reservationsData.findIndex(r => r.id === editId);
+        if (idx > -1) reservationsData[idx] = { ...reservationsData[idx], ...formData };
+      } else {
+        reservationsData.push({ id: Date.now().toString(), tripId: tripId, ...formData });
+      }
+
+      saveLocalData();
+      closeModal('reservationModal');
+      switchResTab(type);
+    }
+
+    function confirmResDelete() {
+      deleteResTargetId = document.getElementById('editResId').value;
+      document.getElementById('deleteResConfirmModal').classList.remove('hidden');
+    }
+
+    function cancelResDelete() {
+      deleteResTargetId = null;
+      document.getElementById('deleteResConfirmModal').classList.add('hidden');
+    }
+
+    function executeResDelete() {
+      if (deleteResTargetId) {
+        reservationsData = reservationsData.filter(r => r.id !== deleteResTargetId);
+        cancelResDelete();
+        closeModal('reservationModal');
+        saveLocalData();
+        renderReservations();
+      }
+    }
+
+    function renderReservations() {
+      const container = document.getElementById('reservationsListContainer');
+      if (!container) return;
+
+      const getTime = (r) => {
+        if (r.type === 'flight') return r.flightDep ? new Date(r.flightDep.replace(' ', 'T')).getTime() : Infinity;
+        if (r.type === 'accomm') return r.checkIn ? new Date(r.checkIn.replace(' ', 'T')).getTime() : Infinity;
+        return r.date ? new Date(r.date).getTime() : Infinity;
+      };
+
+      const tripId = getCurrentTripId();
+      const items = reservationsData.filter(r => r.type === currentResTab && r.tripId === tripId).sort((a, b) => getTime(a) - getTime(b));
+
+      if (items.length === 0) {
+        container.innerHTML = `<div class="text-center py-10 text-primary/50 text-sm">尚無${resTypeConfig[currentResTab].label}預約，點擊右下角 + 新增。</div>`;
+        return;
+      }
+
+      container.innerHTML = items.map(item => {
+        const cfg = resTypeConfig[item.type];
+        let detailsHtml = '';
+
+        if (item.type === 'flight') {
+          detailsHtml = `
+            <div class="flex flex-wrap gap-x-4 gap-y-1 mb-1">
+              ${item.flightDep ? `<p class="text-xs text-primary/70 flex items-center gap-1"><i data-lucide="plane-takeoff" class="w-3 h-3 text-accent/70"></i>${formatResDateTime(item.flightDep)}</p>` : ''}
+              ${item.flightArr ? `<p class="text-xs text-primary/70 flex items-center gap-1"><i data-lucide="plane-landing" class="w-3 h-3 text-accent/70"></i>${formatResDateTime(item.flightArr)}</p>` : ''}
+            </div>
+            ${(item.depAirport || item.arrAirport) ? `<p class="text-xs text-primary/60 mb-1">${item.depAirport || ''} → ${item.arrAirport || ''}${item.flightNo ? ' · ' + item.flightNo : ''}</p>` : ''}
+          `;
+        } else if (item.type === 'accomm') {
+          detailsHtml = `
+            <div class="flex flex-wrap gap-x-4 gap-y-1 mb-1">
+              ${item.checkIn ? `<p class="text-xs text-primary/70 flex items-center gap-1"><i data-lucide="log-in" class="w-3 h-3 text-accent/70"></i>${formatResDateTime(item.checkIn)}</p>` : ''}
+              ${item.checkOut ? `<p class="text-xs text-primary/70 flex items-center gap-1"><i data-lucide="log-out" class="w-3 h-3 text-accent/70"></i>${formatResDateTime(item.checkOut)}</p>` : ''}
+            </div>
+            ${item.address ? `<p class="text-xs text-primary/60 mb-1 truncate">${item.address}</p>` : ''}
+          `;
+        } else if (item.type === 'transport') {
+          detailsHtml = `
+            <div class="flex flex-wrap gap-x-4 gap-y-1 mb-1">
+              ${item.date ? `<p class="text-xs text-primary/70 flex items-center gap-1"><i data-lucide="calendar" class="w-3 h-3 text-accent/70"></i>${formatResDate(item.date)}</p>` : ''}
+              ${item.transDepTime ? `<p class="text-xs text-primary/70 flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3 text-accent/70"></i>${item.transDepTime}${item.transArrTime ? ' - ' + item.transArrTime : ''}</p>` : ''}
+            </div>
+          `;
+        } else {
+          detailsHtml = `
+            <div class="flex flex-wrap gap-x-4 gap-y-1 mb-1">
+              ${item.date ? `<p class="text-xs text-primary/70 flex items-center gap-1"><i data-lucide="calendar" class="w-3 h-3 text-accent/70"></i>${formatResDate(item.date)}</p>` : ''}
+              ${item.time ? `<p class="text-xs text-primary/70 flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3 text-accent/70"></i>${item.time}</p>` : ''}
+            </div>
+          `;
+        }
+
+        return `
+        <div class="bg-card rounded-2xl p-4 shadow-sm border border-border/50 flex gap-3 items-start">
+          <div class="p-2.5 bg-bg rounded-xl flex-shrink-0 border border-border/40"><i data-lucide="${cfg.icon}" class="w-5 h-5 text-accent"></i></div>
+          <div class="flex-1 min-w-0">
+            <div class="flex justify-between items-start gap-2">
+              <h3 class="font-bold text-primary text-[15px] truncate">${item.name}</h3>
+              <button onclick="openModal('reservationModal', '${item.id}')" class="p-1 -mr-1 text-primary/40 hover:text-primary transition flex-shrink-0"><i data-lucide="more-vertical" class="w-4 h-4"></i></button>
+            </div>
+            ${item.bookingRef ? `<p class="text-[11px] text-primary/50 font-mono mb-1">Ref: ${item.bookingRef}</p>` : ''}
+            ${detailsHtml}
+            ${item.note ? `<p class="text-xs text-primary/70 bg-bg px-2 py-1 rounded-md inline-block mt-1">${item.note}</p>` : ''}
+          </div>
+          ${item.image ? `<img src="${item.image}" class="w-14 h-14 object-cover rounded-xl border border-border/40 flex-shrink-0">` : ''}
+        </div>
+        `;
+      }).join('');
+
       lucide.createIcons();
     }
 
