@@ -334,7 +334,7 @@
         </div>
 
         <div>
-          <label class="block text-xs font-medium mb-1 text-primary/70" id="l_rName">名稱 (如：長榮航空 / 希爾頓飯店)</label>
+          <label class="block text-xs font-medium mb-1 text-primary/70" id="l_rName">名稱</label>
           <input type="text" id="rName" required class="w-full border border-border rounded-xl p-2.5 text-sm bg-bg outline-none focus:border-accent text-primary">
         </div>
 
@@ -343,7 +343,13 @@
           <input type="text" id="rBookingRef" class="w-full border border-border rounded-xl p-2.5 text-sm bg-bg outline-none focus:border-accent text-primary font-mono uppercase">
         </div>
 
-        <div id="grp_singleDate" class="hidden">
+        <!-- 新增：交通專用地點輸入框 -->
+        <div id="grp_transportLocations" class="hidden grid grid-cols-2 gap-3 mt-4">
+          <div><label class="block text-xs font-medium mb-1 text-primary/70">出發/ 取車地點</label><input type="text" id="rTransDepLoc" class="w-full border border-border rounded-xl p-2.5 text-sm bg-bg outline-none focus:border-accent text-primary"></div>
+          <div><label class="block text-xs font-medium mb-1 text-primary/70">抵達/ 還車地點</label><input type="text" id="rTransArrLoc" class="w-full border border-border rounded-xl p-2.5 text-sm bg-bg outline-none focus:border-accent text-primary"></div>
+        </div>
+
+        <div id="grp_singleDate" class="hidden mt-4">
           <label class="block text-xs font-medium mb-1 text-primary/70">日期</label>
           <input type="text" id="rDate" class="hidden">
         </div>
@@ -1944,6 +1950,7 @@ html += isFlight ? renderFlightCard(item, iconInfo, mapUrl) : renderNormalCard(i
             accommDateTimes: document.getElementById('grp_accommDateTimes'),
             accommSpecific: document.getElementById('grp_accommSpecific'),
             transportTimes: document.getElementById('grp_transportTimes'),
+            transportLocations: document.getElementById('grp_transportLocations'),
             singleDate: document.getElementById('grp_singleDate'),
             singleTime: document.getElementById('grp_singleTime')
         };
@@ -1965,6 +1972,7 @@ html += isFlight ? renderFlightCard(item, iconInfo, mapUrl) : renderNormalCard(i
             groups.accommSpecific.classList.remove('hidden');
         } else if (type === 'transport') {
             groups.transportTimes.classList.remove('hidden');
+            groups.transportLocations.classList.remove('hidden');
         } else {
             groups.singleDate.classList.remove('hidden');
             groups.singleTime.classList.remove('hidden');
@@ -2048,6 +2056,8 @@ html += isFlight ? renderFlightCard(item, iconInfo, mapUrl) : renderNormalCard(i
       } else if (type === 'transport') {
         formData.transDep = document.getElementById('rTransDep').value;
         formData.transArr = document.getElementById('rTransArr').value;
+        formData.transDepLoc = document.getElementById('rTransDepLoc').value;
+        formData.transArrLoc = document.getElementById('rTransArrLoc').value;
       } else {
         formData.date = document.getElementById('rDate').value;
         formData.time = document.getElementById('rTime').value;
@@ -2130,6 +2140,7 @@ html += isFlight ? renderFlightCard(item, iconInfo, mapUrl) : renderNormalCard(i
               ${item.transDep ? `<p class="text-xs text-primary/70 flex items-center gap-1"><i data-lucide="arrow-up-right" class="w-3 h-3 text-accent/70"></i>${formatResDateTime(item.transDep)}</p>` : ''}
               ${item.transArr ? `<p class="text-xs text-primary/70 flex items-center gap-1"><i data-lucide="arrow-down-right" class="w-3 h-3 text-accent/70"></i>${formatResDateTime(item.transArr)}</p>` : ''}
             </div>
+            ${(item.transDepLoc || item.transArrLoc) ? `<p class="text-xs text-primary/60 mb-1">${item.transDepLoc || ''} → ${item.transArrLoc || ''}</p>` : ''}
           `;
         } else {
           detailsHtml = `
@@ -2236,6 +2247,8 @@ function openModal(modalId, id = null) {
                 if(document.getElementById('rTransDep')._flatpickr) document.getElementById('rTransDep')._flatpickr.setDate(item.transDep || '');
                 if(document.getElementById('rTransArr')._flatpickr) document.getElementById('rTransArr')._flatpickr.setDate(item.transArr || '');
                 document.getElementById('rTime').value = item.time || '';
+              document.getElementById('rTransDepLoc').value = item.transDepLoc || '';
+                document.getElementById('rTransArrLoc').value = item.transArrLoc || '';
 
                 document.getElementById('rDepAirport').value = item.depAirport || '';
                 document.getElementById('rArrAirport').value = item.arrAirport || '';
