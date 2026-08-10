@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
+  <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Travel Planner App</title>
@@ -1418,7 +1419,7 @@ reservationsData = ${JSON.stringify(reservationsData.filter(r => r.tripId === cu
 
         // 【修復2】：加入 drag-card class
 html += isFlight ? renderFlightCard(item, iconInfo, mapUrl) : renderNormalCard(item, iconInfo, mapUrl);
-        
+      });  
       list.innerHTML = html;
       lucide.createIcons();
 
