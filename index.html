@@ -2118,53 +2118,42 @@ html += isFlight ? renderFlightCard(item, iconInfo, mapUrl) : renderNormalCard(i
         const cfg = resTypeConfig[item.type];
 
         // ==========================================
-        // ✈️ 機票專屬 Boarding Pass UI
+        // ✈️ 1. 機票：Boarding Pass UI (大飛機版)
         // ==========================================
         if (item.type === 'flight') {
           return `
-          <div class="bg-card rounded-2xl shadow-sm border border-border/60 relative overflow-hidden mb-2">
-            <!-- 頂部：航空公司與航班編號 -->
+          <div class="bg-card rounded-2xl shadow-sm border border-border/60 relative overflow-hidden mb-3">
             <div class="bg-accent/15 px-4 py-3 border-b border-accent/20 flex justify-between items-center">
               <div class="flex items-center gap-2 min-w-0">
-                <i data-lucide="plane" class="w-4 h-4 text-accent flex-shrink-0"></i>
-                <span class="font-bold text-[13px] text-primary uppercase tracking-wider truncate">${item.name || 'FLIGHT'}</span>
-                ${item.flightNo ? `<span class="text-[10px] bg-white border border-accent/20 px-2 py-0.5 rounded-md text-accent font-black tracking-wider flex-shrink-0 shadow-sm">${item.flightNo}</span>` : ''}
+                <i data-lucide="plane" class="w-5 h-5 text-accent flex-shrink-0"></i>
+                <span class="font-bold text-[14px] text-primary uppercase tracking-wider truncate">${item.name || 'FLIGHT'}</span>
+                ${item.flightNo ? `<span class="text-[11px] bg-white border border-accent/20 px-2.5 py-0.5 rounded-md text-accent font-black tracking-wider flex-shrink-0 shadow-sm">${item.flightNo}</span>` : ''}
               </div>
               <button onclick="openModal('reservationModal', '${item.id}')" class="p-1 -mr-1 text-primary/40 hover:text-accent transition flex-shrink-0"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
             </div>
             
-            <!-- 中部：大字體機場代碼與飛機虛線 -->
             <div class="px-5 py-6 flex items-center justify-between relative bg-white">
               <div class="text-center flex-1">
                 <div class="text-3xl md:text-4xl font-black text-primary mb-1.5 tracking-tight">${item.depAirport || '---'}</div>
-                <!-- 日期再放大為 text-sm -->
                 <div class="text-sm text-primary/60 uppercase font-bold tracking-wide">${item.flightDep ? formatResDateTime(item.flightDep) : '時間未定'}</div>
               </div>
-              
-              <!-- 擴闊中間空間俾大飛機 -->
               <div class="w-20 md:w-28 flex flex-col items-center justify-center px-2 flex-shrink-0 relative top-[-10px]">
-                <!-- 中間飛機大幅放大為 w-8 h-8，顏色調實 -->
                 <i data-lucide="plane-takeoff" class="w-8 h-8 text-accent mb-2"></i>
                 <div class="w-full h-px border-t-2 border-dashed border-accent/40"></div>
               </div>
-              
               <div class="text-center flex-1">
                 <div class="text-3xl md:text-4xl font-black text-primary mb-1.5 tracking-tight">${item.arrAirport || '---'}</div>
-                <!-- 日期再放大為 text-sm -->
                 <div class="text-sm text-primary/60 uppercase font-bold tracking-wide">${item.flightArr ? formatResDateTime(item.flightArr) : '時間未定'}</div>
               </div>
             </div>
 
-            <!-- 底部：撕線、預約編號與備註 -->
             <div class="px-5 py-3 bg-bg flex justify-between items-center border-t-2 border-dashed border-border/80 relative">
-              
-              <!-- 左側及右側的半圓形打孔效果 (扮撕飛位) -->
               <div class="absolute left-[-10px] top-[-10px] w-5 h-5 bg-bg rounded-full shadow-inner"></div>
               <div class="absolute right-[-10px] top-[-10px] w-5 h-5 bg-bg rounded-full shadow-inner"></div>
 
               <div class="flex-1 min-w-0 pr-3 z-10">
                 <div>
-                  <div class="text-[9px] text-primary/50 uppercase mb-0.5 tracking-wider font-bold">Booking Ref</div>
+                  <div class="text-[10px] text-primary/50 uppercase mb-0.5 tracking-wider font-bold">Booking Ref</div>
                   <div class="font-mono text-sm font-black text-primary tracking-widest truncate">${item.bookingRef || '-----'}</div>
                 </div>
                 ${item.note ? `<p class="text-[10px] text-primary/60 mt-1.5 truncate bg-white px-2 py-1 rounded border border-border/40 inline-block max-w-full" title="${item.note}">${item.note}</p>` : ''}
@@ -2176,36 +2165,104 @@ html += isFlight ? renderFlightCard(item, iconInfo, mapUrl) : renderNormalCard(i
         }
 
         // ==========================================
-        // 原本的其他類型 UI (住宿、交通、其他)
+        // 🏨 2. 住宿：Hotel Voucher UI (漸變色 + 床)
         // ==========================================
-        let detailsHtml = '';
         if (item.type === 'accomm') {
-          detailsHtml = `
-            <div class="flex flex-wrap gap-x-4 gap-y-1 mb-1">
-              ${item.checkIn ? `<p class="text-xs text-primary/70 flex items-center gap-1"><i data-lucide="log-in" class="w-3 h-3 text-accent/70"></i>${formatResDateTime(item.checkIn)}</p>` : ''}
-              ${item.checkOut ? `<p class="text-xs text-primary/70 flex items-center gap-1"><i data-lucide="log-out" class="w-3 h-3 text-accent/70"></i>${formatResDateTime(item.checkOut)}</p>` : ''}
+          return `
+          <div class="bg-card rounded-2xl shadow-sm border border-border/60 relative overflow-hidden mb-3 flex flex-col">
+            <!-- 漸變色 Header -->
+            <div class="bg-gradient-to-r from-accent/30 to-accent/5 px-5 py-4 border-b border-border/40 flex justify-between items-start">
+              <div class="flex-1 min-w-0 pr-4">
+                <div class="flex items-center gap-1.5 mb-1.5">
+                  <i data-lucide="hotel" class="w-3.5 h-3.5 text-accent"></i>
+                  <span class="text-[10px] font-bold tracking-widest text-accent opacity-90 uppercase">Hotel Voucher</span>
+                </div>
+                <h3 class="font-bold text-base text-primary truncate">${item.name}</h3>
+                ${item.bookingRef ? `<div class="mt-1 font-mono text-[11px] text-primary/60 font-bold tracking-wider">Ref: ${item.bookingRef}</div>` : ''}
+              </div>
+              <button onclick="openModal('reservationModal', '${item.id}')" class="p-1.5 -mr-1.5 text-primary/40 hover:text-accent transition flex-shrink-0 bg-white/50 rounded-md"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
             </div>
-            ${item.address ? `<p class="text-xs text-primary/60 mb-1 truncate">${item.address}</p>` : ''}
-          `;
-        } else if (item.type === 'transport') {
-          detailsHtml = `
-            <div class="flex flex-wrap gap-x-4 gap-y-1 mb-1">
-              ${item.transDep ? `<p class="text-xs text-primary/70 flex items-center gap-1"><i data-lucide="arrow-up-right" class="w-3 h-3 text-accent/70"></i>${formatResDateTime(item.transDep)}</p>` : ''}
-              ${item.transArr ? `<p class="text-xs text-primary/70 flex items-center gap-1"><i data-lucide="arrow-down-right" class="w-3 h-3 text-accent/70"></i>${formatResDateTime(item.transArr)}</p>` : ''}
+            
+            <!-- 中部：Check-in / Check-out 與床圖示 -->
+            <div class="px-5 py-5 bg-white flex items-center justify-between">
+               <div class="text-center flex-1">
+                  <div class="text-[10px] text-primary/50 uppercase font-bold tracking-wider mb-1">Check-in</div>
+                  <div class="text-sm font-black text-primary">${item.checkIn ? formatResDateTime(item.checkIn) : '-- --'}</div>
+               </div>
+               <div class="w-16 flex flex-col items-center px-2 relative top-[-4px]">
+                  <i data-lucide="bed" class="w-5 h-5 text-accent/60 mb-2"></i>
+                  <div class="w-full h-px border-t-2 border-dashed border-accent/30"></div>
+               </div>
+               <div class="text-center flex-1">
+                  <div class="text-[10px] text-primary/50 uppercase font-bold tracking-wider mb-1">Check-out</div>
+                  <div class="text-sm font-black text-primary">${item.checkOut ? formatResDateTime(item.checkOut) : '-- --'}</div>
+               </div>
             </div>
-            ${(item.transDepLoc || item.transArrLoc) ? `<p class="text-xs text-primary/60 mb-1">${item.transDepLoc || ''} → ${item.transArrLoc || ''}</p>` : ''}
-          `;
-        } else {
-          detailsHtml = `
-            <div class="flex flex-wrap gap-x-4 gap-y-1 mb-1">
-              ${item.date ? `<p class="text-xs text-primary/70 flex items-center gap-1"><i data-lucide="calendar" class="w-3 h-3 text-accent/70"></i>${formatResDate(item.date)}</p>` : ''}
-              ${item.time ? `<p class="text-xs text-primary/70 flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3 text-accent/70"></i>${item.time}</p>` : ''}
+
+            <!-- 底部：地址、備註與圖片 -->
+            <div class="px-5 py-3 bg-bg border-t border-border/40 flex gap-3 items-center">
+               <div class="flex-1 min-w-0">
+                 ${item.address ? `<div class="flex items-start gap-1.5 text-xs text-primary/70 mb-2"><i data-lucide="map-pin" class="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-accent/70"></i><span class="truncate">${item.address}</span></div>` : ''}
+                 ${item.note ? `<p class="text-[10px] text-primary/60 truncate bg-white px-2 py-1 rounded border border-border/40 inline-block max-w-full">${item.note}</p>` : ''}
+               </div>
+               ${item.image ? `<img src="${item.image}" class="w-12 h-12 object-cover rounded-xl border border-border/40 shadow-sm flex-shrink-0">` : ''}
             </div>
+          </div>
           `;
         }
 
+        // ==========================================
+        // 🚆 3. 交通：Transit Ticket UI (實體車票 + 左右打孔)
+        // ==========================================
+        if (item.type === 'transport') {
+          return `
+          <div class="bg-card rounded-2xl shadow-sm border border-border/60 relative mb-3 flex overflow-hidden">
+            <!-- 左右半圓打孔 (扮實體車票) -->
+            <div class="absolute left-[-10px] top-1/2 -translate-y-1/2 w-5 h-5 bg-bg rounded-full border border-border/60 z-10"></div>
+            <div class="absolute right-[-10px] top-1/2 -translate-y-1/2 w-5 h-5 bg-bg rounded-full border border-border/60 z-10"></div>
+            
+            <div class="flex-1 flex flex-col p-4 px-6 relative">
+               <div class="flex justify-between items-start mb-4">
+                 <div class="flex items-center gap-2 min-w-0">
+                   <div class="p-1.5 bg-accent/15 rounded-lg border border-accent/20"><i data-lucide="train-front" class="w-4 h-4 text-accent"></i></div>
+                   <span class="font-bold text-[14px] text-primary truncate">${item.name}</span>
+                 </div>
+                 <button onclick="openModal('reservationModal', '${item.id}')" class="p-1 -mr-2 -mt-1 text-primary/40 hover:text-accent transition flex-shrink-0"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
+               </div>
+               
+               <!-- 路線區塊 -->
+               <div class="flex items-center justify-between bg-bg rounded-xl p-3 border border-border/40 relative z-0">
+                  <div class="flex flex-col flex-1 min-w-0">
+                     <div class="text-[15px] font-black text-primary truncate">${item.transDepLoc || '出發地'}</div>
+                     <div class="text-[11px] font-bold tracking-wide text-primary/50 mt-1">${item.transDep ? formatResDateTime(item.transDep) : '--'}</div>
+                  </div>
+                  <div class="px-2 flex flex-col items-center flex-shrink-0">
+                     <i data-lucide="arrow-right" class="w-5 h-5 text-accent/50"></i>
+                  </div>
+                  <div class="flex flex-col flex-1 text-right min-w-0">
+                     <div class="text-[15px] font-black text-primary truncate">${item.transArrLoc || '抵達地'}</div>
+                     <div class="text-[11px] font-bold tracking-wide text-primary/50 mt-1">${item.transArr ? formatResDateTime(item.transArr) : '--'}</div>
+                  </div>
+               </div>
+
+               <!-- 底部資訊區塊 (無須分割副票) -->
+               <div class="mt-3 flex justify-between items-end">
+                 <div class="min-w-0 flex-1 pr-2">
+                   ${item.bookingRef ? `<div class="text-[10px] text-primary/50 font-bold uppercase tracking-wide">Ref: <span class="font-mono text-primary font-black ml-1">${item.bookingRef}</span></div>` : ''}
+                   ${item.note ? `<p class="text-[10px] text-primary/60 mt-1.5 truncate bg-bg px-2 py-1 rounded border border-border/40 inline-block max-w-full">${item.note}</p>` : ''}
+                 </div>
+                 ${item.image ? `<img src="${item.image}" class="w-10 h-10 object-cover rounded-lg border border-border/40 shadow-sm ml-2 flex-shrink-0">` : ''}
+               </div>
+            </div>
+          </div>
+          `;
+        }
+
+        // ==========================================
+        // 🔖 4. 其他類型：保留原有的簡潔卡片
+        // ==========================================
         return `
-        <div class="bg-card rounded-2xl p-4 shadow-sm border border-border/50 flex gap-3 items-start">
+        <div class="bg-card rounded-2xl p-4 shadow-sm border border-border/50 flex gap-3 items-start mb-3">
           <div class="p-2.5 bg-bg rounded-xl flex-shrink-0 border border-border/40"><i data-lucide="${cfg.icon}" class="w-5 h-5 text-accent"></i></div>
           <div class="flex-1 min-w-0">
             <div class="flex justify-between items-start gap-2">
@@ -2213,7 +2270,10 @@ html += isFlight ? renderFlightCard(item, iconInfo, mapUrl) : renderNormalCard(i
               <button onclick="openModal('reservationModal', '${item.id}')" class="p-1 -mr-1 text-primary/40 hover:text-accent transition flex-shrink-0"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
             </div>
             ${item.bookingRef ? `<p class="text-[11px] text-primary/50 font-mono mb-1 tracking-wider font-bold">Ref: ${item.bookingRef}</p>` : ''}
-            ${detailsHtml}
+            <div class="flex flex-wrap gap-x-4 gap-y-1 mb-1">
+              ${item.date ? `<p class="text-xs text-primary/70 flex items-center gap-1"><i data-lucide="calendar" class="w-3 h-3 text-accent/70"></i>${formatResDate(item.date)}</p>` : ''}
+              ${item.time ? `<p class="text-xs text-primary/70 flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3 text-accent/70"></i>${item.time}</p>` : ''}
+            </div>
             ${item.note ? `<p class="text-xs text-primary/70 bg-bg px-2 py-1 rounded-md inline-block mt-1 whitespace-pre-wrap break-words border border-border/40">${item.note}</p>` : ''}
           </div>
           ${item.image ? `<img src="${item.image}" class="w-14 h-14 object-cover rounded-xl border border-border/40 flex-shrink-0 shadow-sm">` : ''}
