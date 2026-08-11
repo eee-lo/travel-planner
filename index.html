@@ -633,6 +633,27 @@
     </div>
   </div>
 
+  <div id="checkItemModal" class="fixed inset-0 z-[60] hidden flex justify-center items-end md:items-center">
+    <div class="absolute inset-0 bg-primary/40 backdrop-blur-sm" onclick="closeModal('checkItemModal')"></div>
+    <div class="relative bg-card w-full md:w-[400px] rounded-t-3xl md:rounded-3xl p-6 shadow-2xl z-10 transition-transform transform translate-y-full md:translate-y-0 pb-[calc(24px+env(safe-area-inset-bottom))] md:pb-6" id="checkItemModalContent">
+      <div class="flex justify-between items-center mb-6">
+        <h3 class="text-lg font-bold text-primary">編輯項目</h3>
+        <button onclick="closeModal('checkItemModal')" class="text-primary/60 hover:text-primary"><i data-lucide="x" class="w-6 h-6"></i></button>
+      </div>
+      <form id="checkItemForm" class="space-y-4" onsubmit="saveCheckItem(event)">
+        <input type="hidden" id="editCheckId">
+        <div>
+          <label class="block text-xs font-medium mb-1 text-primary/70">項目名稱</label>
+          <input type="text" id="cItemText" required class="w-full border border-border rounded-xl p-2.5 text-sm bg-bg outline-none focus:border-accent text-primary">
+        </div>
+        <div class="pt-4 flex gap-3">
+          <button type="button" onclick="deleteCheckItemFromModal()" class="w-1/3 bg-danger/10 text-danger py-3 rounded-xl text-sm font-bold border border-danger/20 hover:bg-danger hover:text-white transition">刪除</button>
+          <button type="submit" class="flex-1 bg-accent text-white py-3 rounded-xl text-sm font-bold shadow-sm hover:opacity-90 transition">儲存</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- ========== 腳本邏輯 ========== -->
   <script>
     let tripsData = [];
@@ -1648,6 +1669,30 @@ html += isFlight ? renderFlightCard(item, iconInfo, mapUrl) : renderNormalCard(i
         saveLocalData(); 
     }
 
+    function saveCheckItem(e) {
+      e.preventDefault();
+      const id = document.getElementById('editCheckId').value;
+      const text = document.getElementById('cItemText').value;
+      if (id) {
+        const idx = checklistData.findIndex(i => i.id === id);
+        if (idx > -1) {
+          checklistData[idx].text = text;
+          saveLocalData();
+          renderChecklist();
+          closeModal('checkItemModal');
+        }
+      }
+    }
+
+    function deleteCheckItemFromModal() {
+      const id = document.getElementById('editCheckId').value;
+      if (id) {
+        checklistData = checklistData.filter(i => i.id !== id);
+        saveLocalData();
+        renderChecklist();
+        closeModal('checkItemModal');
+      }
+    }
     function addCheckItem(cat) { 
         const tripId = getCurrentTripId();
         if (cat === 'todo' && !tripId) {
@@ -1692,7 +1737,8 @@ html += isFlight ? renderFlightCard(item, iconInfo, mapUrl) : renderNormalCard(i
                             <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleCheck('${item.id}')" class="w-4 h-4 accent-accent cursor-pointer rounded">
                             <span class="text-sm ${item.done ? 'line-through text-primary/40' : 'text-primary'}">${item.text}</span>
                           </div>
-                          <button onclick="deleteCheckItem('${item.id}')" class="text-primary/30 hover:text-danger transition"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                          <!-- 改用打開 Modal 及筆仔 Icon -->
+                          <button onclick="openModal('checkItemModal', '${item.id}')" class="p-1 -mr-1 text-primary/40 hover:text-accent transition flex-shrink-0"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
                         </div>
                     `;
                 });
@@ -1704,6 +1750,7 @@ html += isFlight ? renderFlightCard(item, iconInfo, mapUrl) : renderNormalCard(i
                     <input type="text" id="newCheckItem-todo" class="flex-1 border border-border/80 rounded-xl p-2.5 text-sm bg-bg outline-none focus:border-accent text-primary transition" placeholder="新增待辦事項..." onkeydown="if(event.key === 'Enter') addCheckItem('todo')">
                     <button onclick="addCheckItem('todo')" class="bg-accent text-white px-4 py-2.5 rounded-xl font-bold text-sm shadow-sm hover:opacity-90 transition">新增</button>
                 </div>
+            </div>
             `;
 
         } else {
@@ -1727,7 +1774,8 @@ html += isFlight ? renderFlightCard(item, iconInfo, mapUrl) : renderNormalCard(i
                                 <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleCheck('${item.id}')" class="w-4 h-4 accent-accent cursor-pointer rounded">
                                 <span class="text-sm ${item.done ? 'line-through text-primary/40' : 'text-primary'}">${item.text}</span>
                               </div>
-                              <button onclick="deleteCheckItem('${item.id}')" class="text-primary/30 hover:text-danger transition"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                              <!-- 改用打開 Modal 及筆仔 Icon -->
+                              <button onclick="openModal('checkItemModal', '${item.id}')" class="p-1 -mr-1 text-primary/40 hover:text-accent transition flex-shrink-0"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
                             </div>
                             `;
                         });
@@ -2480,6 +2528,13 @@ function openModal(modalId, id = null) {
             document.getElementById('dOverview').value = day.overview || '';
             document.getElementById('dLocation').value = day.location || '';
             document.getElementById('dAccommodation').value = day.accommodation || '';
+        }
+      }
+  else if (modalId === 'checkItemModal') {
+        const item = checklistData.find(i => i.id === id);
+        if (item) {
+          document.getElementById('editCheckId').value = item.id;
+          document.getElementById('cItemText').value = item.text;
         }
       }
     }
