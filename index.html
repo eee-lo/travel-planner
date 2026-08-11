@@ -1133,7 +1133,7 @@ reservationsData = ${JSON.stringify(reservationsData.filter(r => r.tripId === cu
         // 🟢 判斷有無圖片
         const hasCover = !!trip.cover;
         // 冇圖片時，使用明顯深色嘅同色調漸變，等預設 accent 標籤可以清晰顯示
-        const bgStyle = hasCover ? 'bg-gray-200' : 'bg-gradient-to-br from-[#7A919A] to-accent/50';
+        const bgStyle = hasCover ? 'bg-gray-200' : 'bg-gradient-to-br from-[#7A919A] to-accent/40';
 
         return `
         <div class="bg-card rounded-3xl overflow-hidden shadow-sm border border-border/50 transition flex flex-col min-h-[200px]">
