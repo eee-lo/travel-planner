@@ -3,7 +3,6 @@
   <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <!-- ... 其他原有的設定 ... -->
   <title>Travel Planner</title>
   
   <!-- Web App 支援設定 (iOS & Android) -->
@@ -18,7 +17,6 @@
   
   <!-- 連結 Web App Manifest -->
   <link rel="manifest" href="manifest.json">
-  <!-- ... -->
   
   <!-- 字型 -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -325,7 +323,6 @@
           <i data-lucide="code" class="w-4 h-4 text-accent"></i> Coding更新
         </button>
 
-        <!-- 新增：簡約 Refresh 按鈕 -->
         <button onclick="hardResetApp()" class="w-full flex items-center justify-center gap-2 bg-bg border border-border text-primary py-3.5 rounded-xl text-sm font-bold shadow-sm hover:bg-border/30 transition">
           <i data-lucide="rotate-cw" class="w-4 h-4 text-accent"></i> Refresh
         </button>
@@ -363,7 +360,6 @@
           <input type="text" id="rBookingRef" class="w-full border border-border rounded-xl p-2.5 text-sm bg-bg outline-none focus:border-accent text-primary font-mono uppercase">
         </div>
 
-        <!-- 新增：交通專用地點輸入框 -->
         <div id="grp_transportLocations" class="hidden grid grid-cols-2 gap-3 mt-4">
           <div><label class="block text-xs font-medium mb-1 text-primary/70">出發/ 取車地點</label><input type="text" id="rTransDepLoc" class="w-full border border-border rounded-xl p-2.5 text-sm bg-bg outline-none focus:border-accent text-primary"></div>
           <div><label class="block text-xs font-medium mb-1 text-primary/70">抵達/ 還車地點</label><input type="text" id="rTransArrLoc" class="w-full border border-border rounded-xl p-2.5 text-sm bg-bg outline-none focus:border-accent text-primary"></div>
@@ -668,6 +664,15 @@
     let shoppingData = [];
     let reservationsData = []; 
 
+    // 【新增】：將預設行李清單獨立成範本
+    const DEFAULT_PACKING_LIST = [
+        { category: 'personal', text: '👓 眼鏡' }, { category: 'personal', text: '🕶️ 太陽眼鏡' }, { category: 'personal', text: '💊 藥物' }, { category: 'personal', text: '☂️ 雨傘' },
+        { category: 'daily', text: '🪥 牙膏牙刷' }, { category: 'daily', text: '💄 化妝品' }, { category: 'daily', text: '🧴 卸妝水' }, { category: 'daily', text: '🫧 護膚品' }, { category: 'daily', text: '😶‍🌫️ 面膜' }, { category: 'daily', text: '🛁 洗頭水、護髮素、沐浴露' }, { category: 'daily', text: '🧴 潤膚露' }, { category: 'daily', text: '☀️ 防曬' }, { category: 'daily', text: '👁️ 隱形眼鏡及藥水' }, { category: 'daily', text: '🌿 止汗劑' }, { category: 'daily', text: '🤍 化妝棉、棉花棒' }, { category: 'daily', text: '🌸 香水' }, { category: 'daily', text: '🩷 M巾、護墊' }, { category: 'daily', text: '💇🏻‍♀️ 直髮夾' },
+        { category: 'clothing', text: '👕 衣物' }, { category: 'clothing', text: '🩲 內衣褲' }, { category: 'clothing', text: '💤 睡衣' }, { category: 'clothing', text: '🧦 襪子' }, { category: 'clothing', text: '🧢 帽' }, { category: 'clothing', text: '🩴 拖鞋' }, { category: 'clothing', text: '👟 休閒鞋' }, { category: 'clothing', text: '🧖🏻‍♀️ 毛巾' }, { category: 'clothing', text: '💎 飾物' }, { category: 'clothing', text: '👜 袋' },
+        { category: 'electronic', text: '📷 相機充電器' }, { category: 'electronic', text: '📱 iPhone 插頭' }, { category: 'electronic', text: '🔌 充電線' }, { category: 'electronic', text: '🌍 轉插器' },
+        { category: 'carryon', text: '✈️ 護照、ID、車牌' }, { category: 'carryon', text: '💵 銀包、外幣' }, { category: 'carryon', text: '🔋 Portable 電源' }, { category: 'carryon', text: '💺 頸枕' }, { category: 'carryon', text: '🎧 Airpods' }, { category: 'carryon', text: '📱 iPad' }, { category: 'carryon', text: '📷 相機' }, { category: 'carryon', text: '🧻 紙巾' }
+    ];
+
     let checklistAccordionState = { personal: false, daily: false, clothing: false, electronic: false, carryon: false };
     const checklistCategoryMap = { personal: '個人物品', daily: '日用品', clothing: '服飾配件', electronic: '電子用品', carryon: '隨身行李' };
 
@@ -724,7 +729,8 @@
       itineraryData.forEach(i => { if (i.tripId === undefined) i.tripId = currentTripId; });
       reservationsData.forEach(r => { if (r.tripId === undefined) r.tripId = currentTripId; });
       shoppingData.forEach(s => { if (s.tripId === undefined) s.tripId = currentTripId; });
-      checklistData.forEach(c => { if (c.category === 'todo' && c.tripId === undefined) c.tripId = currentTripId; });
+      // 【修改】：將所有沒有 tripId 的清單項目（包含行李與 todo）都綁定給當前旅程
+      checklistData.forEach(c => { if (c.tripId === undefined) c.tripId = currentTripId; });
     }
 
     function loadMockData() {
@@ -734,59 +740,15 @@
       defaultFutureEnd.setDate(defaultFutureEnd.getDate() + 3);
       const mockDateStr = `${defaultFutureDate.getFullYear()}-${String(defaultFutureDate.getMonth()+1).padStart(2,'0')}-${String(defaultFutureDate.getDate()).padStart(2,'0')} to ${defaultFutureEnd.getFullYear()}-${String(defaultFutureEnd.getMonth()+1).padStart(2,'0')}-${String(defaultFutureEnd.getDate()).padStart(2,'0')}`;
 
-      checklistData = [
-        { id: '1', category: 'personal', text: '👓 眼鏡', done: false },
-        { id: '2', category: 'personal', text: '🕶️ 太陽眼鏡', done: false },
-        { id: '3', category: 'personal', text: '💊 藥物', done: false },
-        { id: '4', category: 'personal', text: '☂️ 雨傘', done: false },
-
-        { id: '5', category: 'daily', text: '🪥 牙膏牙刷', done: false },
-        { id: '6', category: 'daily', text: '💄 化妝品', done: false },
-        { id: '7', category: 'daily', text: '🧴 卸妝水', done: false },
-        { id: '8', category: 'daily', text: '🫧 護膚品', done: false },
-        { id: '9', category: 'daily', text: '😶‍🌫️ 面膜', done: false },
-        { id: '10', category: 'daily', text: '🛁 洗頭水、護髮素、沐浴露', done: false },
-        { id: '11', category: 'daily', text: '🧴 潤膚露', done: false },
-        { id: '12', category: 'daily', text: '☀️ 防曬', done: false },
-        { id: '13', category: 'daily', text: '👁️ 隱形眼鏡及藥水', done: false },
-        { id: '14', category: 'daily', text: '🌿 止汗劑', done: false },
-        { id: '15', category: 'daily', text: '🤍 化妝棉、棉花棒', done: false },
-        { id: '16', category: 'daily', text: '🌸 香水', done: false },
-        { id: '17', category: 'daily', text: '🩷 M巾、護墊', done: false },
-        { id: '18', category: 'daily', text: '💇🏻‍♀️ 直髮夾', done: false },
-
-        { id: '19', category: 'clothing', text: '👕 衣物', done: false },
-        { id: '20', category: 'clothing', text: '🩲 內衣褲', done: false },
-        { id: '21', category: 'clothing', text: '💤 睡衣', done: false },
-        { id: '22', category: 'clothing', text: '🧦 襪子', done: false },
-        { id: '23', category: 'clothing', text: '🧢 帽', done: false },
-        { id: '24', category: 'clothing', text: '🩴 拖鞋', done: false },
-        { id: '25', category: 'clothing', text: '👟 休閒鞋', done: false },
-        { id: '26', category: 'clothing', text: '🧖🏻‍♀️ 毛巾', done: false },
-        { id: '27', category: 'clothing', text: '💎 飾物', done: false },
-        { id: '28', category: 'clothing', text: '👜 袋', done: false },
-
-        { id: '29', category: 'electronic', text: '📷 相機充電器', done: false },
-        { id: '30', category: 'electronic', text: '📱 iPhone 插頭', done: false },
-        { id: '31', category: 'electronic', text: '🔌 充電線', done: false },
-        { id: '32', category: 'electronic', text: '🌍 轉插器', done: false },
-
-        { id: '33', category: 'carryon', text: '✈️ 護照、ID、車牌', done: false },
-        { id: '34', category: 'carryon', text: '💵 銀包、外幣', done: false },
-        { id: '35', category: 'carryon', text: '🔋 Portable 電源', done: false },
-        { id: '36', category: 'carryon', text: '💺 頸枕', done: false },
-        { id: '37', category: 'carryon', text: '🎧 Airpods', done: false },
-        { id: '38', category: 'carryon', text: '📱 iPad', done: false },
-        { id: '39', category: 'carryon', text: '📷 相機', done: false },
-        { id: '40', category: 'carryon', text: '🧻 紙巾', done: false }
-      ];
+      // 【修改】：清空原本長長一大段 checklistData，留空即可
+      checklistData = [];
       
       // *Update Coding* 由呢度開始圈選，直到 saveLocalData(); 之上
       // 【Coding更新】僅針對目前旅程：Lofoten・Norway
 tripsData = [{"id":"1","name":"Lofoten・Norway","dateStr":"2026-08-27 to 2026-09-01","progress":40,"cover":"https://res.cloudinary.com/fjordtours/image/upload/w_auto/dpr_auto/c_fill/f_auto/q_auto/c_limit,w_1920/v1/norway/places-to-visit/northern-norway/lofoten/reine-lofoten-summer?_a=BAVMn6DY0"}];
 daysData = [{"id":1,"tripId":"1","dateStr":"27 AUG 26","dow":"THU","weather":"sun","wText":"晴天","temp":"22° / 14°","location":"Oslo","accommodation":"Raddison Blu  Airport Hotel","overview":"Oslo Stopover"},{"id":2,"tripId":"1","dateStr":"28 AUG 26","dow":"FRI","weather":"cloud-rain","wText":"陣雨","temp":"16° / 10°","location":"Reine","accommodation":"Valen Retro Home, Valen 4, 8390 Reine, Norway","overview":"Scenic drive to Reine"},{"id":3,"tripId":"1","dateStr":"29 AUG 26","dow":"SAT","weather":"cloud-rain","wText":"陣雨","temp":"16° / 10°","location":"Reine","accommodation":"Valen Retro Home, Valen 4, 8390 Reine, Norway","overview":"Hamnøy + Å"},{"id":4,"tripId":"1","dateStr":"30 AUG 26","dow":"SUN","weather":"cloud-rain","wText":"短暫雨","temp":"21° / 15°","location":"Ballstad","accommodation":"Airbnb - Løkthaugveien 9, Vågan, Nordland 8300","overview":"Nusfjord + Ballstad"},{"id":5,"tripId":"1","dateStr":"31 AUG 26","dow":"MON","weather":"cloud-sun","wText":"晴時多雲","temp":"25° / 18°","location":"Svolvær","accommodation":"Airbnb - Løkthaugveien 9, Vågan, Nordland 8300","overview":"Svolvær"},{"id":6,"tripId":"1","dateStr":"01 SEP 26","dow":"TUE","weather":"cloud-sun","wText":"晴時多雲","temp":"25° / 18°","location":"Svolvær","accommodation":"","overview":"Bye"}];
 itineraryData = [{"id":"1","dayId":1,"tripId":"1","order":1,"type":"flight","name":"London > Oslo","hours":"17:30 - 20:40","opHours":"","cost":"","note":"Luggage don't check through, bring cup noodle","tMode":"","image":"","address":"London T2"},{"id":"2","dayId":1,"tripId":"1","order":2,"type":"accommodation","name":"Raddison Blu Airport Hotel","hours":"21:30","opHours":"","cost":"","note":"","tMode":"","image":"","address":"https://maps.app.goo.gl/Vs34YjqKN6LHv64v6"},{"id":"1786357534714","dayId":2,"tripId":"1","order":1,"type":"flight","name":"Oslo > Evenes","address":"","hours":"08:40 - 10:20","opHours":"","cost":"","note":"","tMode":"","image":""},{"id":"1786357653059","dayId":2,"tripId":"1","order":2,"type":"transport","name":"Car Pick up at Evenes","address":"https://www.google.com/maps/place/Hertz/data=!4m2!3m1!1s0x0:0x1349ae61d02d9cbd?sa=X&ved=1t:2428&ictx=111","hours":"11:00","opHours":"","cost":"","note":"","tMode":"","image":""},{"id":"1786369906422","dayId":2,"tripId":"1","order":4,"type":"transport","name":"Kabelvåg - Vågan Cemetery Parking","address":"https://www.google.com/maps/place/V%C3%A5gan+Cemetery+Parking/@68.2160859,14.4792424,16.75z/data=!4m15!1m8!3m7!1s0x45de7e47d0d950d7:0xf8e34eb9dd17637c!2sPrestvannveien+1,+8310+Kabelv%C3%A5g,+Norway!3b1!8m2!3d68.2162297!4d14.4808429!16s%2Fg%2F11l59zrsy_!3m5!1s0x45de7e47c441f415:0x257cd78c53120563!8m2!3d68.2156055!4d14.4813874!16s%2Fg%2F11hc_q40cm?entry=ttu&g_ep=EgoyMDI2MDgwNS4xIKXMDSoASAFQAw%3D%3D","hours":"14:00","opHours":"20m","cost":"","note":"Free Parking","tMode":"drive","image":""},{"id":"1786379122221","dayId":2,"tripId":"1","order":5,"type":"food","name":"Hjørnet Kafé","address":"https://www.google.com/maps/place/Hj%C3%B8rnet+Kaf%C3%A9/@68.210778,14.4745857,17z/data=!3m1!4b1!4m6!3m5!1s0x45de7fc8a411c813:0xf211c4192a2187ef!8m2!3d68.210776!4d14.4771606!16s%2Fg%2F11s_sxs123?entry=ttu&g_ep=EgoyMDI2MDgwNS4xIKXMDSoASAFQAw%3D%3D","hours":"","opHours":"10m","cost":"","note":"Kabelvåg is the oldest fishing village in Lofoten","tMode":"walk","image":"https://nerdnomads.com/wp-content/uploads/2021/06/Downtown-Kabelvag-Lofoten.jpg"},{"id":"1786387350930","dayId":2,"tripId":"1","order":6,"type":"sightseeing","name":"Lofotsenteret, Leknes","address":"https://www.google.com/maps/place/Lofotsenteret/@68.1486111,13.6152029,17z/data=!3m1!4b1!4m6!3m5!1s0x45de12accffc78bb:0x34490a1676050f3d!8m2!3d68.1486111!4d13.6177778!16s%2Fg%2F1hc2zh97d?entry=ttu&g_ep=EgoyMDI2MDgwNS4xIKXMDSoASAFQAw%3D%3D","hours":"16:00","opHours":"1h","cost":"","note":"Grocery shopping, sport 1","tMode":"drive","image":""},{"id":"1786387492405","dayId":2,"tripId":"1","order":3,"type":"sightseeing","name":"Austnesfjorden","address":"https://www.google.com/maps/place/Austnesfjorden/@68.2941986,14.6293219,12.09z/data=!4m10!1m2!2m1!1saustnesfjorden+viewpoint!3m6!1s0x45dc2b066d0707bb:0xaefb91d7df3eb627!8m2!3d68.316061!4d14.7157359!15sChhhdXN0bmVzZmpvcmRlbiB2aWV3cG9pbnSSARJ0b3VyaXN0X2F0dHJhY3Rpb27gAQA!16s%2Fg%2F11b6gg9ftx?entry=ttu&g_ep=EgoyMDI2MDgwNS4xIKXMDSoASAFQAw%3D%3D","hours":"","opHours":"2h 30m","cost":"Free parking","note":"","tMode":"drive","image":"https://dynamic-media-cdn.tripadvisor.com/media/photo-o/22/15/a1/a3/austnesfjorden.jpg?w=1200&h=-1&s=1"},{"id":"1786391574542","dayId":2,"tripId":"1","order":7,"type":"sightseeing","name":"Skagsanden beach","address":"https://www.google.com/maps/place/Brunstranda+Rasteplass+og+utsiktspunkt/@68.103715,13.2746011,16z/data=!4m10!1m2!2m1!1sparking!3m6!1s0x45de112458b69c79:0x255921bfe4f942fd!8m2!3d68.1037142!4d13.2833576!15sCgdwYXJraW5nWgkiB3BhcmtpbmeSARRwdWJsaWNfcGFya2luZ19zcGFjZZoBRENpOURRVWxSUVVOdlpFTm9kSGxqUmpsdlQyNWtlVlJzYUhsU00wcHJUVVpLZDFaRk1ERlpNMVpoV2pKR01GVlhZeEFC4AEA-gEECAAQIQ!16s%2Fg%2F11cs6bs048?entry=ttu&g_ep=EgoyMDI2MDgwNS4xIKXMDSoASAFQAw%3D%3D","hours":"","opHours":"30m","cost":"Free Parking","note":"Viewpoint","tMode":"drive","image":"https://cdn.prod.rexby.com/image/db73c32e077847e7a7b4ae9dfa843293?format=webp&width=1080&height=1350&quality=80"},{"id":"1786392082606","dayId":2,"tripId":"1","order":8,"type":"sightseeing","name":"Rambergstranda","address":"https://www.google.com/maps/place/Ramberg+Beach+Vista+Point/@68.0973584,13.2422643,17z/data=!4m6!3m5!1s0x45de10d1343fcda5:0x6dd5e728627e9a2c!8m2!3d68.0983631!4d13.245568!16s%2Fg%2F11hdb2qvrl?entry=ttu&g_ep=EgoyMDI2MDgwNS4xIKXMDSoASAFQAw%3D%3D","hours":"","opHours":"5m","cost":"Checking Parking","note":"View Point\nsearch Ramberg red cottage","tMode":"drive","image":"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSIK1aJiEIbHjbY2fOQFLN5VMUZNLKfiF28RQhCS376Q66lipsc5TGcjoXk&s=10"},{"id":"1786393416881","dayId":2,"tripId":"1","order":9,"type":"accommodation","name":"Valen Retro Home, Reine","address":"Valen 4, 8390 Reine, Norway","hours":"","opHours":"30m","cost":"","note":"Hotel","tMode":"drive","image":""},{"id":"1786449441277","dayId":3,"tripId":"1","order":1,"type":"sightseeing","name":"Hamnøy","address":"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRXDUwnPHaYBC5ZdoYPt7HoM9NcekHZgzrxhcYpewyEl-w3Ni60XRmY5QBA&s=10","hours":"11:00","opHours":"15m","cost":"Free Parking","note":"- National geographic cover\n- Famous Yellow House (15m walk)","tMode":"drive","image":"https://cdn.prod.rexby.com/image/25db7d09f84d4ceab2d81d528b6508e8?format=webp&width=1080&height=1350&quality=80"},{"id":"1786454935658","dayId":3,"tripId":"1","order":2,"type":"food","name":"Anita's Sjømat, Sakrisøy","address":"https://www.google.com/maps/place/Anita+Seafood+Caf%C3%A9/data=!4m2!3m1!1s0x45de3ce8b86f3719:0xe2576f2831b33e3a?sa=X&ved=1t:242&ictx=111","hours":"12:00","opHours":"5m","cost":"£15-20/ person","note":"While almost all Lofoten cabins are red, Sakrisøy’s are painted yellow.","tMode":"drive","image":""},{"id":"1786457951854","dayId":2,"tripId":"1","order":10,"type":"food","name":"Maren Anna","address":"https://www.google.com/maps/place/Maren+Anna/data=!4m2!3m1!1s0x0:0xd203dc04ed04dbb0?sa=X&ved=1t:2428&ictx=111","hours":"19:00","opHours":"10m","cost":"kr300-800","note":"","tMode":"drive","image":""},{"id":"1786458880941","dayId":3,"tripId":"1","order":3,"type":"sightseeing","name":"Å","address":"https://www.google.com/maps/place/%C3%85+Parking/@67.8804,12.9822,17z/data=!4m12!1m5!3m4!2zNjfCsDUyJzQ5LjQiTiAxMsKwNTgnNTUuOSJF!8m2!3d67.8804!4d12.9822!3m5!1s0x45de25000b3e2519:0x5d2e2fc5289674b6!8m2!3d67.8799137!4d12.9778499!16s%2Fg%2F11ydxx0j4p?entry=ttu&g_ep=EgoyMDI2MDgwNS4xIKXMDSoASAFQAw%3D%3D","hours":"","opHours":"20m","cost":"Free Parking","note":"Å is the furthest end of the E10 road that can be driven. The entire village is a preserved living museum with beautiful ocean lookouts.","tMode":"drive","image":"https://v.imgi.no/visitlofoten-15594-6ba247cb6c284a5ea6ca5ea12afb1ee9-1920x1080/2024_03_image-8.jpg"},{"id":"1786459946095","dayId":3,"tripId":"1","order":5,"type":"food","name":"Holmen Lofoten","address":"https://www.google.com/maps/place/Holmen+Lofoten/@67.8870819,13.0091032,17z/data=!4m9!3m8!1s0x45de3b34d1918711:0xd12ff10c931d2abf!5m2!4m1!1i2!8m2!3d67.8870799!4d13.0116781!16s%2Fg%2F11c3mnw84v?entry=ttu&g_ep=EgoyMDI2MDgwNS4xIKXMDSoASAFQAw%3D%3D","hours":"19:00","opHours":"15m","cost":"kr1790/ person","note":"","tMode":"drive","image":""},{"id":"1786460001560","dayId":3,"tripId":"1","order":4,"type":"other","name":"Reine City Center/ Hotel","address":"https://www.google.com/maps/place/8390+Reine,+Norway/@67.9307962,13.0835625,15z/data=!3m1!4b1!4m6!3m5!1s0x45de3cbf60603ce7:0x82f2b236d153558f!8m2!3d67.9323866!4d13.0887329!16zL20vMGRwN2p5?entry=ttu&g_ep=EgoyMDI2MDgwNS4xIKXMDSoASAFQAw%3D%3D","hours":"","opHours":"15m","cost":"","note":"","tMode":"drive","image":""},{"id":"1786460456871","dayId":4,"tripId":"1","order":1,"type":"sightseeing","name":"Nusfjord (Optional)","address":"Fv807 320, 8380 Ramberg, Norway","hours":"","opHours":"1h","cost":"Free Parking","note":"- Landhandleriet Café\n- kr100 entry fee","tMode":"drive","image":"https://visitlofoten.com/content/uploads/sites/7/2022/05/Unique-accommodation-Lofoten-Nusfjord-Arctic-Resort-photo-Hallvard_Kolltveit_Destination_Lofoten-1-1920x1280.jpg"},{"id":"1786461963765","dayId":4,"tripId":"1","order":2,"type":"sightseeing","name":"Ballstad","address":"https://www.google.com/maps/place/Rest+parking/@68.072996,13.5379795,15.25z/data=!4m10!1m2!2m1!1sparking!3m6!1s0x45de1300418f1767:0x7d35007e12c83846!8m2!3d68.0713231!4d13.5378318!15sCgdwYXJraW5nkgELcGFya2luZ19sb3TgAQA!16s%2Fg%2F11lmntp0fn?entry=ttu&g_ep=EgoyMDI2MDgwNS4xIKXMDSoASAFQAw%3D%3D","hours":"","opHours":"Nusfjord - 40m/ Reine - 1h","cost":"Free","note":"A real, active, working fishing harbor featuring a massive 3,000-square-meter outdoor shipyard mural","tMode":"drive","image":"https://cdn.prod.rexby.com/image/a99f6bd16fe742bbb4392a57fde7f125?format=webp&width=1080&height=1350&quality=80"},{"id":"1786463057187","dayId":4,"tripId":"1","order":4,"type":"sightseeing","name":"Haukland Beach + Uttakleiv Beach","address":"https://www.google.com/maps/place/Parking+-+Hauklandstranda/@68.1986064,13.5278857,17.54z/data=!4m9!1m2!2m1!1sHaukland+%26+Uttakleiv+Beaches!3m5!1s0x45de0deb4ab5c853:0x76fcb892099091d2!8m2!3d68.1991473!4d13.5328346!16s%2Fg%2F11g18vdqbh?entry=ttu&g_ep=EgoyMDI2MDgwNS4xIKXMDSoASAFQAw%3D%3D","hours":"","opHours":"25m","cost":"kr40 (Pay at cafe)","note":"Haukland has been voted the most beautiful beach in Norway. \nWalk the flat farm road around the mountain to see Uttakleiv (roughly 2h return).","tMode":"drive","image":"https://stunningoutdoors.com/wp-content/uploads/2019/01/Uttakleiv-Beach-Lofoten-9-1.jpg"},{"id":"1786463305698","dayId":4,"tripId":"1","order":3,"type":"food","name":"Solsiden Lofoten","address":"https://www.google.com/maps?vet=10CAAQoqAOahcKEwjg17Ck9piWAxUAAAAAHQAAAAAQBQ..i&rlz=1C1RXQR_enGB1081GB1081&pvq=Cg0vZy8xMXJnaG1ncl92IhEKC3Jlc3RhdXJhbnRzEAIYAw&lqi=ChRiYWxsc3RhZCByZXN0YXVyYW50c0j6v935ubeAgAhaHhABGAAiFGJhbGxzdGFkIHJlc3RhdXJhbnRzKgIIA5IBCnJlc3RhdXJhbnSaAURDaTlEUVVsUlFVTnZaRU5vZEhsalJqbHZUMjFLYkZOVVpIUlhWVTV0VFRGV1VFNUdXakJVYlZaRVUwaHdkMUl3UlJBQvoBBAgAEEs&fvr=1&cs=0&um=1&ie=UTF-8&fb=1&gl=uk&sa=X&ftid=0x45de136d5b9df8db:0x92dd8630d69ac0d6","hours":"12:30","opHours":"11m","cost":"kr300-700","note":"","tMode":"walk","image":""},{"id":"1786463449122","dayId":4,"tripId":"1","order":5,"type":"sightseeing","name":"Airbnb - Solvaer","address":"Løkthaugveien 9, Vågan, Nordland 8300","hours":"","opHours":"1h","cost":"","note":"","tMode":"drive","image":""},{"id":"1786464121221","dayId":4,"tripId":"1","order":6,"type":"food","name":"Børsen Spiseri","address":"Gunnar Bergs vei 2, 8300 Svolvær, Norway","hours":"","opHours":"","cost":"kr400-800","note":"","tMode":"walk","image":""},{"id":"1786464166947","dayId":5,"tripId":"1","order":1,"type":"other","name":"Lofoten Islands Silent Trollfjord Cruise","address":"Torget, 8300 Svolvær, Norway","hours":"9:00-12:30","opHours":"10m","cost":"","note":"https://www.getyourguide.com/en-gb/svolvaer-l89673/lofoten-islands-trollfjord-cruise-by-silent-electric-ship-t264412/","tMode":"walk","image":""},{"id":"1786466568558","dayId":5,"tripId":"1","order":2,"type":"sightseeing","name":"Henningsvær","address":"https://www.google.com/maps/place/Offentlig+parkering/@68.1563899,14.1885252,15z/data=!4m10!1m2!2m1!1sHenningsv%C3%A6r+parking!3m6!1s0x45de7b737dbf5d43:0x6d4c4a93f736da94!8m2!3d68.1563899!4d14.2075796!15sChRIZW5uaW5nc3bDpnIgcGFya2luZ1oWIhRoZW5uaW5nc3bDpnIgcGFya2luZ5IBFHB1YmxpY19wYXJraW5nX3NwYWNlmgFEQ2k5RFFVbFJRVU52WkVOb2RIbGpSamx2VDJ0a00ySnRaRkpXUkZvMlVrZFdUR0ZWVGtkaU1IUTJZVWhPVEdKWVl4QULgAQD6AQQIVBBM!16s%2Fg%2F11f7q_k62s?entry=ttu&g_ep=EgoyMDI2MDgwNS4xIKXMDSoASAFQAw%3D%3D","hours":"","opHours":"30m","cost":"kr35/hr","note":"\"Venice of Lofoten,\" artisan hub of Lofoten\n- Shops: Haddock, Mors Hus, Klatrebutikken Lofoten Climbing shop (Close at roughly 4)","tMode":"drive","image":"https://v.imgi.no/visitlofoten-3565-427264bdaeae2654efd060ea8a26e334-1920x1439/henningsvaer-bryggehotell-hires-fasade-drone-77-classic-norway-christer-olsen-photo.jpg"},{"id":"1786466770816","dayId":5,"tripId":"1","order":4,"type":"sightseeing","name":"Henningsvær Football Stadium","address":"Løktveien 25, 8312 Henningsvær, Norway","hours":"","opHours":"15m","cost":"","note":"Most beautiful + remote football stadium in the world","tMode":"walk","image":"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRsPhNheAHoF0o1Z5X-foQS1TYG44w6rSxuJcebljT7e7mU5cBNBuKAvpjM&s=10"},{"id":"1786466996402","dayId":5,"tripId":"1","order":3,"type":"food","name":"Lysstøperiet Café","address":"","hours":"","opHours":"","cost":"","note":"","tMode":"walk","image":""},{"id":"1786467119869","dayId":5,"tripId":"1","order":5,"type":"food","name":"Paleo Arctic","address":"","hours":"","opHours":"","cost":"","note":"","tMode":"","image":""}];
-checklistData = [{"id":"1786455850304","category":"todo","text":"Check Reinefjorden Ferry - https://havspor.no/en/rute/reinefjorden","done":false,"tripId":"1"}];
+checklistData = [...checklistData.filter(c => c.tripId !== "1"), ...[{"id":"1786455850304","category":"todo","text":"Check Reinefjorden Ferry - https://havspor.no/en/rute/reinefjorden","done":false,"tripId":"1"}], ...DEFAULT_PACKING_LIST.map((item, idx) => ({ id: "default_mock_" + idx, category: item.category, text: item.text, done: false, tripId: "1" }))];
 shoppingData = [];
 reservationsData = [{"id":"1786394347460","tripId":"1","type":"accomm","name":"Valen Retro Home, Reine","bookingRef":"679323911","note":"","image":"","checkIn":"2026-08-28 16:00","checkOut":"2026-08-30 11:00","address":"Valen 4, 8390 Reine, Norway","url":""},{"id":"1786395907370","tripId":"1","type":"transport","name":"Hertz 租車","bookingRef":"L665E4C8013","note":"","image":"","date":"","transDepTime":"","transArrTime":"","transDep":"2026-08-28 11:00","transArr":"2026-09-01 16:00","transDepLoc":"Evenes Airport","transArrLoc":"Evenes Airport"},{"id":"1786397211153","tripId":"1","type":"flight","name":"SAS","bookingRef":"YQMXQM","note":"","image":"","flightDep":"2026-08-27 17:30","flightArr":"2026-08-27 20:40","depAirport":"LHR","arrAirport":"OSL","flightNo":"SK810"},{"id":"1786400360055","tripId":"1","type":"flight","name":"SAS","bookingRef":"YOMXQM","note":"","image":"","flightDep":"2026-08-28 08:40","flightArr":"2026-08-28 10:20","depAirport":"OSL","arrAirport":"EVE","flightNo":"SK4082"},{"id":"1786400438492","tripId":"1","type":"flight","name":"SAS","bookingRef":"YOMXQM","note":"","image":"","flightDep":"2026-09-01 17:15","flightArr":"2026-09-01 18:55","depAirport":"EVE","arrAirport":"OSL","flightNo":"SK4095"},{"id":"1786400507044","tripId":"1","type":"flight","name":"SAS","bookingRef":"YOMXQM","note":"","image":"","flightDep":"2026-09-01 20:20","flightArr":"2026-09-01 21:35","depAirport":"OSL","arrAirport":"LHR","flightNo":"SK815"},{"id":"1786401478039","tripId":"1","type":"accomm","name":"Home in Vagan","bookingRef":"HMDYSH2FA8","note":"","image":"","checkIn":"2026-08-30 15:00","checkOut":"2026-09-01 11:00","address":"Løkthaugveien 9, Vågan, Nordland 8300","url":""}];
       // 圈選到呢度
@@ -910,13 +872,13 @@ reservationsData = [{"id":"1786394347460","tripId":"1","type":"accomm","name":"V
 
       const curId = currentTrip.id;
 
-      // 【修復4】：確保 stringify 前加上 filter，防止外洩其他旅程資料
+      // 【修改】：checklistData 改為保留不屬於此 curId 的資料，再串接當前旅程的資料
       const codeSnippet = `
 // 【Coding更新】僅針對目前旅程：${currentTrip.name}
 tripsData = ${JSON.stringify([currentTrip])};
 daysData = ${JSON.stringify(daysData.filter(d => d.tripId === curId))};
 itineraryData = ${JSON.stringify(itineraryData.filter(i => i.tripId === curId))};
-checklistData = ${JSON.stringify(checklistData.filter(c => c.tripId === curId))};
+checklistData = [...checklistData.filter(c => c.tripId !== "${curId}"), ...${JSON.stringify(checklistData.filter(c => c.tripId === curId))}];
 shoppingData = ${JSON.stringify(shoppingData.filter(s => s.tripId === curId))};
 reservationsData = ${JSON.stringify(reservationsData.filter(r => r.tripId === curId))};
       `.trim();
@@ -1248,6 +1210,16 @@ reservationsData = ${JSON.stringify(reservationsData.filter(r => r.tripId === cu
       } else {
         const newTripId = Date.now().toString();
         tripsData.unshift({ id: newTripId, name: name, dateStr: dateStr, cover: coverUrl });
+        
+        // 【新增】：當建立新旅程時，自動載入預設行李清單，並賦予專屬 ID 及 tripId
+        const newPackingItems = DEFAULT_PACKING_LIST.map((item, index) => ({
+            id: Date.now().toString() + index,
+            category: item.category,
+            text: item.text,
+            done: false,
+            tripId: newTripId
+        }));
+        checklistData.push(...newPackingItems);
       }
       
       syncDaysData();
@@ -1279,13 +1251,13 @@ reservationsData = ${JSON.stringify(reservationsData.filter(r => r.tripId === cu
       itineraryData = itineraryData.filter(i => i.tripId !== deleteTripTargetId);
       reservationsData = reservationsData.filter(r => r.tripId !== deleteTripTargetId);
       shoppingData = shoppingData.filter(s => s.tripId !== deleteTripTargetId);
-      checklistData = checklistData.filter(c => !(c.category === 'todo' && c.tripId === deleteTripTargetId));
+      // 【修改】：清空整個被刪除旅程的所有 checklistData，包含 todo 跟 行李清單
+      checklistData = checklistData.filter(c => c.tripId !== deleteTripTargetId);
       activeDay = 1;
 
       cancelTripDelete();
       closeModal('tripModal');
 
-      // 【修復3】：刪除旅程後強制更新行程畫面
       if (tripsData.length > 0) {
         syncDaysData();
         if (!document.getElementById('view-tripDetail').classList.contains('hidden')) {
@@ -1339,7 +1311,6 @@ reservationsData = ${JSON.stringify(reservationsData.filter(r => r.tripId === cu
           let t = day.temp.replace(/°C/g, '').replace(/°/g, ''); 
           let parts = t.split('/').map(p => p.trim());
           if(parts.length === 2) {
-              // 1. 溫度字體改用 text-[11px] (比 text-xs 輕微細 1px)
               tempHtml = `
                 <div class="flex items-center justify-center gap-0.5 text-[11px] text-white/90 font-medium whitespace-nowrap w-full">
                   <span class="flex items-center"><i data-lucide="arrow-down" class="w-3 h-3 opacity-80 mr-0.5"></i>${parts[1]}°</span>
@@ -1354,41 +1325,39 @@ reservationsData = ${JSON.stringify(reservationsData.filter(r => r.tripId === cu
       document.getElementById('weatherHeader').innerHTML = `
         <div class="relative flex justify-between items-stretch w-full gap-2 min-h-[72px]">
             
-            <div class="flex flex-col items-center justify-between py-1 flex-shrink-0 w-[65px] md:w-[75px] relative group">
-              <button onclick="refreshDayWeather(${id})" class="absolute -top-1 -left-2 p-1 text-white/50 hover:text-white transition rounded-full z-10 bg-black/5 backdrop-blur-sm" title="更新天氣">
-                <i data-lucide="rotate-cw" class="w-3 h-3"></i>
-              </button>
-              
-              <i data-lucide="${day.weather}" class="w-6 h-6 md:w-8 md:h-8 text-white drop-shadow-sm mt-0.5"></i>
-              
-              <!-- 2. 天氣文字改用 text-[11px] -->
-              <span class="text-[11px] font-bold text-white leading-tight text-center tracking-wide w-full whitespace-nowrap">${day.wText}</span>
-              ${tempHtml}
-            </div>
+          <div class="flex flex-col items-center justify-between py-1 flex-shrink-0 w-[65px] md:w-[75px] relative group">
+            <button onclick="refreshDayWeather(${id})" class="absolute -top-1 -left-2 p-1 text-white/50 hover:text-white transition rounded-full z-10 bg-black/5 backdrop-blur-sm" title="更新天氣">
+              <i data-lucide="rotate-cw" class="w-3 h-3"></i>
+            </button>
+            
+            <i data-lucide="${day.weather}" class="w-6 h-6 md:w-8 md:h-8 text-white drop-shadow-sm mt-0.5"></i>
+            
+            <span class="text-[11px] font-bold text-white leading-tight text-center tracking-wide w-full whitespace-nowrap">${day.wText}</span>
+            ${tempHtml}
+          </div>
 
-            <!-- 右側行程概要保持 text-xs (12px)，形成微妙的大小對比 -->
-            <div class="flex-1 min-w-0 flex flex-col gap-1.5 justify-center py-0.5 pl-1 md:pl-2">
-              <div class="flex justify-between items-start h-6">
-                <h2 class="text-[15px] md:text-base font-bold text-white leading-snug truncate flex-1 pr-2 pb-0.5">
-                  Day ${id} ${day.overview ? `<span class="ml-1 font-semibold">${day.overview}</span>` : ''}
-                </h2>
-                <button onclick="openModal('dayEditModal', ${id})" class="p-1.5 text-white/50 hover:text-white transition rounded-md hover:bg-white/20 flex-shrink-0 -mt-1 -mr-1" title="編輯當日資訊">
-                  <i data-lucide="edit-2" class="w-4 h-4"></i>
-                </button>
-              </div>
-              
-              <div class="flex items-center gap-1.5 text-xs text-white/80 h-5 mt-0.5">
-                  <i data-lucide="map-pin" class="w-3.5 h-3.5 text-white/80 flex-shrink-0"></i> 
-                  <span class="truncate mt-0.5 leading-normal">${day.location || ''}</span>
-              </div>
-              
-              <div class="flex items-center gap-1.5 text-xs text-white/80 h-5 mt-0.5">
-                  <i data-lucide="bed" class="w-3.5 h-3.5 text-white/80 flex-shrink-0"></i> 
-                  <span class="truncate mt-0.5 leading-normal">${day.accommodation || ''}</span>
-              </div>
+          <div class="flex-1 min-w-0 flex flex-col gap-1.5 justify-center py-0.5 pl-1 md:pl-2">
+            <div class="flex justify-between items-start h-6">
+              <h2 class="text-[15px] md:text-base font-bold text-white leading-snug truncate flex-1 pr-2 pb-0.5">
+                Day ${id} ${day.overview ? `<span class="ml-1 font-semibold">${day.overview}</span>` : ''}
+              </h2>
+              <button onclick="openModal('dayEditModal', ${id})" class="p-1.5 text-white/50 hover:text-white transition rounded-md hover:bg-white/20 flex-shrink-0 -mt-1 -mr-1" title="編輯當日資訊">
+                <i data-lucide="edit-2" class="w-4 h-4"></i>
+              </button>
             </div>
             
+            <div class="flex items-center gap-1.5 text-xs text-white/80 h-5 mt-0.5">
+                <i data-lucide="map-pin" class="w-3.5 h-3.5 text-white/80 flex-shrink-0"></i> 
+                <span class="truncate mt-0.5 leading-normal">${day.location || ''}</span>
+            </div>
+            
+            <div class="flex items-center gap-1.5 text-xs text-white/80 h-5 mt-0.5">
+                <i data-lucide="bed" class="w-3.5 h-3.5 text-white/80 flex-shrink-0"></i> 
+                <span class="truncate mt-0.5 leading-normal">${day.accommodation || ''}</span>
+            </div>
           </div>
+          
+        </div>
       `;
       lucide.createIcons();
     }
@@ -1494,7 +1463,6 @@ reservationsData = ${JSON.stringify(reservationsData.filter(r => r.tripId === cu
            const originLoc = prevLocName;
            const destLoc = resolveMapQuery(item.address, item.name);
            
-           // 【修復5】：取消倒轉 Hack，直接將 origin = 上一站，destination = 此站
            const mapUrlAB = originLoc
              ? `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(originLoc)}&destination=${encodeURIComponent(destLoc)}&travelmode=${travelmodeAB}`
              : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(destLoc)}`;
@@ -1510,18 +1478,15 @@ reservationsData = ${JSON.stringify(reservationsData.filter(r => r.tripId === cu
         
         html += transportHtml;
 
-        // 處理卡片內「導航」按鈕的交通方式（如果沒有選擇，預設為步行）
         let btnTravelMode = '&travelmode=walking';
         if(item.tMode === 'transit') btnTravelMode = '&travelmode=transit';
         if(item.tMode === 'drive') btnTravelMode = '&travelmode=driving';
         
         const mapDestination = resolveMapQuery(item.address, item.name);
-        // 刻意不設定 origin，讓 Google Maps 打開時自動偵測使用者的當前實時位置
         const mapUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(mapDestination)}${btnTravelMode}`;
         
         const iconInfo = typeConfig[item.type] || typeConfig['other'];
 
-        // 【修復2】：加入 drag-card class
 html += isFlight ? renderFlightCard(item, iconInfo, mapUrl) : renderNormalCard(item, iconInfo, mapUrl);
       });  
       list.innerHTML = html;
@@ -1531,7 +1496,7 @@ html += isFlight ? renderFlightCard(item, iconInfo, mapUrl) : renderNormalCard(i
       sortableInstance = new Sortable(list, { 
           animation: 150, 
           handle: '.drag-grip', 
-          draggable: '.drag-card', // 【修復2套用】：不再綁定 .group
+          draggable: '.drag-card', 
           ghostClass: 'sortable-ghost', 
           onEnd: () => { 
               reorderData(); 
@@ -1681,7 +1646,6 @@ html += isFlight ? renderFlightCard(item, iconInfo, mapUrl) : renderNormalCard(i
     }
     
     function reorderData() { 
-        // 【修復2套用】：改抓 .drag-card，避免抓到路徑虛線而死機
         document.querySelectorAll('#itineraryList > .drag-card').forEach((el, index) => { 
             const idx = itineraryData.findIndex(i => i.id === el.getAttribute('data-id')); 
             if(idx > -1) itineraryData[idx].order = index + 1; 
@@ -1755,14 +1719,17 @@ html += isFlight ? renderFlightCard(item, iconInfo, mapUrl) : renderNormalCard(i
     }
     function addCheckItem(cat) { 
         const tripId = getCurrentTripId();
-        if (cat === 'todo' && !tripId) {
+        // 【修改】：不論是 todo 還是行李，只要沒旅程就不能新增
+        if (!tripId) {
             alert('請先建立一個旅程！');
             return;
         }
         const input = document.getElementById(`newCheckItem-${cat}`); 
         if(!input || input.value.trim() === '') return; 
-        const newItem = { id: Date.now().toString(), category: cat, text: input.value, done: false };
-        if (cat === 'todo') newItem.tripId = tripId;
+        
+        // 【修改】：所有項目都強制寫入 tripId
+        const newItem = { id: Date.now().toString(), category: cat, text: input.value, done: false, tripId: tripId };
+        
         checklistData.push(newItem); 
         input.value = ''; 
         renderChecklist(); 
@@ -1797,7 +1764,6 @@ html += isFlight ? renderFlightCard(item, iconInfo, mapUrl) : renderNormalCard(i
                             <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleCheck('${item.id}')" class="w-4 h-4 accent-accent cursor-pointer rounded">
                             <span class="text-sm ${item.done ? 'line-through text-primary/40' : 'text-primary'}">${item.text}</span>
                           </div>
-                          <!-- 改用打開 Modal 及筆仔 Icon -->
                           <button onclick="openModal('checkItemModal', '${item.id}')" class="p-1 -mr-1 text-primary/40 hover:text-accent transition flex-shrink-0"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
                         </div>
                     `;
@@ -1815,8 +1781,11 @@ html += isFlight ? renderFlightCard(item, iconInfo, mapUrl) : renderNormalCard(i
 
         } else {
             html += `<div id="checklistAccordionContainer" class="flex flex-col gap-4">`;
+            const currentTripId = getCurrentTripId(); // 【新增】取得當前旅程 ID
+
             Object.keys(checklistCategoryMap).forEach(cat => {
-                const items = checklistData.filter(i => i.category === cat);
+                // 【修改】：加入 i.tripId === currentTripId 嘅判斷
+                const items = checklistData.filter(i => i.category === cat && i.tripId === currentTripId);
                 const total = items.length;
                 const done = items.filter(i => i.done).length;
                 const isOpen = checklistAccordionState[cat];
@@ -1834,7 +1803,6 @@ html += isFlight ? renderFlightCard(item, iconInfo, mapUrl) : renderNormalCard(i
                                 <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleCheck('${item.id}')" class="w-4 h-4 accent-accent cursor-pointer rounded">
                                 <span class="text-sm ${item.done ? 'line-through text-primary/40' : 'text-primary'}">${item.text}</span>
                               </div>
-                              <!-- 改用打開 Modal 及筆仔 Icon -->
                               <button onclick="openModal('checkItemModal', '${item.id}')" class="p-1 -mr-1 text-primary/40 hover:text-accent transition flex-shrink-0"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
                             </div>
                             `;
