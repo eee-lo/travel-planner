@@ -881,13 +881,10 @@ reservationsData = ${JSON.stringify(reservationsData.filter(r => r.tripId === cu
     }
 
     function hardResetApp() {
-      if (confirm('確定要 Refresh 嗎？\n\n這將會清除您目前瀏覽器上的所有修改，並重新載入最新的系統行程。')) {
-        // 清除瀏覽器中的 App 暫存資料
-        localStorage.removeItem('tripPlannerBackup');
         // 強制刷新網頁
         window.location.reload();
-      }
     }
+    
     function importJSONData(event) {
       const file = event.target.files[0];
       if (!file) return;
