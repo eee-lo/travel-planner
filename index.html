@@ -1283,8 +1283,9 @@ reservationsData = ${JSON.stringify(reservationsData.filter(r => r.tripId === cu
         const count = itineraryData.filter(i => i.dayId === day.id && i.tripId === tripId).length;
         const baseClass = "flex flex-col items-center justify-center min-w-[70px] md:w-full py-2.5 md:py-3 rounded-2xl md:rounded-xl cursor-pointer transition-all border";
         const colorClass = isActive ? 'bg-accent/10 border-accent/30 text-accent shadow-sm' : 'bg-card border-border/50 text-primary/60 hover:bg-bg';
+        // 【修改】：加入 class "day-tab-dropzone" 同埋 data-day-id="${day.id}"
         return `
-          <div onclick="switchDay(${day.id})" class="${baseClass} ${colorClass}">
+          <div onclick="switchDay(${day.id})" class="${baseClass} ${colorClass} day-tab-dropzone" data-day-id="${day.id}">
             <div class="text-sm font-bold tracking-[0.1em] mb-0.5 ml-[0.1em]">${day.dow}</div>
             <div class="text-[10px] font-semibold tracking-widest opacity-70">${parseDateToDDMM(day.dateStr)}</div>
           </div>
@@ -1493,7 +1494,50 @@ html += isFlight ? renderFlightCard(item, iconInfo, mapUrl) : renderNormalCard(i
           handle: '.drag-grip', 
           draggable: '.drag-card', 
           ghostClass: 'sortable-ghost', 
-          onEnd: () => { 
+          forceFallback: true,     // 【新增】：強制使用自訂拖曳層，確保跨元素拖拉座標準確
+          fallbackOnBody: true,    // 【新增】：將拖曳層放喺 body，避免被其他 overflow 元素遮擋
+          onEnd: (evt) => { 
+              // 1. 獲取放開滑鼠/手指嗰一刻嘅座標
+              const originalEvent = evt.originalEvent;
+              let clientX, clientY;
+              if (originalEvent.changedTouches) {
+                  clientX = originalEvent.changedTouches[0].clientX;
+                  clientY = originalEvent.changedTouches[0].clientY;
+              } else {
+                  clientX = originalEvent.clientX;
+                  clientY = originalEvent.clientY;
+              }
+
+              // 2. 暫時隱藏拖曳中嘅卡片，用嚟精準探測佢底下嘅元素
+              evt.item.style.display = 'none'; 
+              const dropTarget = document.elementFromPoint(clientX, clientY);
+              evt.item.style.display = ''; 
+
+              // 3. 檢查底下係咪啱啱設定嘅 "day-tab-dropzone"
+              const dayTab = dropTarget ? dropTarget.closest('.day-tab-dropzone') : null;
+
+              if (dayTab) {
+                  // 4. 如果係拖咗去其他日期，更新資料庫！
+                  const targetDayId = parseInt(dayTab.getAttribute('data-day-id'));
+                  if (targetDayId !== activeDay) {
+                      const draggedItemId = evt.item.getAttribute('data-id');
+                      const itemIndex = itineraryData.findIndex(i => i.id === draggedItemId);
+                      
+                      if (itemIndex > -1) {
+                          // 更改所屬 Day，並將順序設為嗰日嘅最尾
+                          itineraryData[itemIndex].dayId = targetDayId;
+                          const targetDayItems = itineraryData.filter(i => i.dayId === targetDayId && i.tripId === tripId);
+                          itineraryData[itemIndex].order = targetDayItems.length > 0 ? Math.max(...targetDayItems.map(i => i.order)) + 1 : 1;
+                          
+                          saveLocalData();
+                          renderDateScroller(); 
+                          renderItinerary();
+                          return; // 終止執行，唔需要做同日排序
+                      }
+                  }
+              }
+              
+              // 5. 如果只係喺同一日入面上下拖拉，就執行原本嘅同日排序邏輯
               reorderData(); 
               setTimeout(() => renderItinerary(), 10); 
           } 
