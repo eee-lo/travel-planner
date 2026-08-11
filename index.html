@@ -1455,10 +1455,10 @@ reservationsData = ${JSON.stringify(reservationsData.filter(r => r.tripId === cu
            const durationText = item.opHours ? item.opHours : '';
            const labelText = durationText ? `${m.label}前往：${durationText}` : `${m.label}前往`;
 
-           transportHtml = `<a href="${mapUrlAB}" target="_blank" class="flex items-center gap-2 text-xs text-primary/50 py-3 pl-4 border-l-2 border-dashed border-accent/40 ml-[23px] hover:text-accent transition group cursor-pointer"><i data-lucide="${m.icon}" class="w-3.5 h-3.5 text-accent group-hover:scale-110 transition"></i> <span class="border-b border-dashed border-primary/30 group-hover:border-accent transition pb-0.5">${labelText}</span></a>`;
+           transportHtml = `<a href="${mapUrlAB}" target="_blank" class="flex items-center gap-2 text-xs text-primary/50 py-1 pl-4 border-l-2 border-dashed border-accent/40 ml-[23px] hover:text-accent transition group cursor-pointer"><i data-lucide="${m.icon}" class="w-3.5 h-3.5 text-accent group-hover:scale-110 transition"></i> <span class="border-b border-dashed border-primary/30 group-hover:border-accent transition pb-0.5">${labelText}</span></a>`;
            
         } else if (index > 0 || (index === 0 && prevLocName)) {
-           transportHtml = `<div class="flex items-center gap-2 text-xs text-primary/50 py-3 pl-4 border-l-2 border-dashed border-accent/40 ml-[23px]"></div>`;
+           transportHtml = `<div class="flex items-center gap-2 text-xs text-primary/50 py-1 pl-4 border-l-2 border-dashed border-accent/40 ml-[23px]"></div>`;
         }
         
         html += transportHtml;
