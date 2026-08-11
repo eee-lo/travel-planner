@@ -1130,11 +1130,10 @@ reservationsData = ${JSON.stringify(reservationsData.filter(r => r.tripId === cu
 
         const displayDateStr = formatDisplayDate(trip.dateStr);
 
-        // 判斷有無圖片，動態切換漸變底色及字體顏色
+        // 🟢 判斷有無圖片
         const hasCover = !!trip.cover;
-        const bgStyle = hasCover ? 'bg-gray-200' : 'bg-gradient-to-r from-accent/30 to-accent/5 border-b border-border/40';
-        const textStyle = hasCover ? 'text-white' : 'text-primary';
-        const btnStyle = hasCover ? 'text-white/70 hover:text-white drop-shadow-md' : 'text-primary/40 hover:text-accent bg-white/50 rounded-md';
+        // 冇圖片時，使用明顯深色嘅同色調漸變，等預設 accent 標籤可以清晰顯示
+        const bgStyle = hasCover ? 'bg-gray-200' : 'bg-gradient-to-br from-[#5A737D] to-[#7A919A]';
 
         return `
         <div class="bg-card rounded-3xl overflow-hidden shadow-sm border border-border/50 transition flex flex-col min-h-[200px]">
@@ -1142,12 +1141,13 @@ reservationsData = ${JSON.stringify(reservationsData.filter(r => r.tripId === cu
             ${hasCover ? `<img src="${trip.cover}" class="w-full h-full object-cover" alt="${trip.name}">` : ''}
             ${hasCover ? `<div class="absolute inset-0 bg-gradient-to-t from-primary/80 via-primary/30 to-transparent"></div>` : ''}
             
-            <button onclick="openModal('tripModal', '${trip.id}')" class="absolute top-3 right-3 p-1.5 ${btnStyle} transition z-10 cursor-pointer">
+            <button onclick="openModal('tripModal', '${trip.id}')" class="absolute top-3 right-3 p-1.5 text-white/70 hover:text-white transition z-10 drop-shadow-md cursor-pointer">
               <i data-lucide="edit-2" class="w-4 h-4"></i>
             </button>
 
             <div class="absolute bottom-4 left-4 right-4 flex justify-between items-end">
-              <div class="${textStyle} flex-1 pr-2">
+              <div class="text-white flex-1 pr-2">
+                <!-- 🟢 統一用返原本嘅 bg-accent -->
                 <span class="text-[10px] bg-accent text-white px-2 py-1 rounded-md font-bold mb-1.5 inline-block shadow-sm">${statusTag}</span>
                 <h3 class="font-bold text-lg leading-tight truncate"><span>${trip.name}</span></h3>
               </div>
