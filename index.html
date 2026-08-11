@@ -2205,7 +2205,7 @@ html += isFlight ? renderFlightCard(item, iconInfo, mapUrl) : renderNormalCard(i
             <div class="px-5 py-4 flex items-center justify-between relative bg-white">
               <div class="text-center flex-1">
                 <!-- 字體由 text-3xl 縮減至 text-2xl (手機版) / text-3xl (桌面版) -->
-                <div class="text-1xl md:text-3xl font-black text-primary mb-1 tracking-tight">${item.depAirport || '---'}</div>
+                <div class="text-1.5xl md:text-3xl font-black text-primary mb-1 tracking-tight">${item.depAirport || '---'}</div>
                 <div class="text-sm text-primary/60 uppercase font-bold tracking-wide">${item.flightDep ? formatResDateTime(item.flightDep) : '時間未定'}</div>
               </div>
               
