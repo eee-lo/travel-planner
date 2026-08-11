@@ -324,8 +324,11 @@
         <button onclick="generateHardcodeCode()" class="w-full flex items-center justify-center gap-2 bg-bg border border-border text-primary py-3.5 rounded-xl text-sm font-bold shadow-sm hover:bg-border/30 transition">
           <i data-lucide="code" class="w-4 h-4 text-accent"></i> Coding更新
         </button>
-      </div>
-    </div>
+
+        <!-- 新增：簡約 Refresh 按鈕 -->
+        <button onclick="hardResetApp()" class="w-full flex items-center justify-center gap-2 bg-bg border border-border text-primary py-3.5 rounded-xl text-sm font-bold shadow-sm hover:bg-border/30 transition">
+          <i data-lucide="rotate-cw" class="w-4 h-4 text-accent"></i> Refresh
+        </button>
   </div>
   
   <div id="reservationModal" class="fixed inset-0 z-[60] hidden flex justify-center items-end md:items-center">
@@ -729,7 +732,7 @@
       defaultFutureEnd.setDate(defaultFutureEnd.getDate() + 3);
       const mockDateStr = `${defaultFutureDate.getFullYear()}-${String(defaultFutureDate.getMonth()+1).padStart(2,'0')}-${String(defaultFutureDate.getDate()).padStart(2,'0')} to ${defaultFutureEnd.getFullYear()}-${String(defaultFutureEnd.getMonth()+1).padStart(2,'0')}-${String(defaultFutureEnd.getDate()).padStart(2,'0')}`;
 
-      // 由呢度開始圈選，直到 saveLocalData(); 之上
+      // *Update Coding* 由呢度開始圈選，直到 saveLocalData(); 之上
       // 【Coding更新】僅針對目前旅程：Lofoten・Norway
 tripsData = [{"id":"1","name":"Lofoten・Norway","dateStr":"2026-08-27 to 2026-09-01","progress":40,"cover":"https://res.cloudinary.com/fjordtours/image/upload/w_auto/dpr_auto/c_fill/f_auto/q_auto/c_limit,w_1920/v1/norway/places-to-visit/northern-norway/lofoten/reine-lofoten-summer?_a=BAVMn6DY0"}];
 daysData = [{"id":1,"tripId":"1","dateStr":"27 AUG 26","dow":"THU","weather":"sun","wText":"晴天","temp":"22° / 14°","location":"Oslo","accommodation":"Raddison Blu  Airport Hotel","overview":"Oslo Stopover"},{"id":2,"tripId":"1","dateStr":"28 AUG 26","dow":"FRI","weather":"cloud-rain","wText":"陣雨","temp":"16° / 10°","location":"Reine","accommodation":"Valen Retro Home, Valen 4, 8390 Reine, Norway","overview":"Scenic drive to Reine"},{"id":3,"tripId":"1","dateStr":"29 AUG 26","dow":"SAT","weather":"cloud-rain","wText":"陣雨","temp":"16° / 10°","location":"Reine","accommodation":"Valen Retro Home, Valen 4, 8390 Reine, Norway","overview":"Hamnøy + Å"},{"id":4,"tripId":"1","dateStr":"30 AUG 26","dow":"SUN","weather":"cloud-rain","wText":"短暫雨","temp":"21° / 15°","location":"Ballstad","accommodation":"Airbnb - Løkthaugveien 9, Vågan, Nordland 8300","overview":"Nusfjord + Ballstad"},{"id":5,"tripId":"1","dateStr":"31 AUG 26","dow":"MON","weather":"cloud-sun","wText":"晴時多雲","temp":"25° / 18°","location":"Svolvær","accommodation":"Airbnb - Løkthaugveien 9, Vågan, Nordland 8300","overview":"Svolvær"},{"id":6,"tripId":"1","dateStr":"01 SEP 26","dow":"TUE","weather":"cloud-sun","wText":"晴時多雲","temp":"25° / 18°","location":"Svolvær","accommodation":"","overview":"Bye"}];
@@ -877,6 +880,14 @@ reservationsData = ${JSON.stringify(reservationsData.filter(r => r.tripId === cu
       });
     }
 
+    function hardResetApp() {
+      if (confirm('確定要 Refresh 嗎？\n\n這將會清除您目前瀏覽器上的所有修改，並重新載入最新的系統行程。')) {
+        // 清除瀏覽器中的 App 暫存資料
+        localStorage.removeItem('tripPlannerBackup');
+        // 強制刷新網頁
+        window.location.reload();
+      }
+    }
     function importJSONData(event) {
       const file = event.target.files[0];
       if (!file) return;
