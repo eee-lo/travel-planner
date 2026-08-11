@@ -1292,40 +1292,36 @@ reservationsData = ${JSON.stringify(reservationsData.filter(r => r.tripId === cu
           let t = day.temp.replace(/°C/g, '').replace(/°/g, ''); 
           let parts = t.split('/').map(p => p.trim());
           if(parts.length === 2) {
-              // 溫度縮細並緊湊排列 (第三行)
+              // 1. 溫度字體放大至 text-xs，箭嘴微調至 w-3 h-3 配合字體
               tempHtml = `
-                <div class="flex items-center justify-center gap-0.5 text-[9px] md:text-[10px] text-white/90 font-medium whitespace-nowrap w-full mt-0.5">
-                  <span class="flex items-center"><i data-lucide="arrow-down" class="w-2.5 h-2.5 opacity-80"></i>${parts[1]}°</span>
-                  <span class="flex items-center"><i data-lucide="arrow-up" class="w-2.5 h-2.5 opacity-80"></i>${parts[0]}°</span>
+                <div class="flex items-center justify-center gap-1 text-xs text-white/90 font-medium whitespace-nowrap w-full">
+                  <span class="flex items-center"><i data-lucide="arrow-down" class="w-3 h-3 opacity-80 mr-0.5"></i>${parts[1]}°</span>
+                  <span class="flex items-center ml-0.5"><i data-lucide="arrow-up" class="w-3 h-3 opacity-80 mr-0.5"></i>${parts[0]}°</span>
                 </div>
               `;
           } else {
-              tempHtml = `<div class="text-[9px] md:text-[10px] text-white/90 font-medium whitespace-nowrap mt-0.5 w-full text-center">${parts[0]}°</div>`;
+              tempHtml = `<div class="text-xs text-white/90 font-medium whitespace-nowrap w-full text-center">${parts[0]}°</div>`;
           }
       }
       
       document.getElementById('weatherHeader').innerHTML = `
-        <div class="relative flex justify-between items-center w-full gap-2">
+        <div class="relative flex justify-between items-stretch w-full gap-2 min-h-[72px]">
             
-            <!-- 將寬度極致收窄至 60px (約 1/6 螢幕)，改為垂直三行 -->
-            <div class="flex flex-col items-center justify-center flex-shrink-0 w-[60px] md:w-[70px] relative group">
-              <!-- 更新按鈕 -->
+            <!-- 2. 容器微微加闊至 65px 確保大字體唔會換行 -->
+            <div class="flex flex-col items-center justify-between py-1 flex-shrink-0 w-[65px] md:w-[75px] relative group">
               <button onclick="refreshDayWeather(${id})" class="absolute -top-1 -left-2 p-1 text-white/50 hover:text-white transition rounded-full z-10 bg-black/5 backdrop-blur-sm" title="更新天氣">
                 <i data-lucide="rotate-cw" class="w-3 h-3"></i>
               </button>
               
-              <!-- 第一行：天氣圖示 -->
-              <i data-lucide="${day.weather}" class="w-6 h-6 md:w-8 md:h-8 text-white drop-shadow-sm mb-0.5"></i>
+              <i data-lucide="${day.weather}" class="w-6 h-6 md:w-8 md:h-8 text-white drop-shadow-sm mt-0.5"></i>
               
-              <!-- 第二行：天氣字眼 (縮細字體) -->
-              <span class="text-[10px] font-bold text-white leading-none text-center tracking-wide w-full">${day.wText}</span>
-              
-              <!-- 第三行：溫度 -->
+              <!-- 3. 天氣文字放大至 text-xs -->
+              <span class="text-xs font-bold text-white leading-tight text-center tracking-wide w-full whitespace-nowrap">${day.wText}</span>
               ${tempHtml}
             </div>
 
-            <!-- 右側行程概要：獲得大量空間，並縮減與天氣之間的距離 (pl-1) -->
-            <div class="flex-1 min-w-0 flex flex-col gap-1.5 justify-center pl-1 md:pl-2">
+            <!-- 右側行程概要保持不變 -->
+            <div class="flex-1 min-w-0 flex flex-col gap-1.5 justify-center py-0.5 pl-1 md:pl-2">
               <div class="flex justify-between items-start h-6">
                 <h2 class="text-[15px] md:text-base font-bold text-white leading-snug truncate flex-1 pr-2 pb-0.5">
                   Day ${id} ${day.overview ? `<span class="ml-1 font-semibold">${day.overview}</span>` : ''}
