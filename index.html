@@ -460,7 +460,7 @@
           <input type="text" id="tDate" required class="hidden" placeholder="選擇開始與結束日期">
         </div>
         <div>
-          <label class="block text-xs font-medium mb-1 text-primary/70">封面圖 URL (選填)</label>
+          <label class="block text-xs font-medium mb-1 text-primary/70">封面圖 URL</label>
           <input type="url" id="tCover" class="w-full border border-border rounded-xl p-2.5 text-sm bg-bg outline-none focus:border-accent text-primary" placeholder="https://...">
         </div>
         <div class="flex gap-3 mt-2">
@@ -2202,17 +2202,20 @@ html += isFlight ? renderFlightCard(item, iconInfo, mapUrl) : renderNormalCard(i
               <button onclick="openModal('reservationModal', '${item.id}')" class="p-1 -mr-1 text-primary/40 hover:text-accent transition flex-shrink-0"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
             </div>
             
-            <div class="px-5 py-6 flex items-center justify-between relative bg-white">
+            <div class="px-5 py-4 flex items-center justify-between relative bg-white">
               <div class="text-center flex-1">
-                <div class="text-3xl md:text-4xl font-black text-primary mb-1.5 tracking-tight">${item.depAirport || '---'}</div>
+                <!-- 字體由 text-3xl 縮減至 text-2xl (手機版) / text-3xl (桌面版) -->
+                <div class="text-2xl md:text-3xl font-black text-primary mb-1 tracking-tight">${item.depAirport || '---'}</div>
                 <div class="text-sm text-primary/60 uppercase font-bold tracking-wide">${item.flightDep ? formatResDateTime(item.flightDep) : '時間未定'}</div>
               </div>
-              <div class="w-20 md:w-28 flex flex-col items-center justify-center px-2 flex-shrink-0 relative top-[-8px]">
-                <i data-lucide="plane-takeoff" class="w-7 h-7 text-accent/60 mb-2"></i>
+              
+              <div class="w-20 md:w-28 flex flex-col items-center justify-center px-2 flex-shrink-0 relative top-[-6px]">
+                <i data-lucide="plane-takeoff" class="w-7 h-7 text-accent mb-2"></i>
                 <div class="w-full h-px border-t-2 border-dashed border-accent/40"></div>
               </div>
+              
               <div class="text-center flex-1">
-                <div class="text-3xl md:text-4xl font-black text-primary mb-1.5 tracking-tight">${item.arrAirport || '---'}</div>
+                <div class="text-2xl md:text-3xl font-black text-primary mb-1 tracking-tight">${item.arrAirport || '---'}</div>
                 <div class="text-sm text-primary/60 uppercase font-bold tracking-wide">${item.flightArr ? formatResDateTime(item.flightArr) : '時間未定'}</div>
               </div>
             </div>
