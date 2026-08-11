@@ -734,6 +734,53 @@
       defaultFutureEnd.setDate(defaultFutureEnd.getDate() + 3);
       const mockDateStr = `${defaultFutureDate.getFullYear()}-${String(defaultFutureDate.getMonth()+1).padStart(2,'0')}-${String(defaultFutureDate.getDate()).padStart(2,'0')} to ${defaultFutureEnd.getFullYear()}-${String(defaultFutureEnd.getMonth()+1).padStart(2,'0')}-${String(defaultFutureEnd.getDate()).padStart(2,'0')}`;
 
+      checklistData = [
+        { id: '1', category: 'personal', text: '👓 眼鏡', done: false },
+        { id: '2', category: 'personal', text: '🕶️ 太陽眼鏡', done: false },
+        { id: '3', category: 'personal', text: '💊 藥物', done: false },
+        { id: '4', category: 'personal', text: '☂️ 雨傘', done: false },
+
+        { id: '5', category: 'daily', text: '🪥 牙膏牙刷', done: false },
+        { id: '6', category: 'daily', text: '💄 化妝品', done: false },
+        { id: '7', category: 'daily', text: '🧴 卸妝水', done: false },
+        { id: '8', category: 'daily', text: '🫧 護膚品', done: false },
+        { id: '9', category: 'daily', text: '😶‍🌫️ 面膜', done: false },
+        { id: '10', category: 'daily', text: '🛁 洗頭水、護髮素、沐浴露', done: false },
+        { id: '11', category: 'daily', text: '🧴 潤膚露', done: false },
+        { id: '12', category: 'daily', text: '☀️ 防曬', done: false },
+        { id: '13', category: 'daily', text: '👁️ 隱形眼鏡及藥水', done: false },
+        { id: '14', category: 'daily', text: '🌿 止汗劑', done: false },
+        { id: '15', category: 'daily', text: '🤍 化妝棉、棉花棒', done: false },
+        { id: '16', category: 'daily', text: '🌸 香水', done: false },
+        { id: '17', category: 'daily', text: '🩷 M巾、護墊', done: false },
+        { id: '18', category: 'daily', text: '💇🏻‍♀️ 直髮夾', done: false },
+
+        { id: '19', category: 'clothing', text: '👕 衣物', done: false },
+        { id: '20', category: 'clothing', text: '🩲 內衣褲', done: false },
+        { id: '21', category: 'clothing', text: '💤 睡衣', done: false },
+        { id: '22', category: 'clothing', text: '🧦 襪子', done: false },
+        { id: '23', category: 'clothing', text: '🧢 帽', done: false },
+        { id: '24', category: 'clothing', text: '🩴 拖鞋', done: false },
+        { id: '25', category: 'clothing', text: '👟 休閒鞋', done: false },
+        { id: '26', category: 'clothing', text: '🧖🏻‍♀️ 毛巾', done: false },
+        { id: '27', category: 'clothing', text: '💎 飾物', done: false },
+        { id: '28', category: 'clothing', text: '👜 袋', done: false },
+
+        { id: '29', category: 'electronic', text: '📷 相機充電器', done: false },
+        { id: '30', category: 'electronic', text: '📱 iPhone 插頭', done: false },
+        { id: '31', category: 'electronic', text: '🔌 充電線', done: false },
+        { id: '32', category: 'electronic', text: '🌍 轉插器', done: false },
+
+        { id: '33', category: 'carryon', text: '✈️ 護照、ID、車牌', done: false },
+        { id: '34', category: 'carryon', text: '💵 銀包、外幣', done: false },
+        { id: '35', category: 'carryon', text: '🔋 Portable 電源', done: false },
+        { id: '36', category: 'carryon', text: '💺 頸枕', done: false },
+        { id: '37', category: 'carryon', text: '🎧 Airpods', done: false },
+        { id: '38', category: 'carryon', text: '📱 iPad', done: false },
+        { id: '39', category: 'carryon', text: '📷 相機', done: false },
+        { id: '40', category: 'carryon', text: '🧻 紙巾', done: false }
+      ];
+      
       // *Update Coding* 由呢度開始圈選，直到 saveLocalData(); 之上
       // 【Coding更新】僅針對目前旅程：Lofoten・Norway
 tripsData = [{"id":"1","name":"Lofoten・Norway","dateStr":"2026-08-27 to 2026-09-01","progress":40,"cover":"https://res.cloudinary.com/fjordtours/image/upload/w_auto/dpr_auto/c_fill/f_auto/q_auto/c_limit,w_1920/v1/norway/places-to-visit/northern-norway/lofoten/reine-lofoten-summer?_a=BAVMn6DY0"}];
