@@ -734,11 +734,6 @@
     }
 
     function loadMockData() {
-      let defaultFutureDate = new Date();
-      defaultFutureDate.setDate(defaultFutureDate.getDate() + 15);
-      let defaultFutureEnd = new Date(defaultFutureDate);
-      defaultFutureEnd.setDate(defaultFutureEnd.getDate() + 3);
-      const mockDateStr = `${defaultFutureDate.getFullYear()}-${String(defaultFutureDate.getMonth()+1).padStart(2,'0')}-${String(defaultFutureDate.getDate()).padStart(2,'0')} to ${defaultFutureEnd.getFullYear()}-${String(defaultFutureEnd.getMonth()+1).padStart(2,'0')}-${String(defaultFutureEnd.getDate()).padStart(2,'0')}`;
 
       // 【修改】：清空原本長長一大段 checklistData，留空即可
       checklistData = [];
@@ -1683,12 +1678,6 @@ html += isFlight ? renderFlightCard(item, iconInfo, mapUrl) : renderNormalCard(i
     function toggleCheck(id) { 
         const item = checklistData.find(i => i.id === id); 
         if(item) item.done = !item.done; 
-        renderChecklist(); 
-        saveLocalData(); 
-    }
-    
-    function deleteCheckItem(id) { 
-        checklistData = checklistData.filter(i => i.id !== id); 
         renderChecklist(); 
         saveLocalData(); 
     }
