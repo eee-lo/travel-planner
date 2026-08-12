@@ -1111,7 +1111,7 @@ reservationsData = ${JSON.stringify(reservationsData.filter(r => r.tripId === cu
       renderReservations();
     });
 
-    function navigate(viewId) {
+function navigate(viewId) {
       ['dashboard', 'tripDetail', 'toolbox', 'shopping', 'reservations'].forEach(id => {
         const target = document.getElementById(`view-${id}`);
         const btn = document.getElementById(`nav-${id}`);
@@ -1132,15 +1132,24 @@ reservationsData = ${JSON.stringify(reservationsData.filter(r => r.tripId === cu
       
       const activeView = document.getElementById(`view-${viewId}`);
       activeView.classList.remove('hidden');
+      
+      // ✨ 修正1：確保所有版面切換時都加返排版 class，防止走位
+      activeView.classList.add('flex', 'flex-col'); 
+
+      // ✨ 修正2：每次入去特定版面，都強制重新載入最新資料
       if (viewId === 'tripDetail') {
-        activeView.classList.add('flex', 'flex-col');
         const currentTripDayCount = daysData.filter(d => d.tripId === getCurrentTripId()).length;
         if(activeDay > currentTripDayCount) activeDay = 1;
         renderDateScroller(); 
         switchDay(activeDay); 
       } else if (viewId === 'reservations') {
-        activeView.classList.add('flex', 'flex-col');
         renderReservations();
+      } else if (viewId === 'toolbox') {
+        renderChecklist(); // 強制更新準備清單
+      } else if (viewId === 'shopping') {
+        renderShoppingList(); // 強制更新購物清單
+      } else if (viewId === 'dashboard') {
+        renderDashboard(); // 強制更新首頁旅程卡片
       }
       
       activeView.classList.add('view-enter');
