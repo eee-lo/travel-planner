@@ -1496,30 +1496,46 @@ html += isFlight ? renderFlightCard(item, iconInfo, mapUrl) : renderNormalCard(i
           handle: '.drag-grip', 
           draggable: '.drag-card', 
           ghostClass: 'sortable-ghost', 
-          forceFallback: true,     // 【新增】：強制使用自訂拖曳層，確保跨元素拖拉座標準確
-          fallbackOnBody: true,    // 【新增】：將拖曳層放喺 body，避免被其他 overflow 元素遮擋
+          forceFallback: true,     
+          fallbackOnBody: true,    
           onEnd: (evt) => { 
-              // 1. 獲取放開滑鼠/手指嗰一刻嘅座標
               const originalEvent = evt.originalEvent;
               let clientX, clientY;
-              if (originalEvent.changedTouches) {
+              
+              // 1. 確保安全提取手機/電腦嘅座標
+              if (originalEvent && originalEvent.changedTouches && originalEvent.changedTouches.length > 0) {
                   clientX = originalEvent.changedTouches[0].clientX;
                   clientY = originalEvent.changedTouches[0].clientY;
-              } else {
+              } else if (originalEvent && originalEvent.clientX !== undefined) {
                   clientX = originalEvent.clientX;
                   clientY = originalEvent.clientY;
+              } else {
+                  // 萬一拎唔到座標，直接做同日排序算數
+                  reorderData(); 
+                  setTimeout(() => renderItinerary(), 10);
+                  return;
               }
 
-              // 2. 暫時隱藏拖曳中嘅卡片，用嚟精準探測佢底下嘅元素
-              evt.item.style.display = 'none'; 
-              const dropTarget = document.elementFromPoint(clientX, clientY);
-              evt.item.style.display = ''; 
+              // ⚠️ 關鍵 1：用 visibility='hidden' 代替 display='none'
+              // 咁樣卡片會隱形，但依然霸住個位，防止列表縮水導致日期列移位！
+              evt.item.style.visibility = 'hidden'; 
 
-              // 3. 檢查底下係咪啱啱設定嘅 "day-tab-dropzone"
+              // ⚠️ 關鍵 2：強制隱藏跟住手指嗰張「分身卡片」，確保雷達探測唔會被阻擋！
+              const dragClone = document.querySelector('.sortable-drag');
+              if (dragClone) dragClone.style.display = 'none';
+
+              // 發射雷達，探測手指底下係咩元素
+              const dropTarget = document.elementFromPoint(clientX, clientY);
+
+              // 探測完畢，恢復所有卡片顯示
+              evt.item.style.visibility = ''; 
+              if (dragClone) dragClone.style.display = '';
+
+              // 2. 檢查目標係咪 Day Tab
               const dayTab = dropTarget ? dropTarget.closest('.day-tab-dropzone') : null;
 
               if (dayTab) {
-                  // 4. 如果係拖咗去其他日期，更新資料庫！
+                  // 3. 如果係拖咗去其他日期，更新資料庫
                   const targetDayId = parseInt(dayTab.getAttribute('data-day-id'));
                   if (targetDayId !== activeDay) {
                       const draggedItemId = evt.item.getAttribute('data-id');
@@ -1539,7 +1555,7 @@ html += isFlight ? renderFlightCard(item, iconInfo, mapUrl) : renderNormalCard(i
                   }
               }
               
-              // 5. 如果只係喺同一日入面上下拖拉，就執行原本嘅同日排序邏輯
+              // 4. 如果冇跨日，或者冇 drop 中 Tab，就執行原本嘅同日排序邏輯
               reorderData(); 
               setTimeout(() => renderItinerary(), 10); 
           } 
