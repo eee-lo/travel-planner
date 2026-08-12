@@ -1592,7 +1592,7 @@ html += isFlight ? renderFlightCard(item, iconInfo, mapUrl) : renderNormalCard(i
       `;
     }
     
-    function renderNormalCard(item, iconInfo, mapUrl) {
+function renderNormalCard(item, iconInfo, mapUrl) {
       return `
         <div class="flex items-stretch mb-2 relative group/card drag-card" data-id="${item.id}">
           <div class="flex flex-col items-center mr-3 w-10 flex-shrink-0">
@@ -1600,10 +1600,21 @@ html += isFlight ? renderFlightCard(item, iconInfo, mapUrl) : renderNormalCard(i
             <div class="flex-1 w-[2px] bg-border/60 my-1"></div>
           </div>
           <div class="flex-1 bg-card rounded-2xl py-4 pr-3 pl-8 shadow-sm border border-border/60 relative hover:border-accent/30 transition min-w-0">
+            <!-- 拖曳握把 (保留你原有嘅設定) -->
             <div class="drag-grip absolute left-1.5 top-1/2 -translate-y-1/2 cursor-grab active:cursor-grabbing p-1.5 text-border hover:text-primary/50 transition z-10">
                 <i data-lucide="grip-vertical" class="w-4 h-4"></i>
             </div>
-            <button onclick="openModal('activityModal', '${item.id}')" class="absolute top-3 right-2 text-primary/30 hover:text-accent p-1.5 z-10 rounded-md hover:bg-bg"><i data-lucide="more-horizontal" class="w-5 h-5"></i></button>
+
+            <!-- 右上角按鈕區 (編輯 + 📱 手機專用：跨日移動掣) -->
+            <div class="absolute top-3 right-2 flex items-center gap-1 z-10">
+                <button onclick="openMoveDayModal('${item.id}')" class="p-1.5 text-accent hover:text-primary bg-accent/10 rounded-md md:hidden" title="移動到其他日子">
+                    <i data-lucide="calendar-range" class="w-4 h-4"></i>
+                </button>
+                <button onclick="openModal('activityModal', '${item.id}')" class="p-1.5 text-primary/30 hover:text-accent rounded-md hover:bg-bg">
+                    <i data-lucide="more-horizontal" class="w-5 h-5"></i>
+                </button>
+            </div>
+
             <div class="flex justify-between gap-1 items-start w-full">
               <div class="flex-1 min-w-0 pr-2 md:pr-2">
                 <h3 class="font-bold text-primary text-[15px] mb-2 break-words">${item.name}</h3>
@@ -1614,7 +1625,7 @@ html += isFlight ? renderFlightCard(item, iconInfo, mapUrl) : renderNormalCard(i
                 ${item.note ? `<div class="bg-bg p-2.5 rounded-xl border border-border/40 mb-2"><p class="text-xs text-primary/80 break-words whitespace-pre-wrap">${item.note}</p></div>` : ''}
                 <div class="flex items-center gap-2 mt-3">
                   <a href="${mapUrl}" target="_blank" class="inline-flex items-center gap-1 text-[11px] font-bold text-white bg-accent/90 px-2.5 py-1.5 rounded-lg hover:bg-accent transition z-10 cursor-pointer shadow-sm">
-                     <i data-lucide="map-pin" class="w-3 h-3"></i> 導航
+                       <i data-lucide="map-pin" class="w-3 h-3"></i> 導航
                   </a>
                 </div>
               </div>
@@ -2627,6 +2638,60 @@ function openModal(modalId, id = null) {
       const content = document.getElementById(modalId + 'Content');
       if (content && window.innerWidth < 768) { content.classList.add('translate-y-full'); setTimeout(() => document.getElementById(modalId).classList.add('hidden'), 300); } 
       else { document.getElementById(modalId).classList.add('hidden'); }
+    }
+    
+    <!-- 📱 手機跨日移動選擇視窗 -->
+    <div id="moveDayModal" class="fixed inset-0 z-[80] hidden flex justify-center items-end md:items-center">
+      <div class="absolute inset-0 bg-primary/40 backdrop-blur-sm" onclick="closeModal('moveDayModal')"></div>
+      <div class="relative bg-card w-full md:w-[360px] rounded-t-3xl md:rounded-3xl p-6 shadow-2xl z-10 transition-transform transform translate-y-full md:translate-y-0 pb-[calc(24px+env(safe-area-inset-bottom))] md:pb-6" id="moveDayModalContent">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-bold text-primary">選擇要移動到的日子</h3>
+          <button onclick="closeModal('moveDayModal')" class="text-primary/60 hover:text-primary"><i data-lucide="x" class="w-6 h-6"></i></button>
+        </div>
+        <input type="hidden" id="movingItemId">
+        <div id="moveDayListContainer" class="space-y-2 max-h-[50vh] overflow-y-auto pr-1">
+          <!-- 動態生成日子清單 -->
+        </div>
+      </div>
+    </div>
+    let currentMovingItemId = null;
+
+    function openMoveDayModal(itemId) {
+        currentMovingItemId = itemId;
+        const tripId = getCurrentTripId();
+        const tripDays = daysData.filter(d => d.tripId === tripId);
+        const container = document.getElementById('moveDayListContainer');
+        
+        container.innerHTML = tripDays.map(day => {
+            const isCurrent = day.id === activeDay;
+            return `
+                <button onclick="executeMoveToDay(${day.id})" class="w-full flex items-center justify-between p-3 rounded-xl border ${isCurrent ? 'bg-accent/10 border-accent text-accent font-bold' : 'bg-bg border-border/50 text-primary hover:bg-border/20'} transition">
+                    <span>Day ${day.id} (${day.dow} ${parseDateToDDMM(day.dateStr)})</span>
+                    <span class="text-xs opacity-70">${day.overview || day.location || ''}</span>
+                </button>
+            `;
+        }).join('');
+
+        openModal('moveDayModal');
+    }
+
+    function executeMoveToDay(targetDayId) {
+        if (!currentMovingItemId) return;
+        const tripId = getCurrentTripId();
+        const itemIndex = itineraryData.findIndex(i => i.id === currentMovingItemId);
+        
+        if (itemIndex > -1) {
+            itineraryData[itemIndex].dayId = targetDayId;
+            const targetDayItems = itineraryData.filter(i => i.dayId === targetDayId && i.tripId === tripId);
+            itineraryData[itemIndex].order = targetDayItems.length > 0 ? Math.max(...targetDayItems.map(i => i.order)) + 1 : 1;
+            
+            saveLocalData();
+            renderDateScroller(); 
+            renderItinerary();
+        }
+        
+        closeModal('moveDayModal');
+        currentMovingItemId = null;
     }
   </script>
 </body>
