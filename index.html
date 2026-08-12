@@ -593,6 +593,11 @@
           <input type="text" id="aCost" class="w-full border border-border rounded-xl p-2.5 text-sm bg-bg outline-none focus:border-accent">
         </div>
         <div><label class="block text-xs font-medium mb-1 text-primary/70">備註</label><textarea id="aNote" rows="2" class="w-full border border-border rounded-xl p-2.5 text-sm bg-bg outline-none focus:border-accent"></textarea></div>
+
+<!-- 📱 手機專用：移動到其他日子按鈕 -->
+        <button type="button" id="mobileMoveDayBtn" onclick="openMoveDayModalFromActivity()" class="hidden w-full bg-bg border border-border text-primary py-3 rounded-xl text-sm font-bold items-center justify-center gap-2 hover:bg-border/30 transition md:hidden mb-2">
+          <i data-lucide="calendar-range" class="w-4 h-4 text-accent"></i> 移動到其他日子
+        </button>
         
         <div class="flex gap-3 mt-2">
           <button type="button" id="deleteBtn" onclick="confirmDelete()" class="hidden w-1/3 bg-danger/10 text-danger py-3 rounded-xl text-sm font-bold border border-danger/20 hover:bg-danger hover:text-white transition">刪除</button>
