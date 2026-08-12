@@ -2640,20 +2640,24 @@ function openModal(modalId, id = null) {
       else { document.getElementById(modalId).classList.add('hidden'); }
     }
     
-    <!-- 📱 手機跨日移動選擇視窗 -->
-    <div id="moveDayModal" class="fixed inset-0 z-[80] hidden flex justify-center items-end md:items-center">
-      <div class="absolute inset-0 bg-primary/40 backdrop-blur-sm" onclick="closeModal('moveDayModal')"></div>
-      <div class="relative bg-card w-full md:w-[360px] rounded-t-3xl md:rounded-3xl p-6 shadow-2xl z-10 transition-transform transform translate-y-full md:translate-y-0 pb-[calc(24px+env(safe-area-inset-bottom))] md:pb-6" id="moveDayModalContent">
-        <div class="flex justify-between items-center mb-4">
-          <h3 class="text-lg font-bold text-primary">選擇要移動到的日子</h3>
-          <button onclick="closeModal('moveDayModal')" class="text-primary/60 hover:text-primary"><i data-lucide="x" class="w-6 h-6"></i></button>
-        </div>
-        <input type="hidden" id="movingItemId">
-        <div id="moveDayListContainer" class="space-y-2 max-h-[50vh] overflow-y-auto pr-1">
-          <!-- 動態生成日子清單 -->
-        </div>
+  </script>
+    
+   <div id="moveDayModal" class="fixed inset-0 z-[80] hidden flex justify-center items-end md:items-center">
+    <div class="absolute inset-0 bg-primary/40 backdrop-blur-sm" onclick="closeModal('moveDayModal')"></div>
+    <div class="relative bg-card w-full md:w-[360px] rounded-t-3xl md:rounded-3xl p-6 shadow-2xl z-10 transition-transform transform translate-y-full md:translate-y-0 pb-[calc(24px+env(safe-area-inset-bottom))] md:pb-6" id="moveDayModalContent">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-bold text-primary">選擇要移動到的日子</h3>
+        <button onclick="closeModal('moveDayModal')" class="text-primary/60 hover:text-primary"><i data-lucide="x" class="w-6 h-6"></i></button>
+      </div>
+      <input type="hidden" id="movingItemId">
+      <div id="moveDayListContainer" class="space-y-2 max-h-[50vh] overflow-y-auto pr-1">
+        <!-- 動態生成日子清單 -->
       </div>
     </div>
+  </div>
+
+  <script>
+    // 👈 3. 移動日子的 JS 邏輯，放在另一個 script 標籤內或剛才那個 script 結尾上方都可以
     let currentMovingItemId = null;
 
     function openMoveDayModal(itemId) {
