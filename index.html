@@ -46,12 +46,14 @@
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 
   <!-- Flatpickr 日曆選單套件 -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <link rel="sheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
   <style>
     html, body { height: 100%; height: 100dvh; width: 100%; background-color: #F8F9FA; color: #696969; -webkit-tap-highlight-color: transparent; overflow: hidden; }
-    
+
+    /* 令拖曳中嘅卡片完全不阻擋底層元素探測 */
+    .sortable-drag, .sortable-fallback { pointer-events: none !important; }
     .scrollbar-hide::-webkit-scrollbar { display: none; }
     .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
     .sortable-ghost { opacity: 0.4; }
@@ -1497,52 +1499,52 @@ html += isFlight ? renderFlightCard(item, iconInfo, mapUrl) : renderNormalCard(i
           draggable: '.drag-card', 
           ghostClass: 'sortable-ghost', 
           forceFallback: true,     
-          fallbackOnBody: true,    
+          fallbackOnBody: true,
+          fallbackTolerance: 5, // 👈 關鍵：加 5px 容錯，防止手機碌畫面變成拉卡片
           onEnd: (evt) => { 
-              const originalEvent = evt.originalEvent;
               let clientX, clientY;
-              
-              // 1. 確保安全提取手機/電腦嘅座標
-              if (originalEvent && originalEvent.changedTouches && originalEvent.changedTouches.length > 0) {
-                  clientX = originalEvent.changedTouches[0].clientX;
-                  clientY = originalEvent.changedTouches[0].clientY;
-              } else if (originalEvent && originalEvent.clientX !== undefined) {
-                  clientX = originalEvent.clientX;
-                  clientY = originalEvent.clientY;
-              } else {
-                  // 萬一拎唔到座標，直接做同日排序算數
+              const originalEvent = evt.originalEvent;
+
+              // 1. 確保拎到最準確嘅 X, Y 座標 (兼顧 Touch 同 Mouse)
+              if (originalEvent) {
+                  if (originalEvent.type === 'touchend' || originalEvent.type === 'touchcancel') {
+                      // 手機版：放手嗰一刻嘅座標
+                      clientX = originalEvent.changedTouches[0].clientX;
+                      clientY = originalEvent.changedTouches[0].clientY;
+                  } else {
+                      // 電腦版：Mouse 座標
+                      clientX = originalEvent.clientX;
+                      clientY = originalEvent.clientY;
+                  }
+              }
+
+              // 如果真係拎唔到座標，防呆彈走
+              if (clientX === undefined || clientY === undefined) {
                   reorderData(); 
-                  setTimeout(() => renderItinerary(), 10);
+                  setTimeout(() => renderItinerary(), 10); 
                   return;
               }
 
-              // ⚠️ 關鍵 1：用 visibility='hidden' 代替 display='none'
-              // 咁樣卡片會隱形，但依然霸住個位，防止列表縮水導致日期列移位！
+              // 2. 暫時將卡片隱形 (保留佔位，防止排版縮水)
               evt.item.style.visibility = 'hidden'; 
-
-              // ⚠️ 關鍵 2：強制隱藏跟住手指嗰張「分身卡片」，確保雷達探測唔會被阻擋！
-              const dragClone = document.querySelector('.sortable-drag');
-              if (dragClone) dragClone.style.display = 'none';
-
-              // 發射雷達，探測手指底下係咩元素
+              
+              // 3. 發射雷達！(因為 CSS 加咗 pointer-events: none，今次一定會照得穿)
               const dropTarget = document.elementFromPoint(clientX, clientY);
-
-              // 探測完畢，恢復所有卡片顯示
+              
+              // 探測完畢，還原卡片顯示
               evt.item.style.visibility = ''; 
-              if (dragClone) dragClone.style.display = '';
 
-              // 2. 檢查目標係咪 Day Tab
+              // 4. 判斷係咪 Drop 中咗日期列
               const dayTab = dropTarget ? dropTarget.closest('.day-tab-dropzone') : null;
 
               if (dayTab) {
-                  // 3. 如果係拖咗去其他日期，更新資料庫
                   const targetDayId = parseInt(dayTab.getAttribute('data-day-id'));
                   if (targetDayId !== activeDay) {
                       const draggedItemId = evt.item.getAttribute('data-id');
                       const itemIndex = itineraryData.findIndex(i => i.id === draggedItemId);
                       
                       if (itemIndex > -1) {
-                          // 更改所屬 Day，並將順序設為嗰日嘅最尾
+                          // 更改所屬 Day，排去最尾
                           itineraryData[itemIndex].dayId = targetDayId;
                           const targetDayItems = itineraryData.filter(i => i.dayId === targetDayId && i.tripId === tripId);
                           itineraryData[itemIndex].order = targetDayItems.length > 0 ? Math.max(...targetDayItems.map(i => i.order)) + 1 : 1;
@@ -1550,12 +1552,12 @@ html += isFlight ? renderFlightCard(item, iconInfo, mapUrl) : renderNormalCard(i
                           saveLocalData();
                           renderDateScroller(); 
                           renderItinerary();
-                          return; // 終止執行，唔需要做同日排序
+                          return; // 完成跨日搬運，收工！
                       }
                   }
               }
               
-              // 4. 如果冇跨日，或者冇 drop 中 Tab，就執行原本嘅同日排序邏輯
+              // 5. 如果冇跨日，就做同日排序
               reorderData(); 
               setTimeout(() => renderItinerary(), 10); 
           } 
