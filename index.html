@@ -1032,6 +1032,7 @@ reservationsData = ${JSON.stringify(reservationsData.filter(r => r.tripId === cu
       };
 
       const fpCommonOpts = {
+        disableMobile: true,
         dateFormat: "Y-m-d",
         altInput: true,
         altFormat: "d M y", 
@@ -1058,6 +1059,7 @@ reservationsData = ${JSON.stringify(reservationsData.filter(r => r.tripId === cu
       };
 
       const fpDateTimeOpts = {
+        disableMobile: true,
         enableTime: true,
         dateFormat: "Y-m-d H:i",
         time_24hr: true,
