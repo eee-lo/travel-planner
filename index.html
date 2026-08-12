@@ -418,6 +418,11 @@
         </div>
 
         <div><label class="block text-xs font-medium mb-1 text-primary/70">備註</label><textarea id="rNote" rows="2" class="w-full border border-border rounded-xl p-2.5 text-sm bg-bg outline-none focus:border-accent"></textarea></div>
+      
+        <!-- 📱 手機專用：移動到其他日子按鈕 (只在編輯模式下顯示) -->
+        <button type="button" id="mobileMoveDayBtn" onclick="openMoveDayModalFromActivity()" class="hidden w-full bg-bg border border-border text-primary py-3 rounded-xl text-sm font-bold items-center justify-center gap-2 hover:bg-border/30 transition md:hidden">
+          <i data-lucide="calendar-range" class="w-4 h-4 text-accent"></i> 移動到其他日子
+        </button>
         
         <div class="flex gap-3 mt-2">
           <button type="button" id="deleteResBtn" onclick="confirmResDelete()" class="hidden w-1/3 bg-danger/10 text-danger py-3 rounded-xl text-sm font-bold border border-danger/20 hover:bg-danger hover:text-white transition">刪除</button>
@@ -1600,16 +1605,13 @@ function renderNormalCard(item, iconInfo, mapUrl) {
             <div class="flex-1 w-[2px] bg-border/60 my-1"></div>
           </div>
           <div class="flex-1 bg-card rounded-2xl py-4 pr-3 pl-8 shadow-sm border border-border/60 relative hover:border-accent/30 transition min-w-0">
-            <!-- 拖曳握把 (保留你原有嘅設定) -->
+            <!-- 拖曳握把 -->
             <div class="drag-grip absolute left-1.5 top-1/2 -translate-y-1/2 cursor-grab active:cursor-grabbing p-1.5 text-border hover:text-primary/50 transition z-10">
                 <i data-lucide="grip-vertical" class="w-4 h-4"></i>
             </div>
 
-            <!-- 右上角按鈕區 (編輯 + 📱 手機專用：跨日移動掣) -->
+            <!-- 右上角只保留編輯按鈕 -->
             <div class="absolute top-3 right-2 flex items-center gap-1 z-10">
-                <button onclick="openMoveDayModal('${item.id}')" class="p-1.5 text-accent hover:text-primary bg-accent/10 rounded-md md:hidden" title="移動到其他日子">
-                    <i data-lucide="calendar-range" class="w-4 h-4"></i>
-                </button>
                 <button onclick="openModal('activityModal', '${item.id}')" class="p-1.5 text-primary/30 hover:text-accent rounded-md hover:bg-bg">
                     <i data-lucide="more-horizontal" class="w-5 h-5"></i>
                 </button>
@@ -2567,6 +2569,7 @@ function openModal(modalId, id = null) {
       }
       else if (modalId === 'activityModal') {
         const form = document.getElementById('activityForm');
+        checkActivityModalMode(!!id);
         if (id) {
           document.getElementById('modalTitle').innerText = '編輯行程'; document.getElementById('deleteBtn').classList.remove('hidden');
           const item = itineraryData.find(i => i.id === id);
@@ -2657,8 +2660,32 @@ function openModal(modalId, id = null) {
   </div>
 
   <script>
-    // 👈 3. 移動日子的 JS 邏輯，放在另一個 script 標籤內或剛才那個 script 結尾上方都可以
+    // 👈 3. 移動日子的 JS 邏輯
     let currentMovingItemId = null;
+
+    // 當開啟 Activity Modal 時，如果是編輯狀態，顯示「移動到其他日子」按鈕
+    // (你可以加在 openModal 裡面當 modalId === 'activityModal' 的地方)
+    function checkActivityModalMode(isEdit) {
+        const moveBtn = document.getElementById('mobileMoveDayBtn');
+        if (!moveBtn) return;
+        if (isEdit) {
+            moveBtn.classList.remove('hidden');
+            moveBtn.classList.add('flex');
+        } else {
+            moveBtn.classList.add('hidden');
+            moveBtn.classList.remove('flex');
+        }
+    }
+
+    function openMoveDayModalFromActivity() {
+        const editId = document.getElementById('editId').value;
+        if (!editId) return;
+        
+        // 先關閉原本的 Activity Modal
+        closeModal('activityModal');
+        // 打開選擇日子的 Modal
+        openMoveDayModal(editId);
+    }
 
     function openMoveDayModal(itemId) {
         currentMovingItemId = itemId;
@@ -2666,12 +2693,16 @@ function openModal(modalId, id = null) {
         const tripDays = daysData.filter(d => d.tripId === tripId);
         const container = document.getElementById('moveDayListContainer');
         
+        // 統一字型大小與排版，解決置中與 font size 不一致問題
         container.innerHTML = tripDays.map(day => {
             const isCurrent = day.id === activeDay;
             return `
-                <button onclick="executeMoveToDay(${day.id})" class="w-full flex items-center justify-between p-3 rounded-xl border ${isCurrent ? 'bg-accent/10 border-accent text-accent font-bold' : 'bg-bg border-border/50 text-primary hover:bg-border/20'} transition">
-                    <span>Day ${day.id} (${day.dow} ${parseDateToDDMM(day.dateStr)})</span>
-                    <span class="text-xs opacity-70">${day.overview || day.location || ''}</span>
+                <button onclick="executeMoveToDay(${day.id})" class="w-full text-left flex items-center justify-between p-3.5 rounded-xl border ${isCurrent ? 'bg-accent/10 border-accent text-accent font-bold' : 'bg-bg border-border/50 text-primary hover:bg-border/25'} transition">
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm font-bold">Day ${day.id}</span>
+                        <span class="text-xs opacity-70">(${day.dow} ${parseDateToDDMM(day.dateStr)})</span>
+                    </div>
+                    <span class="text-xs opacity-60 truncate max-w-[120px]">${day.overview || day.location || ''}</span>
                 </button>
             `;
         }).join('');
